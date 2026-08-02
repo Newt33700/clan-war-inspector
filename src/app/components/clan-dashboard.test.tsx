@@ -7,7 +7,7 @@
 import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { http, HttpResponse } from 'msw';
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { setMockResponse } from '@/mocks/handlers';
 import {
   FIXTURE_EMPTY_CLAN,
@@ -268,6 +268,65 @@ describe('ClanDashboard', () => {
         .getAllByTestId('member-row')
         .map((row) => within(row).getAllByRole('cell')[0]?.textContent);
       expect(afterRows).toEqual(beforeRows);
+    });
+  });
+
+  describe('US 6.6 : combinateur ET/OU et export de la vue A expulser', () => {
+    async function loadPurgeReady() {
+      const heading = await screen.findByRole('heading', { name: /^a expulser$/i });
+      return heading.closest('section')!;
+    }
+
+    it('bascule ET/OU et recalcule la liste des candidats', async () => {
+      setMockResponse('clan', FIXTURE_FULL_CLAN);
+      setMockResponse('riverRaceLog', FIXTURE_RIVER_RACE_LOG);
+      render(<ClanDashboard />);
+      const user = await submitTag('#20PP');
+      const purgeSection = await loadPurgeReady();
+
+      // ET (par defaut) : Joueur 3 a des dons non nuls, donc pas candidat.
+      expect(
+        within(purgeSection).getByText(/aucun joueur problematique/i),
+      ).toBeInTheDocument();
+
+      await user.selectOptions(
+        within(purgeSection).getByLabelText(/combinaison des criteres/i),
+        'OR',
+      );
+
+      // OU : Joueur 3 (5 combats < 8) devient candidat sur ce seul critere.
+      expect(within(purgeSection).getByText('Joueur 3')).toBeInTheDocument();
+    });
+
+    it('copie la liste des candidats et affiche une confirmation', async () => {
+      setMockResponse('clan', FIXTURE_FULL_CLAN);
+      setMockResponse('riverRaceLog', FIXTURE_RIVER_RACE_LOG);
+      render(<ClanDashboard />);
+      const user = await submitTag('#20PP');
+      const purgeSection = await loadPurgeReady();
+
+      // Definie apres userEvent.setup() (dans submitTag) : celui-ci installe
+      // son propre stub de presse-papiers qui ecraserait un mock pose avant.
+      const writeText = vi.fn().mockResolvedValue(undefined);
+      Object.defineProperty(navigator, 'clipboard', {
+        value: { writeText },
+        configurable: true,
+      });
+
+      await user.selectOptions(
+        within(purgeSection).getByLabelText(/combinaison des criteres/i),
+        'OR',
+      );
+      await within(purgeSection).findByText('Joueur 3');
+
+      await user.click(
+        within(purgeSection).getByRole('button', { name: /copier la liste/i }),
+      );
+
+      expect(writeText).toHaveBeenCalledWith(
+        'Joueur 3 (#PLAYER3) - Combats de guerre insuffisants',
+      );
+      expect(await within(purgeSection).findByText(/liste copiee/i)).toBeInTheDocument();
     });
   });
 

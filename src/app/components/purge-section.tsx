@@ -6,12 +6,19 @@
  * d'inclusion affiche pour chaque joueur.
  */
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import type { ClanMember } from '@/domain/clan/members';
-import { findPurgeCandidates, PURGE_REASON_LABELS } from '@/domain/clan/purge';
+import {
+  findPurgeCandidates,
+  PURGE_REASON_LABELS,
+  type PurgeCombinator,
+} from '@/domain/clan/purge';
+import { formatPurgeCandidatesForClipboard } from '@/lib/purge-export';
 import type { PlayerAttendance } from '@/domain/war/war-history';
 
 const DEFAULT_MIN_WAR_BATTLES = 8;
+const EXPECTED_WEEKLY_BATTLES = 16;
+const COPY_CONFIRMATION_MS = 2000;
 
 interface PurgeSectionProps {
   members: readonly ClanMember[];
@@ -22,11 +29,32 @@ interface PurgeSectionProps {
 
 export function PurgeSection({ members, attendance, ready }: PurgeSectionProps) {
   const [minWarBattles, setMinWarBattles] = useState(DEFAULT_MIN_WAR_BATTLES);
+  const [combinator, setCombinator] = useState<PurgeCombinator>('AND');
+  const [copyState, setCopyState] = useState<'idle' | 'copied' | 'error'>('idle');
 
   const candidates = useMemo(
-    () => findPurgeCandidates(members, attendance, { minWarBattles }),
-    [members, attendance, minWarBattles],
+    () => findPurgeCandidates(members, attendance, { minWarBattles, combinator }),
+    [members, attendance, minWarBattles, combinator],
   );
+
+  // Confirmation transitoire du bouton copier (US 6.6), nettoyee si on
+  // recopie avant la fin du delai ou si le composant se demonte.
+  useEffect(() => {
+    if (copyState === 'idle') {
+      return;
+    }
+    const timer = setTimeout(() => setCopyState('idle'), COPY_CONFIRMATION_MS);
+    return () => clearTimeout(timer);
+  }, [copyState]);
+
+  async function handleCopy() {
+    try {
+      await navigator.clipboard.writeText(formatPurgeCandidatesForClipboard(candidates));
+      setCopyState('copied');
+    } catch {
+      setCopyState('error');
+    }
+  }
 
   if (!ready) {
     return null;
@@ -42,7 +70,19 @@ export function PurgeSection({ members, attendance, ready }: PurgeSectionProps) 
       </h2>
 
       <p className="text-royale-parchment-dim text-sm">
-        Joueurs cumulant zero don et moins de
+        Joueurs cumulant zero don
+        <label className="mx-2 inline-flex items-center gap-1">
+          <select
+            value={combinator}
+            onChange={(event) => setCombinator(event.target.value as PurgeCombinator)}
+            aria-label="Combinaison des criteres"
+            className="border-royale-blue-800 bg-royale-navy-900 text-royale-parchment rounded-md border px-2 py-1"
+          >
+            <option value="AND">ET</option>
+            <option value="OR">OU</option>
+          </select>
+        </label>
+        moins de
         <label className="mx-2 inline-flex items-center gap-1">
           <input
             type="number"
@@ -57,8 +97,31 @@ export function PurgeSection({ members, attendance, ready }: PurgeSectionProps) 
             className="border-royale-blue-800 bg-royale-navy-900 text-royale-parchment w-16 rounded-md border px-2 py-1 text-right"
           />
         </label>
-        combats de guerre sur la periode connue.
+        combats de guerre sur la periode connue ({EXPECTED_WEEKLY_BATTLES} attendus par
+        semaine).
       </p>
+
+      {candidates.length > 0 && (
+        <div className="flex items-center gap-3">
+          <button
+            type="button"
+            onClick={handleCopy}
+            className="border-royale-gold-400 text-royale-gold-400 rounded-md border px-3 py-1 text-sm font-semibold"
+          >
+            Copier la liste
+          </button>
+          {copyState === 'copied' && (
+            <span role="status" className="text-royale-green-500 text-sm">
+              Liste copiee !
+            </span>
+          )}
+          {copyState === 'error' && (
+            <span role="alert" className="text-royale-red-500 text-sm">
+              Impossible de copier.
+            </span>
+          )}
+        </div>
+      )}
 
       {candidates.length === 0 ? (
         <p className="text-royale-green-500">
