@@ -12,6 +12,7 @@ import { setMockResponse } from '@/mocks/handlers';
 import {
   FIXTURE_EMPTY_CLAN,
   FIXTURE_FULL_CLAN,
+  FIXTURE_PLAYER_PROFILE,
   FIXTURE_RIVER_RACE_IDLE,
   FIXTURE_RIVER_RACE_LOG,
 } from '@/mocks/fixtures';
@@ -393,6 +394,27 @@ describe('ClanDashboard', () => {
         'Joueur 3 (#PLAYER3) - Combats de guerre insuffisants',
       );
       expect(await within(purgeSection).findByText(/liste copiee/i)).toBeInTheDocument();
+    });
+  });
+
+  describe('US 9 : panneau d inspection joueur', () => {
+    it('ouvre le panneau avec le profil au clic sur une ligne, et le ferme', async () => {
+      setMockResponse('clan', FIXTURE_FULL_CLAN);
+      setMockResponse('playerProfile', FIXTURE_PLAYER_PROFILE);
+      render(<ClanDashboard />);
+      const user = await submitTag('#20PP');
+
+      const rows = await screen.findAllByTestId('member-row');
+      await user.click(within(rows[0]!).getByRole('button', { name: /joueur 1/i }));
+
+      const drawer = screen.getByRole('heading', { name: /profil joueur/i }).closest(
+        'aside',
+      )!;
+      await within(drawer).findByText('500');
+
+      await user.click(within(drawer).getByRole('button', { name: /fermer/i }));
+
+      expect(drawer).toHaveAttribute('aria-hidden', 'true');
     });
   });
 
