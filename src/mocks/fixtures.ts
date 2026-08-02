@@ -60,27 +60,128 @@ export const FIXTURE_EMPTY_CLAN: ClanInfo = {
   memberList: [],
 };
 
-/** Historique de guerre (river race log) avec une semaine complète. */
+/**
+ * Historique de guerre (river race log) au format reel de l'API :
+ * 2 semaines, ordonnees de la plus recente a la plus ancienne.
+ * - Joueur 4 : present semaine recente seulement (arrive en cours de route)
+ * - Joueur 5 : present semaine ancienne seulement (a quitte le clan)
+ */
 export const FIXTURE_RIVER_RACE_LOG: RiverRaceLog = {
-  seasonId: 1,
-  createdDate: '20260801T000000.000Z',
-  finishTime: '20260802T000000.000Z',
-  standings: [
+  items: [
     {
-      clan: {
-        tag: '#20PP',
-        name: 'Test Clan',
-        badgeUrls: {
-          small: 'https://example.com/badges/small.png',
-          large: 'https://example.com/badges/large.png',
-          medium: 'https://example.com/badges/medium.png',
+      seasonId: 107,
+      sectionIndex: 3,
+      createdDate: '20260727T093602.000Z',
+      standings: [
+        {
+          rank: 1,
+          trophyChange: 200,
+          clan: {
+            tag: '#20PP',
+            name: 'Test Clan',
+            participants: [
+              {
+                tag: '#PLAYER1',
+                name: 'Joueur 1',
+                fame: 3200,
+                repairPoints: 0,
+                boatAttacks: 5,
+                decksUsed: 16,
+                decksUsedToday: 0,
+              },
+              {
+                tag: '#PLAYER2',
+                name: 'Joueur 2',
+                fame: 2100,
+                repairPoints: 0,
+                boatAttacks: 2,
+                decksUsed: 12,
+                decksUsedToday: 0,
+              },
+              {
+                tag: '#PLAYER3',
+                name: 'Joueur 3',
+                fame: 800,
+                repairPoints: 0,
+                boatAttacks: 0,
+                decksUsed: 5,
+                decksUsedToday: 0,
+              },
+              {
+                tag: '#PLAYER4',
+                name: 'Joueur 4',
+                fame: 0,
+                repairPoints: 0,
+                boatAttacks: 0,
+                decksUsed: 0,
+                decksUsedToday: 0,
+              },
+            ],
+          },
         },
-      },
-      clanScore: 1000,
-      participants: [
-        { tag: '#PLAYER1', name: 'Joueur 1', wins: 16 },
-        { tag: '#PLAYER2', name: 'Joueur 2', wins: 12 },
-        { tag: '#PLAYER3', name: 'Joueur 3', wins: 5 },
+        {
+          rank: 2,
+          trophyChange: 100,
+          clan: {
+            tag: '#RIVAL',
+            name: 'Clan Rival',
+            participants: [
+              {
+                tag: '#ENEMY1',
+                name: 'Ennemi 1',
+                fame: 2000,
+                repairPoints: 0,
+                boatAttacks: 1,
+                decksUsed: 14,
+                decksUsedToday: 0,
+              },
+            ],
+          },
+        },
+      ],
+    },
+    {
+      seasonId: 107,
+      sectionIndex: 2,
+      createdDate: '20260720T093602.000Z',
+      standings: [
+        {
+          rank: 3,
+          trophyChange: -100,
+          clan: {
+            tag: '#20PP',
+            name: 'Test Clan',
+            participants: [
+              {
+                tag: '#PLAYER1',
+                name: 'Joueur 1',
+                fame: 3300,
+                repairPoints: 0,
+                boatAttacks: 4,
+                decksUsed: 16,
+                decksUsedToday: 0,
+              },
+              {
+                tag: '#PLAYER2',
+                name: 'Joueur 2',
+                fame: 1700,
+                repairPoints: 0,
+                boatAttacks: 1,
+                decksUsed: 9,
+                decksUsedToday: 0,
+              },
+              {
+                tag: '#PLAYER5',
+                name: 'Ancien Membre',
+                fame: 400,
+                repairPoints: 0,
+                boatAttacks: 0,
+                decksUsed: 3,
+                decksUsedToday: 0,
+              },
+            ],
+          },
+        },
       ],
     },
   ],

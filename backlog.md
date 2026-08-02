@@ -223,16 +223,29 @@ Critères d'acceptation :
 
 ---
 
-## 3. Ordre de réalisation recommandé
+## 3. Ordre de réalisation et avancement
 
-1. **US 1.1** — socle du projet
-2. **US 1.3** — outillage de test (indispensable pour faire du TDD dès la suite)
-3. **US 1.2** — MSW et fixtures
-4. **US 1.5** — proxy API sécurisé
-5. **US 2.1** — CI bloquante (les seuils doivent mordre le plus tôt possible)
-6. **US 4.2** — moteur de calcul, le cœur de valeur, développé en pur TDD
-7. **US 3.1 / 3.2** — dashboard membres
-8. **US 4.3 / 4.4** — restitution de l'historique et alertes
-9. **US 1.4** — Playwright (peut être avancé si l'on veut de l'E2E dès le dashboard)
-10. **US 4.1** — suivi en direct
-11. **US 5.1** — vue de purge
+1. ✅ **US 1.1** — socle du projet
+2. ✅ **US 1.3** — outillage de test (Vitest 80 % / domaine 100 %, Stryker 90 %)
+3. ✅ **US 1.2** — MSW et fixtures (format API réel : `items[].standings[].clan.participants[].decksUsed`)
+4. ✅ **US 1.5** — proxy API sécurisé (mutation 100 %)
+5. ✅ **US 2.1** — CI bloquante GitHub Actions (lint, types, couverture, Stryker, build)
+6. ✅ **US 4.2** — moteur de calcul `domain/war/war-history` (couverture 100 %, mutation 98 %, 5 mutants équivalents documentés)
+7. ⬜ **US 3.1 / 3.2** — dashboard membres
+8. ⬜ **US 4.3 / 4.4** — restitution de l'historique et alertes
+9. ⬜ **US 1.4** — Playwright (peut être avancé si l'on veut de l'E2E dès le dashboard)
+10. ⬜ **US 4.1** — suivi en direct
+11. ⬜ **US 5.1** — vue de purge
+
+### Décisions techniques prises en cours de route
+
+- **Comptage des combats** : `decksUsed` est la source officielle ; `wins`
+  accepté en secours. Valeurs bornées dans [0, 16], aberrantes écrêtées.
+- **Tags joueurs** : canonicalisés (casse, dièses, espaces) mais **non
+  validés** contre l'alphabet Supercell — une donnée machine ne fait jamais
+  perdre un participant. Le tag de **clan** (saisie humaine) reste validé
+  strictement par `normalizeClanTag`.
+- **Doublons de tag** dans une semaine : fusion en gardant le décompte le
+  plus élevé (ne jamais sous-évaluer l'assiduité).
+- **`null` vs `0`** dans `battlesByWeek` : `null` = pas membre cette
+  semaine-là, `0` = présent mais aucun combat joué (exigence US 4.3).

@@ -59,7 +59,8 @@ src/
   app/            # UI et routes Next.js (App Router)
     api/          # Route Handlers - proxy Supercell (US 1.5)
   domain/         # Logique metier pure : aucun import React, aucun fetch
-    clan/         # Tags, membres, tris
+    clan/         # Tags de clan (normalisation, validation)
+    war/          # Moteur d'historique de guerre (US 4.2)
   hooks/          # Hooks React reutilisables
   mocks/          # Handlers MSW et fixtures (US 1.2)
 ```
@@ -77,8 +78,9 @@ Le detail des epiques et des criteres d'acceptation est dans [`backlog.md`](./ba
 - [x] **US 1.2** Mocking MSW
 - [x] **US 1.5** Proxy API securise
 - [x] **US 2.1** Pipeline CI bloquante (GitHub Actions)
+- [x] **US 4.2** Moteur de calcul de l'historique (100 % couverture, 98 % mutation)
 - [ ] **US 1.4** Stack E2E Playwright
-- [ ] Epiques 3 a 5
+- [ ] Epiques 3 et 5, US 4.1 / 4.3 / 4.4
 
 ## Convention de developpement
 

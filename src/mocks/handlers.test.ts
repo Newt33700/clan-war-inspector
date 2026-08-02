@@ -49,10 +49,11 @@ describe('MSW handlers', () => {
       expect(FIXTURE_EMPTY_CLAN.memberList.length).toBe(0);
     });
 
-    it('FIXTURE_RIVER_RACE_LOG contient lhistorique', () => {
-      expect(FIXTURE_RIVER_RACE_LOG.standings.length).toBe(1);
-      expect(FIXTURE_RIVER_RACE_LOG.standings[0]?.participants.length).toBe(3);
-      expect(FIXTURE_RIVER_RACE_LOG.standings[0]?.participants[0]?.wins).toBe(16);
+    it('FIXTURE_RIVER_RACE_LOG contient lhistorique au format API reel', () => {
+      expect(FIXTURE_RIVER_RACE_LOG.items.length).toBe(2);
+      const week = FIXTURE_RIVER_RACE_LOG.items[0];
+      expect(week?.standings[0]?.clan.participants.length).toBe(4);
+      expect(week?.standings[0]?.clan.participants[0]?.decksUsed).toBe(16);
     });
 
     it('FIXTURE_RIVER_RACE_IN_PROGRESS represente une guerre en cours', () => {

@@ -36,24 +36,34 @@ export interface ClanInfo {
 export interface RiverRaceParticipant {
   tag: string;
   name: string;
-  wins: number;
+  fame: number;
+  repairPoints: number;
+  boatAttacks: number;
+  /** Nombre de combats joues sur la semaine (0 a 16) : la donnee centrale. */
+  decksUsed: number;
+  decksUsedToday: number;
 }
 
 export interface RiverRaceStanding {
+  rank: number;
+  trophyChange: number;
   clan: {
     tag: string;
     name: string;
-    badgeUrls: { small: string; large: string; medium: string };
+    participants: RiverRaceParticipant[];
   };
-  clanScore: number;
-  participants: RiverRaceParticipant[];
 }
 
-export interface RiverRaceLog {
+export interface RiverRaceLogEntry {
   seasonId: number;
+  sectionIndex: number;
   createdDate: string;
-  finishTime?: string;
   standings: RiverRaceStanding[];
+}
+
+/** Forme reelle de GET /clans/{tag}/riverracelog : une page d'items. */
+export interface RiverRaceLog {
+  items: RiverRaceLogEntry[];
 }
 
 export interface RiverRace {
