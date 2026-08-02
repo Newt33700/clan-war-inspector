@@ -6,13 +6,16 @@
  * message d'erreur sont verrouillees par les tests.
  */
 
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 
 export type ApiResourceState<T> =
   | { status: 'idle' }
   | { status: 'loading' }
   | { status: 'error'; message: string }
   | { status: 'success'; data: T };
+
+/** Etat de la ressource, plus la capacite de relancer le chargement (US 6.3). */
+export type ApiResource<T> = ApiResourceState<T> & { refetch: () => void };
 
 type UnknownRecord = Record<string, unknown>;
 
@@ -37,9 +40,13 @@ export function readApiErrorMessage(payload: unknown, status: number): string {
 /**
  * Charge `path` (relatif au site) et expose l'etat du cycle de vie.
  * `null` met le hook au repos ; changer de chemin relance le chargement.
+ * `refetch` relance un chargement sur le meme chemin (US 6.3), utile pour
+ * reessayer une ressource en erreur sans re-soumettre tout le formulaire.
  */
-export function useApiResource<T>(path: string | null): ApiResourceState<T> {
+export function useApiResource<T>(path: string | null): ApiResource<T> {
   const [state, setState] = useState<ApiResourceState<T>>({ status: 'idle' });
+  const [attempt, setAttempt] = useState(0);
+  const refetch = useCallback(() => setAttempt((current) => current + 1), []);
 
   useEffect(() => {
     if (path === null) {
@@ -79,7 +86,7 @@ export function useApiResource<T>(path: string | null): ApiResourceState<T> {
     return () => {
       controller.abort();
     };
-  }, [path]);
+  }, [path, attempt]);
 
-  return state;
+  return { ...state, refetch };
 }

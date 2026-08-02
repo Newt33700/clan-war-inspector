@@ -14,11 +14,11 @@ import {
   sortByUrgency,
 } from '@/domain/war/current-war';
 import { BATTLES_PER_WAR_WEEK } from '@/domain/war/war-history';
-import type { ApiResourceState } from '@/hooks/use-api-resource';
+import type { ApiResource } from '@/hooks/use-api-resource';
 
 interface CurrentWarSectionProps {
   /** Etat du chargement de /currentriverrace, pilote par le dashboard. */
-  warState: ApiResourceState<unknown>;
+  warState: ApiResource<unknown>;
   /** Tags des membres actuels, pour reperer les partis en cours de guerre. */
   memberTags: readonly string[];
 }
@@ -77,9 +77,18 @@ export function CurrentWarSection({ warState, memberTags }: CurrentWarSectionPro
       )}
 
       {warState.status === 'error' && (
-        <p role="alert" className="text-royale-red-500">
-          {warState.message}
-        </p>
+        <div className="space-y-2">
+          <p role="alert" className="text-royale-red-500">
+            {warState.message}
+          </p>
+          <button
+            type="button"
+            onClick={warState.refetch}
+            className="border-royale-gold-400 text-royale-gold-400 rounded-md border px-3 py-1 text-sm font-semibold"
+          >
+            Reessayer
+          </button>
+        </div>
       )}
 
       {war !== null &&

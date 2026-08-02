@@ -9,7 +9,12 @@ import userEvent from '@testing-library/user-event';
 import { http, HttpResponse } from 'msw';
 import { afterEach, describe, expect, it } from 'vitest';
 import { setMockResponse } from '@/mocks/handlers';
-import { FIXTURE_EMPTY_CLAN, FIXTURE_FULL_CLAN } from '@/mocks/fixtures';
+import {
+  FIXTURE_EMPTY_CLAN,
+  FIXTURE_FULL_CLAN,
+  FIXTURE_RIVER_RACE_IDLE,
+  FIXTURE_RIVER_RACE_LOG,
+} from '@/mocks/fixtures';
 import { mockServer } from '@/mocks/server';
 import { ClanDashboard } from './clan-dashboard';
 
@@ -202,6 +207,77 @@ describe('ClanDashboard', () => {
     resolveClanResponse(HttpResponse.json(FIXTURE_FULL_CLAN));
     await waitFor(() => {
       expect(screen.getAllByTestId('member-row')).toHaveLength(3);
+    });
+  });
+
+  describe('US 6.3 : reprise apres erreur, section par section', () => {
+    it('reessaie uniquement le clan sans re-soumettre le formulaire', async () => {
+      // Pas de mock configure : le handler global repond 404.
+      render(<ClanDashboard />);
+      const user = await submitTag('#20PP');
+
+      const alertsBefore = await screen.findAllByRole('alert');
+      expect(alertsBefore).toHaveLength(1);
+
+      setMockResponse('clan', FIXTURE_FULL_CLAN);
+      await user.click(screen.getByRole('button', { name: /reessayer/i }));
+
+      const rows = await screen.findAllByTestId('member-row');
+      expect(rows).toHaveLength(3);
+    });
+
+    it('reessaie la guerre en cours sans recharger membres ni historique', async () => {
+      setMockResponse('clan', FIXTURE_FULL_CLAN);
+      // currentRiverRace et riverRaceLog restent non configures (404).
+      render(<ClanDashboard />);
+      const user = await submitTag('#20PP');
+
+      await screen.findAllByTestId('member-row');
+      const warSection = screen
+        .getByRole('heading', { name: /guerre en cours/i })
+        .closest('section')!;
+      await waitFor(() => {
+        expect(within(warSection).getByRole('alert')).toBeInTheDocument();
+      });
+
+      setMockResponse('currentRiverRace', FIXTURE_RIVER_RACE_IDLE);
+      await user.click(within(warSection).getByRole('button', { name: /reessayer/i }));
+
+      await waitFor(() => {
+        expect(
+          within(warSection).getByText(/n est pas en guerre actuellement/i),
+        ).toBeInTheDocument();
+      });
+      // L'historique, toujours en erreur, n'a pas ete affecte par ce reessai.
+      const historySection = screen
+        .getByRole('heading', { name: /historique des guerres/i })
+        .closest('section')!;
+      expect(within(historySection).getByRole('alert')).toBeInTheDocument();
+    });
+
+    it('reessaie l historique sans recharger la guerre en cours', async () => {
+      setMockResponse('clan', FIXTURE_FULL_CLAN);
+      render(<ClanDashboard />);
+      const user = await submitTag('#20PP');
+
+      await screen.findAllByTestId('member-row');
+      const historySection = screen
+        .getByRole('heading', { name: /historique des guerres/i })
+        .closest('section')!;
+      await waitFor(() => {
+        expect(within(historySection).getByRole('alert')).toBeInTheDocument();
+      });
+
+      setMockResponse('riverRaceLog', FIXTURE_RIVER_RACE_LOG);
+      await user.click(
+        within(historySection).getByRole('button', { name: /reessayer/i }),
+      );
+
+      await waitFor(() => {
+        expect(
+          within(historySection).getAllByTestId('history-row').length,
+        ).toBeGreaterThan(0);
+      });
     });
   });
 });

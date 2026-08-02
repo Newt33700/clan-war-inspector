@@ -20,7 +20,7 @@ import {
   filterCurrentMembers,
   type WarWeek,
 } from '@/domain/war/war-history';
-import type { ApiResourceState } from '@/hooks/use-api-resource';
+import type { ApiResource } from '@/hooks/use-api-resource';
 
 const LEVEL_TEXT_CLASSES: Record<AttendanceLevel, string> = {
   complete: 'text-royale-gold-400',
@@ -80,7 +80,7 @@ function BattleCell({ battles }: { battles: number | null }) {
 
 interface WarHistorySectionProps {
   /** Etat du chargement de /riverracelog, pilote par le dashboard. */
-  logState: ApiResourceState<unknown>;
+  logState: ApiResource<unknown>;
   clanTag: string;
   /** Tags des membres actuels : les joueurs partis sont exclus du tableau. */
   currentMemberTags: readonly string[];
@@ -122,9 +122,18 @@ export function WarHistorySection({
       )}
 
       {logState.status === 'error' && (
-        <p role="alert" className="text-royale-red-500">
-          {logState.message}
-        </p>
+        <div className="space-y-2">
+          <p role="alert" className="text-royale-red-500">
+            {logState.message}
+          </p>
+          <button
+            type="button"
+            onClick={logState.refetch}
+            className="border-royale-gold-400 text-royale-gold-400 rounded-md border px-3 py-1 text-sm font-semibold"
+          >
+            Reessayer
+          </button>
+        </div>
       )}
 
       {history !== null &&

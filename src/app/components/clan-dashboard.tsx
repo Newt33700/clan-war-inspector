@@ -158,9 +158,18 @@ export function ClanDashboard() {
         )}
 
         {clanState.status === 'error' && (
-          <p role="alert" className="text-royale-red-500">
-            {clanState.message}
-          </p>
+          <div className="space-y-2">
+            <p role="alert" className="text-royale-red-500">
+              {clanState.message}
+            </p>
+            <button
+              type="button"
+              onClick={clanState.refetch}
+              className="border-royale-gold-400 text-royale-gold-400 rounded-md border px-3 py-1 text-sm font-semibold"
+            >
+              Reessayer
+            </button>
+          </div>
         )}
 
         {summary !== null && <ClanHeader summary={summary} />}
