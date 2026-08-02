@@ -9,6 +9,7 @@
  */
 
 import { normalizeClanTag } from '../clan/clan-tag';
+import type { SortDirection } from '../clan/members';
 import { canonicalizePlayerTag } from '../clan/player-tag';
 import { clampCount } from './clamp';
 
@@ -249,4 +250,45 @@ export function filterCurrentMembers(
 export function buildClanWarHistory(raw: unknown, clanTag: string): ClanWarHistory {
   const weeks = parseRiverRaceLog(raw, clanTag);
   return { weeks, players: computeAttendance(weeks) };
+}
+
+export type AttendanceSortKey = 'total' | 'average';
+
+/**
+ * Trie l'assiduite (US 6.7) sans muter l'entree, meme mecanique que
+ * `sortMembers` (US 3.2) : tie-break nom puis tag, toujours ascendant.
+ */
+export function sortPlayerAttendance(
+  players: readonly PlayerAttendance[],
+  key: AttendanceSortKey,
+  direction: SortDirection,
+): PlayerAttendance[] {
+  return [...players].sort((a, b) => {
+    const comparison =
+      key === 'total'
+        ? a.totalBattles - b.totalBattles
+        : a.averagePerPresentWeek - b.averagePerPresentWeek;
+    const primary = direction === 'asc' ? comparison : -comparison;
+    if (primary !== 0) {
+      return primary;
+    }
+    return a.name.localeCompare(b.name) || a.tag.localeCompare(b.tag);
+  });
+}
+
+/**
+ * Formate la date compacte Supercell (`createdDate`, ex.
+ * `20260727T093602.000Z`) en date lisible `JJ/MM/AAAA` (US 6.7), pour
+ * l'info-bulle des en-tetes de semaine. `null` si absente ou illisible.
+ */
+export function formatWarWeekPeriod(createdDate: string | null): string | null {
+  if (createdDate === null) {
+    return null;
+  }
+  const match = /^(\d{4})(\d{2})(\d{2})T/.exec(createdDate);
+  if (match === null) {
+    return null;
+  }
+  const [, year, month, day] = match;
+  return `${day}/${month}/${year}`;
 }

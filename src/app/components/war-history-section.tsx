@@ -7,7 +7,7 @@
  * explicite, et l'alerte n'est jamais portee par la seule couleur.
  */
 
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import {
   classifyBattleCount,
   LEVEL_LABELS,
@@ -18,9 +18,17 @@ import {
   BATTLES_PER_WAR_WEEK,
   buildClanWarHistory,
   filterCurrentMembers,
+  formatWarWeekPeriod,
+  sortPlayerAttendance,
+  type AttendanceSortKey,
   type WarWeek,
 } from '@/domain/war/war-history';
+import type { SortDirection } from '@/domain/clan/members';
 import type { ApiResource } from '@/hooks/use-api-resource';
+
+// Au-dela de ce nombre de semaines, le tableau depasse la largeur visible
+// sur la plupart des ecrans : un indice de scroll horizontal est ajoute.
+const SCROLL_HINT_MIN_WEEKS = 4;
 
 const LEVEL_TEXT_CLASSES: Record<AttendanceLevel, string> = {
   complete: 'text-royale-gold-400',
@@ -91,6 +99,9 @@ export function WarHistorySection({
   clanTag,
   currentMemberTags,
 }: WarHistorySectionProps) {
+  const [sortKey, setSortKey] = useState<AttendanceSortKey | null>(null);
+  const [direction, setDirection] = useState<SortDirection>('asc');
+
   const history = useMemo(
     () =>
       logState.status === 'success' ? buildClanWarHistory(logState.data, clanTag) : null,
@@ -101,6 +112,22 @@ export function WarHistorySection({
       history === null ? [] : filterCurrentMembers(history.players, currentMemberTags),
     [history, currentMemberTags],
   );
+  const sortedPlayers = useMemo(
+    () =>
+      sortKey === null
+        ? currentPlayers
+        : sortPlayerAttendance(currentPlayers, sortKey, direction),
+    [currentPlayers, sortKey, direction],
+  );
+
+  function handleSortChange(key: AttendanceSortKey) {
+    if (key === sortKey) {
+      setDirection((current) => (current === 'asc' ? 'desc' : 'asc'));
+      return;
+    }
+    setSortKey(key);
+    setDirection('asc');
+  }
 
   if (logState.status === 'idle') {
     return null;
@@ -146,61 +173,107 @@ export function WarHistorySection({
             Aucun membre actuel n a d historique de guerre sur cette periode.
           </p>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full border-collapse text-sm">
-              <caption className="sr-only">
-                Combats joues sur {BATTLES_PER_WAR_WEEK} par joueur et par semaine
-              </caption>
-              <thead>
-                <tr className="border-royale-blue-800 text-royale-parchment-dim border-b uppercase">
-                  <th scope="col" className="px-3 py-2 text-left">
-                    Joueur
-                  </th>
-                  {history.weeks.map((week) => (
-                    <th key={week.weekId} scope="col" className="px-3 py-2">
-                      {weekLabel(week)}
+          <div className="space-y-1">
+            {history.weeks.length > SCROLL_HINT_MIN_WEEKS && (
+              <p
+                aria-hidden="true"
+                className="text-royale-parchment-dim text-right text-xs"
+              >
+                Faites glisser pour voir plus de semaines →
+              </p>
+            )}
+            <div className="overflow-x-auto">
+              <table className="w-full border-collapse text-sm">
+                <caption className="sr-only">
+                  Combats joues sur {BATTLES_PER_WAR_WEEK} par joueur et par semaine
+                </caption>
+                <thead>
+                  <tr className="border-royale-blue-800 text-royale-parchment-dim border-b uppercase">
+                    <th scope="col" className="px-3 py-2 text-left">
+                      Joueur
                     </th>
-                  ))}
-                  <th scope="col" className="px-3 py-2 text-right">
-                    Total
-                  </th>
-                  <th scope="col" className="px-3 py-2 text-right">
-                    Moyenne
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {currentPlayers.map((player) => (
-                  <tr
-                    key={player.tag}
-                    data-testid="history-row"
-                    className="border-royale-blue-800/40 text-royale-parchment border-b"
-                  >
-                    <th scope="row" className="px-3 py-2 text-left font-normal">
-                      {player.name}
-                      <span className="text-royale-parchment-dim block text-xs">
-                        {player.tag}
-                      </span>
-                    </th>
-                    {player.battlesByWeek.map((battles, index) => (
-                      <BattleCell
-                        key={history.weeks[index]?.weekId ?? index}
-                        battles={battles}
-                      />
+                    {history.weeks.map((week) => (
+                      <th
+                        key={week.weekId}
+                        scope="col"
+                        className="px-3 py-2"
+                        title={formatWarWeekPeriod(week.createdDate) ?? undefined}
+                      >
+                        {weekLabel(week)}
+                      </th>
                     ))}
-                    <td className="px-3 py-2 text-right font-semibold">
-                      {player.totalBattles}
-                    </td>
-                    <td
-                      className="text-royale-parchment-dim px-3 py-2 text-right"
-                      aria-label={`Moyenne sur ${player.weeksPresent} semaine(s) de presence`}
-                    >
-                      {player.averagePerPresentWeek.toFixed(1)}
-                    </td>
+                    {(
+                      [
+                        { key: 'total' as const, label: 'Total' },
+                        { key: 'average' as const, label: 'Moyenne' },
+                      ] satisfies { key: AttendanceSortKey; label: string }[]
+                    ).map((column) => {
+                      const isActive = sortKey === column.key;
+                      return (
+                        <th
+                          key={column.key}
+                          scope="col"
+                          aria-sort={
+                            isActive
+                              ? direction === 'asc'
+                                ? 'ascending'
+                                : 'descending'
+                              : 'none'
+                          }
+                          className="p-0 text-right"
+                        >
+                          <button
+                            type="button"
+                            onClick={() => handleSortChange(column.key)}
+                            className={`w-full px-3 py-2 text-right font-semibold uppercase ${
+                              isActive
+                                ? 'text-royale-gold-400'
+                                : 'text-royale-parchment-dim'
+                            }`}
+                          >
+                            {column.label}
+                            <span aria-hidden="true">
+                              {isActive ? (direction === 'asc' ? ' ▲' : ' ▼') : ''}
+                            </span>
+                          </button>
+                        </th>
+                      );
+                    })}
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {sortedPlayers.map((player) => (
+                    <tr
+                      key={player.tag}
+                      data-testid="history-row"
+                      className="border-royale-blue-800/40 text-royale-parchment border-b"
+                    >
+                      <th scope="row" className="px-3 py-2 text-left font-normal">
+                        {player.name}
+                        <span className="text-royale-parchment-dim block text-xs">
+                          {player.tag}
+                        </span>
+                      </th>
+                      {player.battlesByWeek.map((battles, index) => (
+                        <BattleCell
+                          key={history.weeks[index]?.weekId ?? index}
+                          battles={battles}
+                        />
+                      ))}
+                      <td className="px-3 py-2 text-right font-semibold">
+                        {player.totalBattles}
+                      </td>
+                      <td
+                        className="text-royale-parchment-dim px-3 py-2 text-right"
+                        aria-label={`Moyenne sur ${player.weeksPresent} semaine(s) de presence`}
+                      >
+                        {player.averagePerPresentWeek.toFixed(1)}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
         ))}
     </section>

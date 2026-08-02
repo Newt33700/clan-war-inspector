@@ -233,6 +233,72 @@ describe('ClanDashboard', () => {
     });
   });
 
+  describe('US 6.7 : tri et indice de scroll sur l historique', () => {
+    async function loadHistoryReady() {
+      const heading = await screen.findByRole('heading', {
+        name: /historique des guerres/i,
+      });
+      return heading.closest('section')!;
+    }
+
+    it('trie l historique par Total croissant au clic', async () => {
+      setMockResponse('clan', FIXTURE_FULL_CLAN);
+      setMockResponse('riverRaceLog', FIXTURE_RIVER_RACE_LOG);
+      render(<ClanDashboard />);
+      const user = await submitTag('#20PP');
+      const historySection = await loadHistoryReady();
+      await within(historySection).findAllByTestId('history-row');
+
+      await user.click(within(historySection).getByRole('button', { name: /^total/i }));
+
+      const rows = within(historySection).getAllByTestId('history-row');
+      expect(rows.map((row) => within(row).getByRole('rowheader').textContent)).toEqual([
+        'Joueur 3#PLAYER3',
+        'Joueur 2#PLAYER2',
+        'Joueur 1#PLAYER1',
+      ]);
+      expect(
+        within(historySection).getByRole('columnheader', { name: /^total/i }),
+      ).toHaveAttribute('aria-sort', 'ascending');
+    });
+
+    it('n affiche pas d indice de scroll avec peu de semaines', async () => {
+      setMockResponse('clan', FIXTURE_FULL_CLAN);
+      setMockResponse('riverRaceLog', FIXTURE_RIVER_RACE_LOG);
+      render(<ClanDashboard />);
+      await submitTag('#20PP');
+      const historySection = await loadHistoryReady();
+      await within(historySection).findAllByTestId('history-row');
+
+      expect(
+        within(historySection).queryByText(/faites glisser/i),
+      ).not.toBeInTheDocument();
+    });
+
+    it('affiche un indice de scroll au-dela de 4 semaines', async () => {
+      const manyWeeksLog = {
+        items: FIXTURE_RIVER_RACE_LOG.items.concat(
+          FIXTURE_RIVER_RACE_LOG.items.map((item, index) => ({
+            ...item,
+            sectionIndex: item.sectionIndex + 10 + index,
+          })),
+          FIXTURE_RIVER_RACE_LOG.items.map((item, index) => ({
+            ...item,
+            sectionIndex: item.sectionIndex + 20 + index,
+          })),
+        ),
+      };
+      setMockResponse('clan', FIXTURE_FULL_CLAN);
+      setMockResponse('riverRaceLog', manyWeeksLog);
+      render(<ClanDashboard />);
+      await submitTag('#20PP');
+      const historySection = await loadHistoryReady();
+      await within(historySection).findAllByTestId('history-row');
+
+      expect(within(historySection).getByText(/faites glisser/i)).toBeInTheDocument();
+    });
+  });
+
   describe('US 6.4 : horodatage et rafraichissement de la guerre en cours', () => {
     it('affiche l heure de derniere mise a jour et permet un rafraichissement cible', async () => {
       setMockResponse('clan', FIXTURE_FULL_CLAN);

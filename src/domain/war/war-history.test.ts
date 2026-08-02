@@ -13,7 +13,11 @@ import {
   buildClanWarHistory,
   clampBattleCount,
   computeAttendance,
+  filterCurrentMembers,
+  formatWarWeekPeriod,
   parseRiverRaceLog,
+  sortPlayerAttendance,
+  type PlayerAttendance,
   type WarWeek,
 } from './war-history';
 import { FIXTURE_RIVER_RACE_LOG } from '@/mocks/fixtures';
@@ -483,5 +487,116 @@ describe('buildClanWarHistory', () => {
     // Parti du clan : absent de la semaine la plus recente.
     const p5 = history.players.find((p) => p.tag === '#PLAYER5');
     expect(p5?.battlesByWeek).toEqual([null, 3]);
+  });
+});
+
+describe('filterCurrentMembers', () => {
+  it('ne conserve que les joueurs presents dans les tags actuels', () => {
+    const players = [
+      attendance({ tag: '#A' }),
+      attendance({ tag: '#B' }),
+      attendance({ tag: '#C' }),
+    ];
+    expect(filterCurrentMembers(players, ['#A', '#C']).map((p) => p.tag)).toEqual([
+      '#A',
+      '#C',
+    ]);
+  });
+
+  it('retourne un tableau vide si aucun joueur n est encore membre', () => {
+    expect(filterCurrentMembers([attendance({ tag: '#A' })], [])).toEqual([]);
+  });
+});
+
+function attendance(overrides: Partial<PlayerAttendance>): PlayerAttendance {
+  return {
+    tag: '#TAG',
+    name: 'Nom',
+    battlesByWeek: [],
+    totalBattles: 0,
+    weeksPresent: 1,
+    averagePerPresentWeek: 0,
+    ...overrides,
+  };
+}
+
+describe('sortPlayerAttendance (US 6.7)', () => {
+  const alice = attendance({
+    tag: '#A',
+    name: 'Alice',
+    totalBattles: 20,
+    averagePerPresentWeek: 10,
+  });
+  const bob = attendance({
+    tag: '#B',
+    name: 'Bob',
+    totalBattles: 30,
+    averagePerPresentWeek: 15,
+  });
+  const carol = attendance({
+    tag: '#C',
+    name: 'Carol',
+    totalBattles: 10,
+    averagePerPresentWeek: 5,
+  });
+
+  it('ne mute pas le tableau d entree', () => {
+    const input = [bob, alice];
+    sortPlayerAttendance(input, 'total', 'asc');
+    expect(input).toEqual([bob, alice]);
+  });
+
+  it('trie par total ascendant', () => {
+    expect(
+      sortPlayerAttendance([bob, alice, carol], 'total', 'asc').map((p) => p.tag),
+    ).toEqual(['#C', '#A', '#B']);
+  });
+
+  it('trie par total descendant', () => {
+    expect(
+      sortPlayerAttendance([carol, alice, bob], 'total', 'desc').map((p) => p.tag),
+    ).toEqual(['#B', '#A', '#C']);
+  });
+
+  it('trie par moyenne ascendante', () => {
+    expect(
+      sortPlayerAttendance([bob, alice, carol], 'average', 'asc').map((p) => p.tag),
+    ).toEqual(['#C', '#A', '#B']);
+  });
+
+  it('trie par moyenne descendante', () => {
+    expect(
+      sortPlayerAttendance([carol, alice, bob], 'average', 'desc').map((p) => p.tag),
+    ).toEqual(['#B', '#A', '#C']);
+  });
+
+  it('departage les ex-aequo par nom puis tag ascendant', () => {
+    const tieA = attendance({ tag: '#Z', name: 'Zoe', totalBattles: 10 });
+    const tieB = attendance({ tag: '#Y', name: 'Anna', totalBattles: 10 });
+    expect(
+      sortPlayerAttendance([tieA, tieB], 'total', 'desc').map((p) => p.name),
+    ).toEqual(['Anna', 'Zoe']);
+  });
+
+  it('departage les homonymes par tag ascendant', () => {
+    const twinB = attendance({ tag: '#ZZ', name: 'Jumeau', totalBattles: 10 });
+    const twinA = attendance({ tag: '#AA', name: 'Jumeau', totalBattles: 10 });
+    expect(
+      sortPlayerAttendance([twinB, twinA], 'total', 'asc').map((p) => p.tag),
+    ).toEqual(['#AA', '#ZZ']);
+  });
+});
+
+describe('formatWarWeekPeriod (US 6.7)', () => {
+  it('formate une date Supercell compacte en date lisible', () => {
+    expect(formatWarWeekPeriod('20260727T093602.000Z')).toBe('27/07/2026');
+  });
+
+  it('retourne null si la date est absente', () => {
+    expect(formatWarWeekPeriod(null)).toBeNull();
+  });
+
+  it('retourne null si la date est illisible', () => {
+    expect(formatWarWeekPeriod('pas-une-date')).toBeNull();
   });
 });
