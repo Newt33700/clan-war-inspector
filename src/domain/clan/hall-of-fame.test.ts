@@ -102,6 +102,32 @@ describe('findWeeklyTopFame', () => {
     expect(top).toEqual([{ tag: '#P1', name: '#P1', fame: 300 }]);
   });
 
+  it('ne retrograde pas un doublon de tag deja meilleur (ordre inverse)', () => {
+    const raw = {
+      items: [
+        logWeek([
+          { tag: '#P1', fame: 300, name: 'Premier' },
+          { tag: ' p1 ', fame: 100, name: 'Second' },
+        ]),
+      ],
+    };
+    const top = findWeeklyTopFame(raw, '#20PP');
+    expect(top).toEqual([{ tag: '#P1', name: 'Premier', fame: 300 }]);
+  });
+
+  it('garde le premier doublon rencontre a fame egale', () => {
+    const raw = {
+      items: [
+        logWeek([
+          { tag: '#P1', fame: 100, name: 'Premier' },
+          { tag: ' p1 ', fame: 100, name: 'Second' },
+        ]),
+      ],
+    };
+    const top = findWeeklyTopFame(raw, '#20PP');
+    expect(top).toEqual([{ tag: '#P1', name: 'Premier', fame: 100 }]);
+  });
+
   it('remplace un nom manquant ou vide par le tag', () => {
     const raw = { items: [logWeek([{ tag: '#P1', fame: 10, name: '' }])] };
     expect(findWeeklyTopFame(raw, '#20PP')[0]?.name).toBe('#P1');
@@ -127,6 +153,21 @@ describe('findWeeklyTopFame', () => {
     ]);
   });
 
+  it('ignore une entree de standings null sans planter', () => {
+    const week = logWeek([{ tag: '#P1', fame: 10 }]);
+    (week.standings as unknown[]).unshift(null);
+    expect(findWeeklyTopFame({ items: [week] }, '#20PP')).toEqual([
+      { tag: '#P1', name: '#P1', fame: 10 },
+    ]);
+  });
+
+  it('ignore une entree de log null sans planter', () => {
+    const raw = { items: [null, logWeek([{ tag: '#P1', fame: 10 }])] };
+    expect(findWeeklyTopFame(raw, '#20PP')).toEqual([
+      { tag: '#P1', name: '#P1', fame: 10 },
+    ]);
+  });
+
   it('ignore un participant sans tag exploitable', () => {
     const raw = { items: [logWeek([{ name: 'Sans tag', fame: 10 }])] };
     expect(findWeeklyTopFame(raw, '#20PP')).toEqual([]);
@@ -141,6 +182,32 @@ describe('findWeeklyTopFame', () => {
   it('retourne [] si les participants du clan cible sont inexploitables', () => {
     const bad = logWeek('oops' as unknown as unknown[]);
     expect(findWeeklyTopFame({ items: [bad] }, '#20PP')).toEqual([]);
+  });
+
+  it('trie par fame decroissante meme quand cela contredit l ordre alphabetique', () => {
+    const raw = {
+      items: [
+        logWeek([
+          { tag: '#A', fame: 100, name: 'Zoe' },
+          { tag: '#Z', fame: 200, name: 'Anna' },
+        ]),
+      ],
+    };
+    const top = findWeeklyTopFame(raw, '#20PP');
+    expect(top.map((entry) => entry.tag)).toEqual(['#Z', '#A']);
+  });
+
+  it('priorise toujours la fame sur le nom, meme quand leurs ordres s opposent', () => {
+    const raw = {
+      items: [
+        logWeek([
+          { tag: '#LOW', fame: 50, name: 'Anna' },
+          { tag: '#HIGH', fame: 200, name: 'Zed' },
+        ]),
+      ],
+    };
+    const top = findWeeklyTopFame(raw, '#20PP');
+    expect(top.map((entry) => entry.tag)).toEqual(['#HIGH', '#LOW']);
   });
 
   it('departage une fame egale par nom puis tag', () => {

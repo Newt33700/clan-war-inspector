@@ -407,9 +407,9 @@ describe('ClanDashboard', () => {
       const rows = await screen.findAllByTestId('member-row');
       await user.click(within(rows[0]!).getByRole('button', { name: /joueur 1/i }));
 
-      const drawer = screen.getByRole('heading', { name: /profil joueur/i }).closest(
-        'aside',
-      )!;
+      const drawer = screen
+        .getByRole('heading', { name: /profil joueur/i })
+        .closest('aside')!;
       await within(drawer).findByText('500');
 
       await user.click(within(drawer).getByRole('button', { name: /fermer/i }));

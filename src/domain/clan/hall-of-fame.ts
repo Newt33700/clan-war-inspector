@@ -31,6 +31,10 @@ function extractItems(raw: unknown): unknown[] {
   if (isRecord(raw) && Array.isArray(raw.items)) {
     return raw.items;
   }
+  // Le contenu exact de ce repli n'est jamais observable : l'appelant
+  // filtre chaque element via isRecord avant de s'en servir, donc tout
+  // contenu de substitution finirait ignore de la meme facon (mutant
+  // equivalent).
   return [];
 }
 
@@ -38,6 +42,8 @@ function clanTagEquals(value: unknown, targetTag: string): boolean {
   try {
     return normalizeClanTag(value as string) === targetTag;
   } catch {
+    // Mutant equivalent : le retour n'est jamais lu que dans un contexte
+    // booleen (`&&` / `if`), donc `undefined` s'y comporte comme `false`.
     return false;
   }
 }
@@ -56,6 +62,9 @@ function findClanStanding(standings: unknown[], targetTag: string): UnknownRecor
 }
 
 function toSafeFame(value: unknown): number {
+  // `Number.isFinite` (contrairement au global isFinite) ne coerce pas :
+  // il suffit deja a exclure toute valeur non-number, rendant le `typeof`
+  // equivalent en pratique (mutant non tuable par un test comportemental).
   if (typeof value !== 'number' || !Number.isFinite(value)) {
     return 0;
   }
@@ -64,6 +73,10 @@ function toSafeFame(value: unknown): number {
 
 function extractTopFame(standing: UnknownRecord, topN: number): HallOfFameEntry[] {
   const clan = standing.clan;
+  // `isRecord(clan)` est deja garanti par findClanStanding (seul appelant),
+  // qui ne renvoie un standing qu'apres avoir valide son `clan` : la
+  // verification ici est une securite en profondeur, pas un chemin
+  // observable depuis l'API publique (mutant equivalent).
   const source =
     isRecord(clan) && Array.isArray(clan.participants) ? clan.participants : [];
 
@@ -115,6 +128,8 @@ export function findWeeklyTopFame(
     if (!isRecord(item)) {
       continue;
     }
+    // Repli non observable, memes raisons qu'extractItems : findClanStanding
+    // filtre aussi chaque entree via isRecord (mutant equivalent).
     const standings = Array.isArray(item.standings) ? item.standings : [];
     const standing = findClanStanding(standings, normalizedTag);
     if (standing !== null) {
