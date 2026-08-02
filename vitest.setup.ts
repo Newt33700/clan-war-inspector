@@ -11,6 +11,7 @@ beforeAll(() => {
 
 // Réinitialise les mocks après chaque test
 afterEach(() => {
+  mockServer.resetHandlers();
   resetMockResponses();
   cleanup();
 });

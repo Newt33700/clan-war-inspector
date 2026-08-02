@@ -1,0 +1,50 @@
+/** Test du Route Handler GET /api/clans/{clanTag}. */
+
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { http, HttpResponse } from 'msw';
+import { mockServer } from '@/mocks/server';
+import { SUPERCELL_API_BASE_URL } from '../../_lib/supercell';
+import { GET } from './route';
+
+describe('GET /api/clans/[clanTag]', () => {
+  beforeEach(() => {
+    vi.stubEnv('CLASH_ROYALE_API_TOKEN', 'route-token');
+  });
+
+  afterEach(() => {
+    vi.unstubAllEnvs();
+  });
+
+  it('relaye les informations du clan depuis Supercell', async () => {
+    const urls: string[] = [];
+    mockServer.use(
+      http.get(`${SUPERCELL_API_BASE_URL}/clans/*`, ({ request }) => {
+        urls.push(request.url);
+        return HttpResponse.json({ tag: '#2PP', name: 'Test Clan' });
+      }),
+    );
+
+    const response = await GET(new Request('http://localhost/api/clans/2PP'), {
+      params: Promise.resolve({ clanTag: '2PP' }),
+    });
+
+    expect(response.status).toBe(200);
+    expect(await response.json()).toEqual({ tag: '#2PP', name: 'Test Clan' });
+    expect(urls[0]).toBe(`${SUPERCELL_API_BASE_URL}/clans/%232PP`);
+  });
+
+  it('propage le mapping d erreur du proxy (404)', async () => {
+    mockServer.use(
+      http.get(
+        `${SUPERCELL_API_BASE_URL}/clans/*`,
+        () => new HttpResponse(null, { status: 404 }),
+      ),
+    );
+
+    const response = await GET(new Request('http://localhost/api/clans/2PP'), {
+      params: Promise.resolve({ clanTag: '2PP' }),
+    });
+
+    expect(response.status).toBe(404);
+  });
+});
