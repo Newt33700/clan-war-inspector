@@ -28,6 +28,22 @@
 
   --font-sans: var(--font-body-family), ui-sans-serif, system-ui, sans-serif;
   --font-display: var(--font-display-family), ui-sans-serif, system-ui, sans-serif;
+
+  /* Apparition subtile des cartes/panneaux (Epique 7, directive UX generale).
+     Tailwind ne fournit pas d'utilitaire animate-in/fade-in de base : on le
+     definit ici comme les autres tokens du theme. */
+  --animate-fade-in: fade-in 0.3s ease-out both;
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 @layer base {
