@@ -58,7 +58,8 @@ describe('MSW handlers', () => {
 
     it('FIXTURE_RIVER_RACE_IN_PROGRESS represente une guerre en cours', () => {
       expect(FIXTURE_RIVER_RACE_IN_PROGRESS.state).toBe('war');
-      expect(FIXTURE_RIVER_RACE_IN_PROGRESS.clan.participants.length).toBe(3);
+      // 4 participants : 3 membres actuels + #PLAYER9, parti depuis (cf. commentaire ligne 192).
+      expect(FIXTURE_RIVER_RACE_IN_PROGRESS.clan.participants.length).toBe(4);
     });
 
     it('FIXTURE_RIVER_RACE_IDLE represente un etat inactif', () => {

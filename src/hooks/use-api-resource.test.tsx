@@ -3,7 +3,7 @@
  * Les appels reseau passent par les handlers MSW globaux du proxy mocke.
  */
 
-import { renderHook, waitFor } from '@testing-library/react';
+import { act, renderHook, waitFor } from '@testing-library/react';
 import { http, HttpResponse } from 'msw';
 import { describe, expect, it } from 'vitest';
 import { setMockResponse } from '@/mocks/handlers';
@@ -32,7 +32,8 @@ describe('readApiErrorMessage', () => {
 describe('useApiResource', () => {
   it('reste au repos quand le chemin est null', () => {
     const { result } = renderHook(() => useApiResource(null));
-    expect(result.current).toEqual({ status: 'idle' });
+    expect(result.current.status).toBe('idle');
+    expect(typeof result.current.refetch).toBe('function');
   });
 
   it('passe par loading puis success avec les donnees du proxy', async () => {
@@ -116,8 +117,67 @@ describe('useApiResource', () => {
 
     rerender({ path: null });
     await waitFor(() => {
-      expect(result.current).toEqual({ status: 'idle' });
+      expect(result.current.status).toBe('idle');
     });
+  });
+
+  it('refetch relance un chargement sur le meme chemin (US 6.3)', async () => {
+    setMockResponse('clan', FIXTURE_FULL_CLAN);
+    const { result } = renderHook(() => useApiResource('/api/clans/%2320PP'));
+    await waitFor(() => {
+      expect(result.current.status).toBe('success');
+    });
+
+    // Le clan a disparu entre les deux appels : le refetch doit le refleter.
+    mockServer.use(
+      http.get('*/api/clans/:clanTag', () =>
+        HttpResponse.json(
+          { error: { code: 'CLAN_NOT_FOUND', message: 'Aucun clan.' } },
+          { status: 404 },
+        ),
+      ),
+    );
+
+    act(() => {
+      result.current.refetch();
+    });
+    expect(result.current.status).toBe('loading');
+    await waitFor(() => {
+      expect(result.current.status).toBe('error');
+    });
+    expect(result.current).toMatchObject({ message: 'Aucun clan.' });
+  });
+
+  it('refetch relance a nouveau apres un premier refetch deja aboutit', async () => {
+    setMockResponse('clan', FIXTURE_FULL_CLAN);
+    const { result } = renderHook(() => useApiResource('/api/clans/%2320PP'));
+    await waitFor(() => {
+      expect(result.current.status).toBe('success');
+    });
+
+    act(() => {
+      result.current.refetch();
+    });
+    await waitFor(() => {
+      expect(result.current.status).toBe('success');
+    });
+
+    // Second refetch, une fois le premier deja retombe sur un etat stable :
+    // doit repartir en chargement, pas rester bloque sur l'etat precedent.
+    act(() => {
+      result.current.refetch();
+    });
+    expect(result.current.status).toBe('loading');
+  });
+
+  it('refetch ne fait rien tant que le chemin est null', () => {
+    const { result } = renderHook(() => useApiResource(null));
+
+    act(() => {
+      result.current.refetch();
+    });
+
+    expect(result.current.status).toBe('idle');
   });
 
   it('ne plante pas quand le composant est demonte en plein vol', async () => {

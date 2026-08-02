@@ -11,7 +11,9 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { isValidClanTag, toApiTagSegment } from '@/domain/clan/clan-tag';
+import { parseClanSummary } from '@/domain/clan/clan-summary';
 import { readStoredClanTag, storeClanTag } from '@/lib/clan-tag-storage';
+import { readClanTagFromUrl, writeClanTagToUrl } from '@/lib/clan-tag-url';
 import {
   parseClanMembers,
   sortMembers,
@@ -20,10 +22,16 @@ import {
 } from '@/domain/clan/members';
 import { buildClanWarHistory } from '@/domain/war/war-history';
 import { useApiResource } from '@/hooks/use-api-resource';
+import { useDebouncedValue } from '@/hooks/use-debounced-value';
+import { ClanHeader } from './clan-header';
 import { CurrentWarSection } from './current-war-section';
 import { MembersTable } from './members-table';
 import { PurgeSection } from './purge-section';
 import { WarHistorySection } from './war-history-section';
+
+// Delai avant d'afficher l'erreur de format (US 6.5) : le temps d'une
+// pause de frappe, pour ne pas juger une saisie encore en cours.
+const FORMAT_ERROR_DEBOUNCE_MS = 400;
 
 export function ClanDashboard() {
   const [draftTag, setDraftTag] = useState('');
@@ -33,24 +41,44 @@ export function ClanDashboard() {
   const [direction, setDirection] = useState<SortDirection>('desc');
 
   const clanState = useApiResource<unknown>(clanPath);
+  // Ne charge la guerre en cours et l'historique qu'une fois le clan confirme :
+  // sinon un tag valide mais inexistant declenche 3 requetes vouees au 404,
+  // affichees comme 3 alertes redondantes au lieu d'une seule.
+  const clanConfirmed = clanState.status === 'success';
   const warState = useApiResource<unknown>(
-    clanPath === null ? null : `${clanPath}/currentriverrace`,
+    clanConfirmed && clanPath !== null ? `${clanPath}/currentriverrace` : null,
   );
   const logState = useApiResource<unknown>(
-    clanPath === null ? null : `${clanPath}/riverracelog`,
+    clanConfirmed && clanPath !== null ? `${clanPath}/riverracelog` : null,
   );
 
-  // Au retour sur le site, recharge automatiquement le dernier clan inspecte.
+  // Au chargement : un tag valide dans l'URL (lien partage) prime sur le
+  // dernier tag memorise en localStorage.
   useEffect(() => {
-    const storedTag = readStoredClanTag();
-    if (storedTag !== null) {
-      setDraftTag(storedTag);
-      setSubmittedTag(storedTag);
-      setClanPath(`/api/clans/${toApiTagSegment(storedTag)}`);
+    const tagFromUrl = readClanTagFromUrl(window.location.search);
+    const tag = tagFromUrl ?? readStoredClanTag();
+    if (tag !== null) {
+      setDraftTag(tag);
+      setSubmittedTag(tag);
+      setClanPath(`/api/clans/${toApiTagSegment(tag)}`);
     }
   }, []);
 
   const draftIsValid = isValidClanTag(draftTag);
+  const debouncedDraftTag = useDebouncedValue(draftTag, FORMAT_ERROR_DEBOUNCE_MS);
+  const showFormatError =
+    debouncedDraftTag.length > 0 && !isValidClanTag(debouncedDraftTag);
+
+  const summary = useMemo(
+    () => (clanState.status === 'success' ? parseClanSummary(clanState.data) : null),
+    [clanState],
+  );
+
+  useEffect(() => {
+    if (summary !== null) {
+      document.title = `${summary.name} | Clan War Inspector`;
+    }
+  }, [summary]);
 
   const members = useMemo(
     () => (clanState.status === 'success' ? parseClanMembers(clanState.data) : []),
@@ -74,6 +102,7 @@ export function ClanDashboard() {
     setClanPath(`/api/clans/${toApiTagSegment(draftTag)}`);
     setSubmittedTag(draftTag);
     storeClanTag(draftTag);
+    writeClanTagToUrl(draftTag);
   }
 
   function handleSortChange(key: MemberSortKey) {
@@ -106,7 +135,7 @@ export function ClanDashboard() {
               type="text"
               value={draftTag}
               onChange={(event) => setDraftTag(event.target.value)}
-              placeholder="#20PP"
+              placeholder="#20J20QG"
               className="border-royale-blue-800 bg-royale-navy-900 text-royale-parchment rounded-md border px-3 py-2"
             />
           </label>
@@ -117,7 +146,11 @@ export function ClanDashboard() {
           >
             Inspecter
           </button>
-          {draftTag.length > 0 && !draftIsValid && (
+          <p className="text-royale-parchment-dim w-full text-xs">
+            Le tag de votre clan est visible dans Clash Royale, sous son nom, sur l ecran
+            du clan.
+          </p>
+          {showFormatError && (
             <p className="text-royale-red-500 w-full text-sm">
               Tag invalide : caracteres autorises 0289PYLQGRJCUV, longueur 3 a 14.
             </p>
@@ -137,10 +170,21 @@ export function ClanDashboard() {
         )}
 
         {clanState.status === 'error' && (
-          <p role="alert" className="text-royale-red-500">
-            {clanState.message}
-          </p>
+          <div className="space-y-2">
+            <p role="alert" className="text-royale-red-500">
+              {clanState.message}
+            </p>
+            <button
+              type="button"
+              onClick={clanState.refetch}
+              className="border-royale-gold-400 text-royale-gold-400 rounded-md border px-3 py-1 text-sm font-semibold"
+            >
+              Reessayer
+            </button>
+          </div>
         )}
+
+        {summary !== null && <ClanHeader summary={summary} />}
 
         {clanState.status === 'success' &&
           (sortedMembers.length === 0 ? (

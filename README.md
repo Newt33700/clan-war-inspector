@@ -106,6 +106,7 @@ Le detail des epiques et des criteres d'acceptation est dans [`backlog.md`](./ba
 - [x] **Finition** Persistance du tag, colonne Moyenne, pages 404/erreur, favicon
 - [ ] **US 1.4** Stack E2E Playwright (delegue a la passe testing)
 - [ ] Passe testing dediee sur les modules recents (voir backlog.md)
+- [x] **Epique 6** Audit UX du 2026-08-02 : US 6.1 a US 6.8 (voir backlog.md)
 
 Le site est **fonctionnellement complet** : saisie (ou rappel) du tag ->
 membres triables -> guerre en cours -> historique 16 combats avec alertes ->

@@ -7,9 +7,14 @@
 import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { http, HttpResponse } from 'msw';
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { setMockResponse } from '@/mocks/handlers';
-import { FIXTURE_EMPTY_CLAN, FIXTURE_FULL_CLAN } from '@/mocks/fixtures';
+import {
+  FIXTURE_EMPTY_CLAN,
+  FIXTURE_FULL_CLAN,
+  FIXTURE_RIVER_RACE_IDLE,
+  FIXTURE_RIVER_RACE_LOG,
+} from '@/mocks/fixtures';
 import { mockServer } from '@/mocks/server';
 import { ClanDashboard } from './clan-dashboard';
 
@@ -21,19 +26,49 @@ async function submitTag(tag: string) {
 }
 
 describe('ClanDashboard', () => {
+  // La soumission (US 6.2) ecrit le tag dans l'URL : on repart d'une URL
+  // propre a chaque test pour ne pas contaminer le mount suivant.
+  afterEach(() => {
+    window.history.replaceState(null, '', '/');
+    window.localStorage.clear();
+  });
+
   it('invite a saisir un tag au premier affichage', () => {
     render(<ClanDashboard />);
     expect(screen.getByText(/saisissez le tag de votre clan/i)).toBeInTheDocument();
   });
 
-  it('desactive le bouton et explique quand le tag est invalide', async () => {
+  it('desactive le bouton immediatement quand le tag est invalide', async () => {
     render(<ClanDashboard />);
     const user = userEvent.setup();
 
     await user.type(screen.getByLabelText(/tag du clan/i), '#2PZ');
 
     expect(screen.getByRole('button', { name: /inspecter/i })).toBeDisabled();
-    expect(screen.getByText(/tag invalide/i)).toBeInTheDocument();
+  });
+
+  it('n affiche le message de format invalide qu apres une pause de frappe (US 6.5)', async () => {
+    render(<ClanDashboard />);
+    const user = userEvent.setup();
+
+    await user.type(screen.getByLabelText(/tag du clan/i), '#2PZ');
+
+    // Pas encore affiche juste apres la frappe.
+    expect(screen.queryByText(/tag invalide/i)).not.toBeInTheDocument();
+
+    await waitFor(() => {
+      expect(screen.getByText(/tag invalide/i)).toBeInTheDocument();
+    });
+  });
+
+  it('affiche un exemple de tag realiste et une aide pour le retrouver', () => {
+    render(<ClanDashboard />);
+
+    expect(screen.getByLabelText(/tag du clan/i)).toHaveAttribute(
+      'placeholder',
+      '#20J20QG',
+    );
+    expect(screen.getByText(/visible dans clash royale/i)).toBeInTheDocument();
   });
 
   it('charge puis affiche les membres du clan via le proxy mocke', async () => {
@@ -46,6 +81,55 @@ describe('ClanDashboard', () => {
     expect(rows).toHaveLength(3);
     expect(within(rows[0]!).getByText('Joueur 1')).toBeInTheDocument();
     expect(within(rows[0]!).getByText('Chef')).toBeInTheDocument();
+  });
+
+  it('affiche l en-tete d identite du clan une fois charge (US 6.1)', async () => {
+    setMockResponse('clan', FIXTURE_FULL_CLAN);
+    render(<ClanDashboard />);
+
+    await submitTag('#20PP');
+    await screen.findAllByTestId('member-row');
+
+    const header = screen.getByTestId('clan-header');
+    expect(within(header).getByText('Test Clan')).toBeInTheDocument();
+    expect(within(header).getByText(/3\/50 membres/)).toBeInTheDocument();
+    expect(document.title).toBe('Test Clan | Clan War Inspector');
+  });
+
+  it('n affiche pas l en-tete de clan avant chargement reussi', () => {
+    render(<ClanDashboard />);
+    expect(screen.queryByTestId('clan-header')).not.toBeInTheDocument();
+  });
+
+  it('met a jour l URL au clic sur Inspecter, sans recharger la page (US 6.2)', async () => {
+    setMockResponse('clan', FIXTURE_FULL_CLAN);
+    render(<ClanDashboard />);
+
+    await submitTag('#20PP');
+
+    expect(window.location.search).toBe('?clan=%2320PP');
+  });
+
+  it('charge automatiquement le tag present dans l URL au demarrage (US 6.2)', async () => {
+    setMockResponse('clan', FIXTURE_FULL_CLAN);
+    window.history.replaceState(null, '', '/?clan=%2320PP');
+
+    render(<ClanDashboard />);
+
+    const rows = await screen.findAllByTestId('member-row');
+    expect(rows).toHaveLength(3);
+    expect(screen.getByLabelText(/tag du clan/i)).toHaveValue('#20PP');
+  });
+
+  it('priorise le tag de l URL sur celui memorise en localStorage (US 6.2)', async () => {
+    setMockResponse('clan', FIXTURE_FULL_CLAN);
+    window.localStorage.setItem('clan-war-inspector:last-clan-tag', '#RRRR');
+    window.history.replaceState(null, '', '/?clan=%2320PP');
+
+    render(<ClanDashboard />);
+
+    await screen.findAllByTestId('member-row');
+    expect(screen.getByLabelText(/tag du clan/i)).toHaveValue('#20PP');
   });
 
   it('trie par role descendant par defaut (chef en premier)', async () => {
@@ -128,19 +212,258 @@ describe('ClanDashboard', () => {
   });
 
   it('passe par un etat de chargement visible', async () => {
+    // Reponse controlee manuellement plutot qu'un delai fixe : evite une
+    // course avec l'horloge reelle si l'environnement de test est lent.
+    let resolveClanResponse!: (response: Response) => void;
     mockServer.use(
-      http.get('*/api/clans/:clanTag', async () => {
-        await new Promise((resolve) => setTimeout(resolve, 30));
-        return HttpResponse.json(FIXTURE_FULL_CLAN);
-      }),
+      http.get(
+        '*/api/clans/:clanTag',
+        () => new Promise<Response>((resolve) => (resolveClanResponse = resolve)),
+      ),
     );
     render(<ClanDashboard />);
 
     await submitTag('#20PP');
 
     expect(screen.getByRole('status')).toHaveTextContent(/chargement/i);
+
+    resolveClanResponse(HttpResponse.json(FIXTURE_FULL_CLAN));
     await waitFor(() => {
       expect(screen.getAllByTestId('member-row')).toHaveLength(3);
+    });
+  });
+
+  describe('US 6.7 : tri et indice de scroll sur l historique', () => {
+    async function loadHistoryReady() {
+      const heading = await screen.findByRole('heading', {
+        name: /historique des guerres/i,
+      });
+      return heading.closest('section')!;
+    }
+
+    it('trie l historique par Total croissant au clic', async () => {
+      setMockResponse('clan', FIXTURE_FULL_CLAN);
+      setMockResponse('riverRaceLog', FIXTURE_RIVER_RACE_LOG);
+      render(<ClanDashboard />);
+      const user = await submitTag('#20PP');
+      const historySection = await loadHistoryReady();
+      await within(historySection).findAllByTestId('history-row');
+
+      await user.click(within(historySection).getByRole('button', { name: /^total/i }));
+
+      const rows = within(historySection).getAllByTestId('history-row');
+      expect(rows.map((row) => within(row).getByRole('rowheader').textContent)).toEqual([
+        'Joueur 3#PLAYER3',
+        'Joueur 2#PLAYER2',
+        'Joueur 1#PLAYER1',
+      ]);
+      expect(
+        within(historySection).getByRole('columnheader', { name: /^total/i }),
+      ).toHaveAttribute('aria-sort', 'ascending');
+    });
+
+    it('n affiche pas d indice de scroll avec peu de semaines', async () => {
+      setMockResponse('clan', FIXTURE_FULL_CLAN);
+      setMockResponse('riverRaceLog', FIXTURE_RIVER_RACE_LOG);
+      render(<ClanDashboard />);
+      await submitTag('#20PP');
+      const historySection = await loadHistoryReady();
+      await within(historySection).findAllByTestId('history-row');
+
+      expect(
+        within(historySection).queryByText(/faites glisser/i),
+      ).not.toBeInTheDocument();
+    });
+
+    it('affiche un indice de scroll au-dela de 4 semaines', async () => {
+      const manyWeeksLog = {
+        items: FIXTURE_RIVER_RACE_LOG.items.concat(
+          FIXTURE_RIVER_RACE_LOG.items.map((item) => ({
+            ...item,
+            sectionIndex: item.sectionIndex + 10,
+          })),
+          FIXTURE_RIVER_RACE_LOG.items.map((item) => ({
+            ...item,
+            sectionIndex: item.sectionIndex + 20,
+          })),
+        ),
+      };
+      setMockResponse('clan', FIXTURE_FULL_CLAN);
+      setMockResponse('riverRaceLog', manyWeeksLog);
+      render(<ClanDashboard />);
+      await submitTag('#20PP');
+      const historySection = await loadHistoryReady();
+      await within(historySection).findAllByTestId('history-row');
+
+      expect(within(historySection).getByText(/faites glisser/i)).toBeInTheDocument();
+    });
+  });
+
+  describe('US 6.4 : horodatage et rafraichissement de la guerre en cours', () => {
+    it('affiche l heure de derniere mise a jour et permet un rafraichissement cible', async () => {
+      setMockResponse('clan', FIXTURE_FULL_CLAN);
+      setMockResponse('currentRiverRace', FIXTURE_RIVER_RACE_IDLE);
+      render(<ClanDashboard />);
+      const user = await submitTag('#20PP');
+      await screen.findAllByTestId('member-row');
+
+      const warSection = screen
+        .getByRole('heading', { name: /guerre en cours/i })
+        .closest('section')!;
+      await waitFor(() => {
+        expect(
+          within(warSection).getByText(/mise a jour a \d{2}:\d{2}/i),
+        ).toBeInTheDocument();
+      });
+
+      // Le tri des membres et le tag saisi ne doivent pas etre affectes.
+      await user.click(screen.getByRole('button', { name: /trophees/i }));
+      const beforeRows = screen
+        .getAllByTestId('member-row')
+        .map((row) => within(row).getAllByRole('cell')[0]?.textContent);
+
+      await user.click(within(warSection).getByRole('button', { name: /actualiser/i }));
+
+      await waitFor(() => {
+        expect(
+          within(warSection).getByText(/mise a jour a \d{2}:\d{2}/i),
+        ).toBeInTheDocument();
+      });
+      expect(screen.getByLabelText(/tag du clan/i)).toHaveValue('#20PP');
+      const afterRows = screen
+        .getAllByTestId('member-row')
+        .map((row) => within(row).getAllByRole('cell')[0]?.textContent);
+      expect(afterRows).toEqual(beforeRows);
+    });
+  });
+
+  describe('US 6.6 : combinateur ET/OU et export de la vue A expulser', () => {
+    async function loadPurgeReady() {
+      const heading = await screen.findByRole('heading', { name: /^a expulser$/i });
+      return heading.closest('section')!;
+    }
+
+    it('bascule ET/OU et recalcule la liste des candidats', async () => {
+      setMockResponse('clan', FIXTURE_FULL_CLAN);
+      setMockResponse('riverRaceLog', FIXTURE_RIVER_RACE_LOG);
+      render(<ClanDashboard />);
+      const user = await submitTag('#20PP');
+      const purgeSection = await loadPurgeReady();
+
+      // ET (par defaut) : Joueur 3 a des dons non nuls, donc pas candidat.
+      expect(
+        within(purgeSection).getByText(/aucun joueur problematique/i),
+      ).toBeInTheDocument();
+
+      await user.selectOptions(
+        within(purgeSection).getByLabelText(/combinaison des criteres/i),
+        'OR',
+      );
+
+      // OU : Joueur 3 (5 combats < 8) devient candidat sur ce seul critere.
+      expect(within(purgeSection).getByText('Joueur 3')).toBeInTheDocument();
+    });
+
+    it('copie la liste des candidats et affiche une confirmation', async () => {
+      setMockResponse('clan', FIXTURE_FULL_CLAN);
+      setMockResponse('riverRaceLog', FIXTURE_RIVER_RACE_LOG);
+      render(<ClanDashboard />);
+      const user = await submitTag('#20PP');
+      const purgeSection = await loadPurgeReady();
+
+      // Definie apres userEvent.setup() (dans submitTag) : celui-ci installe
+      // son propre stub de presse-papiers qui ecraserait un mock pose avant.
+      const writeText = vi.fn().mockResolvedValue(undefined);
+      Object.defineProperty(navigator, 'clipboard', {
+        value: { writeText },
+        configurable: true,
+      });
+
+      await user.selectOptions(
+        within(purgeSection).getByLabelText(/combinaison des criteres/i),
+        'OR',
+      );
+      await within(purgeSection).findByText('Joueur 3');
+
+      await user.click(
+        within(purgeSection).getByRole('button', { name: /copier la liste/i }),
+      );
+
+      expect(writeText).toHaveBeenCalledWith(
+        'Joueur 3 (#PLAYER3) - Combats de guerre insuffisants',
+      );
+      expect(await within(purgeSection).findByText(/liste copiee/i)).toBeInTheDocument();
+    });
+  });
+
+  describe('US 6.3 : reprise apres erreur, section par section', () => {
+    it('reessaie uniquement le clan sans re-soumettre le formulaire', async () => {
+      // Pas de mock configure : le handler global repond 404.
+      render(<ClanDashboard />);
+      const user = await submitTag('#20PP');
+
+      const alertsBefore = await screen.findAllByRole('alert');
+      expect(alertsBefore).toHaveLength(1);
+
+      setMockResponse('clan', FIXTURE_FULL_CLAN);
+      await user.click(screen.getByRole('button', { name: /reessayer/i }));
+
+      const rows = await screen.findAllByTestId('member-row');
+      expect(rows).toHaveLength(3);
+    });
+
+    it('reessaie la guerre en cours sans recharger membres ni historique', async () => {
+      setMockResponse('clan', FIXTURE_FULL_CLAN);
+      // currentRiverRace et riverRaceLog restent non configures (404).
+      render(<ClanDashboard />);
+      const user = await submitTag('#20PP');
+
+      await screen.findAllByTestId('member-row');
+      const warSection = screen
+        .getByRole('heading', { name: /guerre en cours/i })
+        .closest('section')!;
+      await waitFor(() => {
+        expect(within(warSection).getByRole('alert')).toBeInTheDocument();
+      });
+
+      setMockResponse('currentRiverRace', FIXTURE_RIVER_RACE_IDLE);
+      await user.click(within(warSection).getByRole('button', { name: /reessayer/i }));
+
+      await waitFor(() => {
+        expect(
+          within(warSection).getByText(/n est pas en guerre actuellement/i),
+        ).toBeInTheDocument();
+      });
+      // L'historique, toujours en erreur, n'a pas ete affecte par ce reessai.
+      const historySection = screen
+        .getByRole('heading', { name: /historique des guerres/i })
+        .closest('section')!;
+      expect(within(historySection).getByRole('alert')).toBeInTheDocument();
+    });
+
+    it('reessaie l historique sans recharger la guerre en cours', async () => {
+      setMockResponse('clan', FIXTURE_FULL_CLAN);
+      render(<ClanDashboard />);
+      const user = await submitTag('#20PP');
+
+      await screen.findAllByTestId('member-row');
+      const historySection = screen
+        .getByRole('heading', { name: /historique des guerres/i })
+        .closest('section')!;
+      await waitFor(() => {
+        expect(within(historySection).getByRole('alert')).toBeInTheDocument();
+      });
+
+      setMockResponse('riverRaceLog', FIXTURE_RIVER_RACE_LOG);
+      await user.click(
+        within(historySection).getByRole('button', { name: /reessayer/i }),
+      );
+
+      await waitFor(() => {
+        expect(
+          within(historySection).getAllByTestId('history-row').length,
+        ).toBeGreaterThan(0);
+      });
     });
   });
 });

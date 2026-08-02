@@ -15,7 +15,10 @@
   --color-royale-gold-400: #ffcb3d;
   --color-royale-gold-600: #d2900b;
 
-  --color-royale-red-500: #e2432f;
+  /* #e65b4a plutot que #e2432f d'origine : 5.21:1 sur fond navy-950 (US 6.8),
+     l'original etait a 4.44:1, sous le seuil AA de 4.5:1 pour du texte
+     normal. Verifie par src/lib/theme-contrast.test.ts. */
+  --color-royale-red-500: #e65b4a;
   --color-royale-red-700: #9e1f14;
 
   --color-royale-green-500: #37c46a;

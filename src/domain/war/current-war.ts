@@ -118,6 +118,10 @@ export function annotateWithMembership(
   participants: readonly CurrentWarParticipant[],
   memberTags: readonly string[],
 ): AnnotatedWarParticipant[] {
+  // Le filtre exclut les tags non canonicalisables : un `null` egare dans
+  // le Set serait de toute facon sans effet sur `.has(participant.tag)`
+  // (jamais null), mais le typage `string[]` en aval le rend necessaire
+  // (mutant Stryker "equivalent" sur ce filtre).
   const currentTags = new Set(
     memberTags
       .map((tag) => canonicalizePlayerTag(tag))
