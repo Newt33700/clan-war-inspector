@@ -5,11 +5,24 @@
  * CLASH_ROYALE_API_TOKEN et n'apparait jamais dans une reponse.
  * Les erreurs amont sont mappees vers un format stable et type ;
  * le corps brut d'une erreur Supercell n'est jamais retransmis.
+ *
+ * URL de base configurable via CLASH_ROYALE_API_BASE_URL : indispensable
+ * en hebergement a IP dynamique (Vercel), ou l'on passe par le proxy
+ * communautaire RoyaleAPI (https://proxy.royaleapi.dev/v1) dont l'IP fixe
+ * est declaree dans la cle Supercell.
  */
 
 import { InvalidClanTagError, toApiTagSegment } from '@/domain/clan/clan-tag';
 
+/** URL officielle Supercell, utilisee par defaut. */
 export const SUPERCELL_API_BASE_URL = 'https://api.clashroyale.com/v1';
+
+/** Resout l'URL de base effective (env > defaut), sans slash final. */
+function resolveBaseUrl(override?: string): string {
+  const base =
+    override ?? process.env.CLASH_ROYALE_API_BASE_URL ?? SUPERCELL_API_BASE_URL;
+  return base.replace(/\/+$/, '');
+}
 
 /** Delai maximal accorde a Supercell avant de repondre 504. */
 const DEFAULT_TIMEOUT_MS = 10_000;
@@ -17,6 +30,7 @@ const DEFAULT_TIMEOUT_MS = 10_000;
 export type ProxyErrorCode =
   | 'INVALID_TAG'
   | 'MISSING_API_TOKEN'
+  | 'API_KEY_REJECTED'
   | 'CLAN_NOT_FOUND'
   | 'RATE_LIMITED'
   | 'UPSTREAM_ERROR'
@@ -33,6 +47,7 @@ export interface ProxyErrorBody {
 const ERROR_STATUS: Record<ProxyErrorCode, number> = {
   INVALID_TAG: 400,
   MISSING_API_TOKEN: 500,
+  API_KEY_REJECTED: 502,
   CLAN_NOT_FOUND: 404,
   RATE_LIMITED: 429,
   UPSTREAM_ERROR: 502,
@@ -42,6 +57,10 @@ const ERROR_STATUS: Record<ProxyErrorCode, number> = {
 const ERROR_MESSAGES: Record<ProxyErrorCode, string> = {
   INVALID_TAG: 'Le tag de clan fourni est invalide.',
   MISSING_API_TOKEN: 'CLASH_ROYALE_API_TOKEN est absent de la configuration serveur.',
+  API_KEY_REJECTED:
+    'Cle API refusee par Supercell (restriction IP). Sur un hebergeur a IP ' +
+    'dynamique, creez une cle autorisant l IP 45.79.218.79 et definissez ' +
+    'CLASH_ROYALE_API_BASE_URL=https://proxy.royaleapi.dev/v1.',
   CLAN_NOT_FOUND: 'Aucun clan ne correspond a ce tag.',
   RATE_LIMITED: 'Limite de requetes Supercell atteinte, reessayez plus tard.',
   UPSTREAM_ERROR: "L'API Supercell a repondu avec une erreur.",
@@ -59,6 +78,8 @@ function errorResponse(
 export interface ProxyOptions {
   /** Remplace le token lu dans l'environnement (tests). */
   apiToken?: string;
+  /** Remplace l'URL de base lue dans l'environnement (tests). */
+  baseUrl?: string;
   /** Remplace le timeout par defaut (tests). */
   timeoutMs?: number;
 }
@@ -91,9 +112,11 @@ export async function proxyClanResource(
     return errorResponse('MISSING_API_TOKEN');
   }
 
+  const baseUrl = resolveBaseUrl(options.baseUrl);
+
   let upstream: Response;
   try {
-    upstream = await fetch(`${SUPERCELL_API_BASE_URL}/clans/${tagSegment}${subPath}`, {
+    upstream = await fetch(`${baseUrl}/clans/${tagSegment}${subPath}`, {
       headers: {
         Authorization: `Bearer ${apiToken}`,
         Accept: 'application/json',
@@ -106,6 +129,10 @@ export async function proxyClanResource(
     return errorResponse('UPSTREAM_TIMEOUT');
   }
 
+  // 401/403 : cle invalide ou IP non autorisee (cas classique sur Vercel).
+  if (upstream.status === 401 || upstream.status === 403) {
+    return errorResponse('API_KEY_REJECTED');
+  }
   if (upstream.status === 404) {
     return errorResponse('CLAN_NOT_FOUND');
   }

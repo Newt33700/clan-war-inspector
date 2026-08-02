@@ -24,6 +24,26 @@ L'application demarre sur http://localhost:3000.
 > La cle API n'est jamais exposee au navigateur : elle est lue cote serveur par le
 > Route Handler (US 1.5). Aucune variable secrete ne doit etre prefixee `NEXT_PUBLIC_`.
 
+## Deploiement (Vercel) et restriction IP Supercell
+
+L'API Supercell n'accepte une cle que depuis des **IP fixes declarees**.
+Or Vercel sort avec des IP dynamiques : la cle est alors refusee (403 chez
+Supercell, `API_KEY_REJECTED` cote proxy). La solution communautaire est le
+proxy [RoyaleAPI](https://docs.royaleapi.com/proxy.html) :
+
+1. Sur [developer.clashroyale.com](https://developer.clashroyale.com), creez
+   une cle dont la restriction IP autorise **`45.79.218.79`** (IP fixe du
+   proxy RoyaleAPI).
+2. Dans les variables d'environnement Vercel, definissez :
+   - `CLASH_ROYALE_API_TOKEN` = la cle creee a l'etape 1
+   - `CLASH_ROYALE_API_BASE_URL` = `https://proxy.royaleapi.dev/v1`
+3. Redeployez.
+
+Le proxy RoyaleAPI relaie la requete vers Supercell depuis son IP fixe ;
+votre token transite en en-tete `Authorization` comme avec l'API officielle.
+En local avec une IP fixe, laissez `CLASH_ROYALE_API_BASE_URL` vide pour
+appeler directement `https://api.clashroyale.com/v1`.
+
 ## Scripts
 
 | Commande                | Role                                                  |
