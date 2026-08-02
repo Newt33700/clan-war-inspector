@@ -237,6 +237,15 @@ Critères d'acceptation :
 10. ✅ **US 4.1** — suivi en direct (`domain/war/current-war` : decks du jour /4, cumul /16, badge « A quitté le clan », tri par urgence)
 11. ✅ **US 5.1** — vue de purge (`domain/clan/purge` : règle ET/OU explicite, seuil X configurable, motifs affichés)
 
+### Finition produit (hors backlog initial)
+
+- ✅ **Persistance du tag** : dernier clan inspecté mémorisé en
+  `localStorage` et rechargé automatiquement au retour sur le site.
+- ✅ **Colonne Moyenne** dans l'historique (complète le critère
+  « colonne de synthèse » de l'US 4.3, en plus du Total).
+- ✅ **Pages 404 / erreur** thématisées avec bouton de relance.
+- ✅ **Favicon SVG** (épées croisées + couronne) et métadonnées OpenGraph.
+
 ### Dette de test assumée (à reprendre par la passe testing)
 
 Les US 4.3, 4.4, 4.1 et 5.1 ont été livrées **code métier d'abord** sur

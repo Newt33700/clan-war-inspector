@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <rect width="64" height="64" rx="12" fill="#0e1e4a"/>
+  <rect x="2" y="2" width="60" height="60" rx="10" fill="none" stroke="#17307a" stroke-width="4"/>
+  <!-- Deux epees croisees, or -->
+  <g stroke="#ffcb3d" stroke-width="5" stroke-linecap="round">
+    <line x1="16" y1="16" x2="48" y2="48"/>
+    <line x1="48" y1="16" x2="16" y2="48"/>
+  </g>
+  <g stroke="#d2900b" stroke-width="5" stroke-linecap="round">
+    <line x1="20" y1="44" x2="12" y2="52"/>
+    <line x1="44" y1="44" x2="52" y2="52"/>
+  </g>
+  <!-- Couronne -->
+  <path d="M22 14 L27 20 L32 12 L37 20 L42 14 L40 24 L24 24 Z" fill="#ffcb3d" stroke="#d2900b" stroke-width="1.5"/>
+</svg>

@@ -139,6 +139,9 @@ export function WarHistorySection({ logState, clanTag }: WarHistorySectionProps)
                   <th scope="col" className="px-3 py-2 text-right">
                     Total
                   </th>
+                  <th scope="col" className="px-3 py-2 text-right">
+                    Moyenne
+                  </th>
                 </tr>
               </thead>
               <tbody>
@@ -162,6 +165,12 @@ export function WarHistorySection({ logState, clanTag }: WarHistorySectionProps)
                     ))}
                     <td className="px-3 py-2 text-right font-semibold">
                       {player.totalBattles}
+                    </td>
+                    <td
+                      className="text-royale-parchment-dim px-3 py-2 text-right"
+                      aria-label={`Moyenne sur ${player.weeksPresent} semaine(s) de presence`}
+                    >
+                      {player.averagePerPresentWeek.toFixed(1)}
                     </td>
                   </tr>
                 ))}

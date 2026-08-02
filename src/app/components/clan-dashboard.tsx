@@ -9,8 +9,9 @@
  * (US 4.3/4.4), vue de renvoi (US 5.1).
  */
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { isValidClanTag, toApiTagSegment } from '@/domain/clan/clan-tag';
+import { readStoredClanTag, storeClanTag } from '@/lib/clan-tag-storage';
 import {
   parseClanMembers,
   sortMembers,
@@ -39,6 +40,16 @@ export function ClanDashboard() {
     clanPath === null ? null : `${clanPath}/riverracelog`,
   );
 
+  // Au retour sur le site, recharge automatiquement le dernier clan inspecte.
+  useEffect(() => {
+    const storedTag = readStoredClanTag();
+    if (storedTag !== null) {
+      setDraftTag(storedTag);
+      setSubmittedTag(storedTag);
+      setClanPath(`/api/clans/${toApiTagSegment(storedTag)}`);
+    }
+  }, []);
+
   const draftIsValid = isValidClanTag(draftTag);
 
   const members = useMemo(
@@ -62,6 +73,7 @@ export function ClanDashboard() {
     event.preventDefault();
     setClanPath(`/api/clans/${toApiTagSegment(draftTag)}`);
     setSubmittedTag(draftTag);
+    storeClanTag(draftTag);
   }
 
   function handleSortChange(key: MemberSortKey) {

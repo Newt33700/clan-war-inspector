@@ -18,9 +18,20 @@ const bodyFont = Nunito({
 });
 
 export const metadata: Metadata = {
-  title: 'Clan War Inspector',
+  title: {
+    default: 'Clan War Inspector',
+    template: '%s | Clan War Inspector',
+  },
   description:
     'Suivez l assiduite de votre clan Clash Royale en guerre : 16 combats par semaine, joueur par joueur.',
+  applicationName: 'Clan War Inspector',
+  openGraph: {
+    title: 'Clan War Inspector',
+    description:
+      'Qui a joue ses 16 combats de guerre cette semaine ? Le tableau de bord de votre clan Clash Royale.',
+    type: 'website',
+    locale: 'fr_FR',
+  },
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {

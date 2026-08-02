@@ -83,8 +83,14 @@ Le detail des epiques et des criteres d'acceptation est dans [`backlog.md`](./ba
 - [x] **US 4.3 / 4.4** Historique d'assiduite et alertes visuelles
 - [x] **US 4.1** Suivi en direct de la guerre en cours
 - [x] **US 5.1** Vue de renvoi (0 don + combats < seuil configurable)
+- [x] **Finition** Persistance du tag, colonne Moyenne, pages 404/erreur, favicon
 - [ ] **US 1.4** Stack E2E Playwright (delegue a la passe testing)
 - [ ] Passe testing dediee sur les modules recents (voir backlog.md)
+
+Le site est **fonctionnellement complet** : saisie (ou rappel) du tag ->
+membres triables -> guerre en cours -> historique 16 combats avec alertes ->
+vue de purge. Deploiement Vercel : renseigner `CLASH_ROYALE_API_TOKEN`
+dans les variables d'environnement du projet.
 
 ## Convention de developpement
 
