@@ -3,7 +3,7 @@
  * Basées sur les structures d'API Supercell Clash Royale.
  */
 
-import type { ClanInfo, RiverRaceLog, RiverRace } from './types';
+import type { ClanInfo, PlayerProfileInfo, RiverRaceLog, RiverRace } from './types';
 
 /** Clan complet avec membres. */
 export const FIXTURE_FULL_CLAN: ClanInfo = {
@@ -215,5 +215,40 @@ export const FIXTURE_RIVER_RACE_IDLE: RiverRace = {
     tag: '#20PP',
     name: 'Test Clan',
     participants: [],
+  },
+};
+
+/** Profil detaille d'un joueur (US 9), avec un deck complet de 8 cartes. */
+export const FIXTURE_PLAYER_PROFILE: PlayerProfileInfo = {
+  tag: '#PLAYER1',
+  name: 'Joueur 1',
+  expLevel: 13,
+  trophies: 7000,
+  role: 'leader',
+  donations: 500,
+  clan: { tag: '#20PP', name: 'Test Clan' },
+  currentDeck: Array.from({ length: 8 }, (_, index) => ({
+    name: `Carte ${index + 1}`,
+    id: 1000 + index,
+    level: 11,
+    maxLevel: 14,
+    iconUrls: { medium: `https://example.com/cards/${index + 1}.png` },
+  })),
+};
+
+/** Profil sans deck : repli attendu sur currentFavouriteCard. */
+export const FIXTURE_PLAYER_PROFILE_NO_DECK: PlayerProfileInfo = {
+  tag: '#PLAYER2',
+  name: 'Joueur 2',
+  expLevel: 10,
+  trophies: 5000,
+  role: 'member',
+  donations: 0,
+  currentFavouriteCard: {
+    name: 'Carte Favorite',
+    id: 2000,
+    level: 9,
+    maxLevel: 14,
+    iconUrls: { medium: 'https://example.com/cards/favorite.png' },
   },
 };

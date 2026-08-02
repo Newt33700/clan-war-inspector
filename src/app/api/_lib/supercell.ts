@@ -13,6 +13,7 @@
  */
 
 import { InvalidClanTagError, toApiTagSegment } from '@/domain/clan/clan-tag';
+import { toApiPlayerTagSegment } from '@/domain/clan/player-tag';
 
 /** URL officielle Supercell, utilisee par defaut. */
 export const SUPERCELL_API_BASE_URL = 'https://api.clashroyale.com/v1';
@@ -32,6 +33,7 @@ export type ProxyErrorCode =
   | 'MISSING_API_TOKEN'
   | 'API_KEY_REJECTED'
   | 'CLAN_NOT_FOUND'
+  | 'PLAYER_NOT_FOUND'
   | 'RATE_LIMITED'
   | 'UPSTREAM_ERROR'
   | 'UPSTREAM_TIMEOUT';
@@ -49,6 +51,7 @@ const ERROR_STATUS: Record<ProxyErrorCode, number> = {
   MISSING_API_TOKEN: 500,
   API_KEY_REJECTED: 502,
   CLAN_NOT_FOUND: 404,
+  PLAYER_NOT_FOUND: 404,
   RATE_LIMITED: 429,
   UPSTREAM_ERROR: 502,
   UPSTREAM_TIMEOUT: 504,
@@ -62,6 +65,7 @@ const ERROR_MESSAGES: Record<ProxyErrorCode, string> = {
     'dynamique, creez une cle autorisant l IP 45.79.218.79 et definissez ' +
     'CLASH_ROYALE_API_BASE_URL=https://proxy.royaleapi.dev/v1.',
   CLAN_NOT_FOUND: 'Aucun clan ne correspond a ce tag.',
+  PLAYER_NOT_FOUND: 'Aucun joueur ne correspond a ce tag.',
   RATE_LIMITED: 'Limite de requetes Supercell atteinte, reessayez plus tard.',
   UPSTREAM_ERROR: "L'API Supercell a repondu avec une erreur.",
   UPSTREAM_TIMEOUT: "L'API Supercell est injoignable ou trop lente.",
@@ -87,6 +91,55 @@ export interface ProxyOptions {
 export type ClanSubPath = '' | '/currentriverrace' | '/riverracelog';
 
 /**
+ * Relaye un chemin de ressource Supercell deja construit (clan ou joueur).
+ * Coeur commun aux deux proxies : token, timeout, mapping d'erreurs.
+ */
+async function relaySupercellPath(
+  path: string,
+  options: ProxyOptions,
+  notFoundCode: 'CLAN_NOT_FOUND' | 'PLAYER_NOT_FOUND',
+): Promise<Response> {
+  const apiToken = options.apiToken ?? process.env.CLASH_ROYALE_API_TOKEN;
+  if (!apiToken) {
+    return errorResponse('MISSING_API_TOKEN');
+  }
+
+  const baseUrl = resolveBaseUrl(options.baseUrl);
+
+  let upstream: Response;
+  try {
+    upstream = await fetch(`${baseUrl}${path}`, {
+      headers: {
+        Authorization: `Bearer ${apiToken}`,
+        Accept: 'application/json',
+      },
+      signal: AbortSignal.timeout(options.timeoutMs ?? DEFAULT_TIMEOUT_MS),
+      cache: 'no-store',
+    });
+  } catch {
+    // Timeout ou panne reseau : Supercell est injoignable.
+    return errorResponse('UPSTREAM_TIMEOUT');
+  }
+
+  // 401/403 : cle invalide ou IP non autorisee (cas classique sur Vercel).
+  if (upstream.status === 401 || upstream.status === 403) {
+    return errorResponse('API_KEY_REJECTED');
+  }
+  if (upstream.status === 404) {
+    return errorResponse(notFoundCode);
+  }
+  if (upstream.status === 429) {
+    return errorResponse('RATE_LIMITED');
+  }
+  if (!upstream.ok) {
+    return errorResponse('UPSTREAM_ERROR');
+  }
+
+  const data: unknown = await upstream.json();
+  return Response.json(data);
+}
+
+/**
  * Relaye une ressource clan de l'API Supercell.
  *
  * Le tag est normalise avant l'appel (US 1.5 s'appuie sur le module
@@ -107,42 +160,21 @@ export async function proxyClanResource(
     throw error;
   }
 
-  const apiToken = options.apiToken ?? process.env.CLASH_ROYALE_API_TOKEN;
-  if (!apiToken) {
-    return errorResponse('MISSING_API_TOKEN');
+  return relaySupercellPath(`/clans/${tagSegment}${subPath}`, options, 'CLAN_NOT_FOUND');
+}
+
+/**
+ * Relaye le profil d'un joueur de l'API Supercell (US 9, inspection a la
+ * demande). Meme contrat d'erreurs que `proxyClanResource`.
+ */
+export async function proxyPlayerResource(
+  rawTag: string,
+  options: ProxyOptions = {},
+): Promise<Response> {
+  const tagSegment = toApiPlayerTagSegment(rawTag);
+  if (tagSegment === null) {
+    return errorResponse('INVALID_TAG', `Tag joueur invalide : "${rawTag}".`);
   }
 
-  const baseUrl = resolveBaseUrl(options.baseUrl);
-
-  let upstream: Response;
-  try {
-    upstream = await fetch(`${baseUrl}/clans/${tagSegment}${subPath}`, {
-      headers: {
-        Authorization: `Bearer ${apiToken}`,
-        Accept: 'application/json',
-      },
-      signal: AbortSignal.timeout(options.timeoutMs ?? DEFAULT_TIMEOUT_MS),
-      cache: 'no-store',
-    });
-  } catch {
-    // Timeout ou panne reseau : Supercell est injoignable.
-    return errorResponse('UPSTREAM_TIMEOUT');
-  }
-
-  // 401/403 : cle invalide ou IP non autorisee (cas classique sur Vercel).
-  if (upstream.status === 401 || upstream.status === 403) {
-    return errorResponse('API_KEY_REJECTED');
-  }
-  if (upstream.status === 404) {
-    return errorResponse('CLAN_NOT_FOUND');
-  }
-  if (upstream.status === 429) {
-    return errorResponse('RATE_LIMITED');
-  }
-  if (!upstream.ok) {
-    return errorResponse('UPSTREAM_ERROR');
-  }
-
-  const data: unknown = await upstream.json();
-  return Response.json(data);
+  return relaySupercellPath(`/players/${tagSegment}`, options, 'PLAYER_NOT_FOUND');
 }

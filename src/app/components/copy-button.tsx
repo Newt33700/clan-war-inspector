@@ -1,0 +1,52 @@
+'use client';
+
+/**
+ * Bouton "Copier le tag" (US 7) : passe au vert avec un check pendant
+ * 2 secondes au clic, comme le bouton "Copier la liste" de la purge
+ * (US 6.6), generalise ici pour etre reutilise sur les cartes RH.
+ */
+
+import { useEffect, useState } from 'react';
+
+const CONFIRMATION_MS = 2000;
+
+interface CopyButtonProps {
+  text: string;
+  label?: string;
+}
+
+export function CopyButton({ text, label = 'Copier le tag' }: CopyButtonProps) {
+  const [copied, setCopied] = useState(false);
+
+  useEffect(() => {
+    if (!copied) {
+      return;
+    }
+    const timer = setTimeout(() => setCopied(false), CONFIRMATION_MS);
+    return () => clearTimeout(timer);
+  }, [copied]);
+
+  async function handleClick() {
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopied(true);
+    } catch {
+      // Presse-papiers indisponible (permissions, contexte non securise) :
+      // pas de raison de bloquer l'utilisateur, on ignore silencieusement.
+    }
+  }
+
+  return (
+    <button
+      type="button"
+      onClick={handleClick}
+      className={`rounded-md border px-3 py-1 text-xs font-semibold transition-colors duration-300 ${
+        copied
+          ? 'border-royale-green-500 bg-royale-green-500 text-royale-navy-950'
+          : 'border-royale-gold-400 text-royale-gold-400'
+      }`}
+    >
+      {copied ? '✓ Copie !' : label}
+    </button>
+  );
+}

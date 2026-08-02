@@ -11,6 +11,7 @@ import { delay, http, HttpResponse } from 'msw';
 import { mockServer } from '@/mocks/server';
 import {
   proxyClanResource,
+  proxyPlayerResource,
   SUPERCELL_API_BASE_URL,
   type ProxyErrorBody,
 } from './supercell';
@@ -247,5 +248,106 @@ describe('proxyClanResource', () => {
       expect(response.status).toBe(504);
       expect(body.error.code).toBe('UPSTREAM_TIMEOUT');
     });
+  });
+});
+
+/** Enregistre un handler amont sur /players/* et capture chaque requete. */
+function stubPlayerUpstream(
+  respond: (request: Request) => Response | Promise<Response>,
+): { requests: Request[] } {
+  const captured: { requests: Request[] } = { requests: [] };
+  mockServer.use(
+    http.get(`${SUPERCELL_API_BASE_URL}/players/*`, async ({ request }) => {
+      captured.requests.push(request.clone());
+      return respond(request);
+    }),
+  );
+  return captured;
+}
+
+describe('proxyPlayerResource (US 9)', () => {
+  beforeEach(() => {
+    vi.stubEnv('CLASH_ROYALE_API_TOKEN', '');
+  });
+
+  afterEach(() => {
+    vi.unstubAllEnvs();
+  });
+
+  it('rejette un tag inexploitable en 400 sans appeler Supercell', async () => {
+    const upstream = stubPlayerUpstream(() => HttpResponse.json({}));
+
+    const response = await proxyPlayerResource('   ', TOKEN_OPTIONS);
+    const body = await readError(response);
+
+    expect(response.status).toBe(400);
+    expect(body.error.code).toBe('INVALID_TAG');
+    expect(upstream.requests).toHaveLength(0);
+  });
+
+  it('normalise et encode le tag dans l URL Supercell /players', async () => {
+    const upstream = stubPlayerUpstream(() => HttpResponse.json({ ok: true }));
+
+    await proxyPlayerResource(' p1uu ', TOKEN_OPTIONS);
+
+    expect(upstream.requests[0]?.url).toBe(`${SUPERCELL_API_BASE_URL}/players/%23P1UU`);
+  });
+
+  it('repond 500 MISSING_API_TOKEN quand aucun token n est configure', async () => {
+    const response = await proxyPlayerResource('#P1');
+    const body = await readError(response);
+
+    expect(response.status).toBe(500);
+    expect(body.error.code).toBe('MISSING_API_TOKEN');
+  });
+
+  it('retransmet le JSON de Supercell en 200', async () => {
+    const payload = { tag: '#P1', name: 'Joueur 1' };
+    stubPlayerUpstream(() => HttpResponse.json(payload));
+
+    const response = await proxyPlayerResource('#P1', TOKEN_OPTIONS);
+
+    expect(response.status).toBe(200);
+    expect(await response.json()).toEqual(payload);
+  });
+
+  it('mappe 404 vers PLAYER_NOT_FOUND (pas CLAN_NOT_FOUND)', async () => {
+    stubPlayerUpstream(() => new HttpResponse(null, { status: 404 }));
+
+    const response = await proxyPlayerResource('#P1', TOKEN_OPTIONS);
+    const body = await readError(response);
+
+    expect(response.status).toBe(404);
+    expect(body.error.code).toBe('PLAYER_NOT_FOUND');
+  });
+
+  it('mappe 429 vers RATE_LIMITED', async () => {
+    stubPlayerUpstream(() => new HttpResponse(null, { status: 429 }));
+
+    const response = await proxyPlayerResource('#P1', TOKEN_OPTIONS);
+    const body = await readError(response);
+
+    expect(response.status).toBe(429);
+    expect(body.error.code).toBe('RATE_LIMITED');
+  });
+
+  it('mappe une panne reseau vers UPSTREAM_TIMEOUT en 504', async () => {
+    stubPlayerUpstream(() => HttpResponse.error());
+
+    const response = await proxyPlayerResource('#P1', TOKEN_OPTIONS);
+    const body = await readError(response);
+
+    expect(response.status).toBe(504);
+    expect(body.error.code).toBe('UPSTREAM_TIMEOUT');
+  });
+
+  it('mappe 401/403 vers API_KEY_REJECTED', async () => {
+    stubPlayerUpstream(() => new HttpResponse(null, { status: 403 }));
+
+    const response = await proxyPlayerResource('#P1', TOKEN_OPTIONS);
+    const body = await readError(response);
+
+    expect(response.status).toBe(502);
+    expect(body.error.code).toBe('API_KEY_REJECTED');
   });
 });

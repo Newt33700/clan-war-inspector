@@ -18,3 +18,13 @@ export function canonicalizePlayerTag(value: unknown): string | null {
   }
   return `#${candidate}`;
 }
+
+/**
+ * Encode un tag joueur canonicalise pour l'inserer dans un chemin d'URL
+ * (US 9 : construction de l'URL du proxy `/api/players/{tag}` cote client
+ * comme cote serveur). `null` si le tag n'est pas exploitable.
+ */
+export function toApiPlayerTagSegment(input: unknown): string | null {
+  const tag = canonicalizePlayerTag(input);
+  return tag === null ? null : encodeURIComponent(tag);
+}

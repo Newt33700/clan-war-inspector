@@ -66,6 +66,27 @@ export interface RiverRaceLog {
   items: RiverRaceLogEntry[];
 }
 
+export interface PlayerProfileCard {
+  name: string;
+  id: number;
+  level: number;
+  maxLevel: number;
+  iconUrls: { medium: string };
+}
+
+/** Forme (partielle) de GET /players/{tag} utile a l'inspection (US 9). */
+export interface PlayerProfileInfo {
+  tag: string;
+  name: string;
+  expLevel: number;
+  trophies: number;
+  role?: string;
+  donations: number;
+  clan?: { tag: string; name: string };
+  currentDeck?: PlayerProfileCard[];
+  currentFavouriteCard?: PlayerProfileCard;
+}
+
 export interface RiverRace {
   state: 'notInWar' | 'preparation' | 'war' | 'collectionDay' | 'riverRace';
   periodType?: 'training' | 'warDay' | 'colosseum';

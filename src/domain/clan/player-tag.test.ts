@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { canonicalizePlayerTag } from './player-tag';
+import { canonicalizePlayerTag, toApiPlayerTagSegment } from './player-tag';
 
 describe('canonicalizePlayerTag', () => {
   it('prefixe un tag nu d un diese', () => {
@@ -30,5 +30,20 @@ describe('canonicalizePlayerTag', () => {
     ['diese seul', '#'],
   ])('retourne null pour un tag inutilisable (%s)', (_label, value) => {
     expect(canonicalizePlayerTag(value)).toBeNull();
+  });
+});
+
+describe('toApiPlayerTagSegment', () => {
+  it('encode le tag canonicalise pour un usage dans une URL', () => {
+    expect(toApiPlayerTagSegment(' p1uu ')).toBe('%23P1UU');
+  });
+
+  it.each([
+    ['vide', ''],
+    ['espaces seuls', '   '],
+    ['diese seul', '#'],
+    ['non string', 42],
+  ])('retourne null pour un tag inutilisable (%s)', (_label, value) => {
+    expect(toApiPlayerTagSegment(value)).toBeNull();
   });
 });

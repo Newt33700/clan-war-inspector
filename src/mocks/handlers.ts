@@ -4,10 +4,16 @@
  */
 
 import { http, HttpResponse } from 'msw';
-import type { ClanInfo, RiverRace, RiverRaceLog } from './types';
+import type { ClanInfo, PlayerProfileInfo, RiverRace, RiverRaceLog } from './types';
 
 type StubResolver =
-  ClanInfo | RiverRace | RiverRaceLog | { error: string } | null | undefined;
+  | ClanInfo
+  | RiverRace
+  | RiverRaceLog
+  | PlayerProfileInfo
+  | { error: string }
+  | null
+  | undefined;
 
 /**
  * Stockage des réponses mockées.
@@ -17,6 +23,7 @@ const mockResponses: Record<string, StubResolver> = {
   clan: null,
   currentRiverRace: null,
   riverRaceLog: null,
+  playerProfile: null,
 };
 
 /** Récupère la réponse mockée pour un endpoint. */
@@ -34,6 +41,7 @@ export function resetMockResponses(): void {
   mockResponses.clan = null;
   mockResponses.currentRiverRace = null;
   mockResponses.riverRaceLog = null;
+  mockResponses.playerProfile = null;
 }
 
 /** Handlers MSW pour l'API Supercell. */
@@ -92,6 +100,30 @@ export const handlers = [
    */
   http.get('*/api/clans/:clanTag/riverracelog', () => {
     const response = getMockResponse('riverRaceLog');
+
+    if (response === null) {
+      return new HttpResponse(JSON.stringify({ reason: 'notFound' }), {
+        status: 404,
+        headers: { 'content-type': 'application/json' },
+      });
+    }
+
+    if (typeof response === 'object' && 'error' in response) {
+      return new HttpResponse(JSON.stringify(response), {
+        status: 500,
+        headers: { 'content-type': 'application/json' },
+      });
+    }
+
+    return HttpResponse.json(response);
+  }),
+
+  /**
+   * GET /api/players/{playerTag}
+   * Récupère le profil détaillé d'un joueur (US 9).
+   */
+  http.get('*/api/players/:playerTag', () => {
+    const response = getMockResponse('playerProfile');
 
     if (response === null) {
       return new HttpResponse(JSON.stringify({ reason: 'notFound' }), {
