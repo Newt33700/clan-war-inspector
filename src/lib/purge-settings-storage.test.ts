@@ -42,7 +42,9 @@ describe('storePurgeSettings / readStoredPurgeSettings', () => {
     const setItem = vi.spyOn(window.localStorage, 'setItem').mockImplementation(() => {
       throw new Error('storage full');
     });
-    expect(() => storePurgeSettings({ minWarBattles: 5, combinator: 'AND' })).not.toThrow();
+    expect(() =>
+      storePurgeSettings({ minWarBattles: 5, combinator: 'AND' }),
+    ).not.toThrow();
     setItem.mockRestore();
   });
 });

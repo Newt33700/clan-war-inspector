@@ -203,7 +203,10 @@ export function WarHistorySection({
           <div className="space-y-1">
             <ul className="text-royale-parchment-dim flex flex-wrap gap-x-4 gap-y-1 text-xs">
               {(['complete', 'warning', 'critical'] as const).map((level) => (
-                <li key={level} className={`flex items-center gap-1 ${LEVEL_TEXT_CLASSES[level]}`}>
+                <li
+                  key={level}
+                  className={`flex items-center gap-1 ${LEVEL_TEXT_CLASSES[level]}`}
+                >
                   <span aria-hidden="true">{LEVEL_SYMBOLS[level]}</span>
                   {LEVEL_LABELS[level]}
                 </li>

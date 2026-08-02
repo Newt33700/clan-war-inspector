@@ -172,7 +172,9 @@ describe('HrAssistantSection', () => {
       />,
     );
 
-    const buttons = screen.getAllByRole('button', { name: /copier les recommandations/i });
+    const buttons = screen.getAllByRole('button', {
+      name: /copier les recommandations/i,
+    });
     expect(buttons).toHaveLength(2);
 
     fireEvent.click(buttons[0]!);

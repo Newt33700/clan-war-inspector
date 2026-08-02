@@ -22,9 +22,7 @@ function successState(participants: unknown[]): ApiResource<unknown> {
 
 describe('CurrentWarSection', () => {
   it('n affiche rien avant toute soumission (idle)', () => {
-    const { container } = render(
-      <CurrentWarSection warState={idle} memberTags={[]} />,
-    );
+    const { container } = render(<CurrentWarSection warState={idle} memberTags={[]} />);
     expect(container).toBeEmptyDOMElement();
   });
 

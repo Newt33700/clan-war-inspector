@@ -30,9 +30,9 @@ export function SectionNav() {
     if (typeof IntersectionObserver === 'undefined') {
       return;
     }
-    const elements = SECTIONS.map((section) => document.getElementById(section.id)).filter(
-      (element): element is HTMLElement => element !== null,
-    );
+    const elements = SECTIONS.map((section) =>
+      document.getElementById(section.id),
+    ).filter((element): element is HTMLElement => element !== null);
     if (elements.length === 0) {
       return;
     }

@@ -440,9 +440,7 @@ describe('ClanDashboard', () => {
 
       await user.type(screen.getByLabelText(/rechercher un membre/i), 'zzzzz');
 
-      expect(
-        await screen.findByText(/aucun membre ne correspond/i),
-      ).toBeInTheDocument();
+      expect(await screen.findByText(/aucun membre ne correspond/i)).toBeInTheDocument();
       expect(screen.queryByTestId('member-row')).not.toBeInTheDocument();
     });
   });

@@ -14,7 +14,10 @@ import {
   type PurgeCombinator,
 } from '@/domain/clan/purge';
 import { formatPurgeCandidatesForClipboard } from '@/lib/purge-export';
-import { readStoredPurgeSettings, storePurgeSettings } from '@/lib/purge-settings-storage';
+import {
+  readStoredPurgeSettings,
+  storePurgeSettings,
+} from '@/lib/purge-settings-storage';
 import type { PlayerAttendance } from '@/domain/war/war-history';
 
 const DEFAULT_MIN_WAR_BATTLES = 8;

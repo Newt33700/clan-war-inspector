@@ -75,13 +75,15 @@ describe('WarHistorySection', () => {
     );
     const totalButton = screen.getByRole('button', { name: /^total/i });
     fireEvent.click(totalButton);
-    expect(
-      screen.getByRole('columnheader', { name: /^total/i }),
-    ).toHaveAttribute('aria-sort', 'ascending');
+    expect(screen.getByRole('columnheader', { name: /^total/i })).toHaveAttribute(
+      'aria-sort',
+      'ascending',
+    );
 
     fireEvent.click(totalButton);
-    expect(
-      screen.getByRole('columnheader', { name: /^total/i }),
-    ).toHaveAttribute('aria-sort', 'descending');
+    expect(screen.getByRole('columnheader', { name: /^total/i })).toHaveAttribute(
+      'aria-sort',
+      'descending',
+    );
   });
 });
