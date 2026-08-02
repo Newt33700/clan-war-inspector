@@ -12,11 +12,7 @@
 
 import { useMemo } from 'react';
 import type { ClanMember } from '@/domain/clan/members';
-import {
-  findMeritoriousMembers,
-  findWatchlistMembers,
-  type WatchReason,
-} from '@/domain/clan/hr-assistant';
+import { findMeritoriousMembers, findWatchlistMembers } from '@/domain/clan/hr-assistant';
 import { parseCurrentWar } from '@/domain/war/current-war';
 import type { PlayerAttendance } from '@/domain/war/war-history';
 import type { ApiResource } from '@/hooks/use-api-resource';
@@ -27,11 +23,6 @@ import {
 import { CopyButton } from './copy-button';
 import { EmptyState } from './empty-state';
 import { Skeleton } from './skeleton';
-
-const REASON_LABELS: Record<WatchReason, string> = {
-  CURRENT_WEEK_LOW: 'Combats insuffisants cette semaine',
-  PREVIOUS_WEEK_LOW: 'Combats insuffisants la semaine derniere',
-};
 
 function ShieldIcon({ className = 'h-8 w-8' }: { className?: string }) {
   return (
@@ -61,6 +52,8 @@ interface HrAssistantSectionProps {
   logState: ApiResource<unknown>;
   /** Etat de /currentriverrace, pour le critere "semaine en cours". */
   warState: ApiResource<unknown>;
+  /** Seuil de combats sur la semaine en cours, partage avec « A expulser ». */
+  minWeeklyBattles: number;
 }
 
 export function HrAssistantSection({
@@ -68,6 +61,7 @@ export function HrAssistantSection({
   attendance,
   logState,
   warState,
+  minWeeklyBattles,
 }: HrAssistantSectionProps) {
   const ready = logState.status === 'success';
   const loading = logState.status === 'loading';
@@ -84,8 +78,10 @@ export function HrAssistantSection({
   );
   const onWatch = useMemo(
     () =>
-      ready ? findWatchlistMembers(members, attendance, currentWeekParticipants) : [],
-    [ready, members, attendance, currentWeekParticipants],
+      ready
+        ? findWatchlistMembers(members, currentWeekParticipants, minWeeklyBattles)
+        : [],
+    [ready, members, currentWeekParticipants, minWeeklyBattles],
   );
 
   if (!ready && !loading) {
@@ -176,7 +172,7 @@ export function HrAssistantSection({
               <EmptyState
                 icon={<TriangleWarningIcon className="h-10 w-10" />}
                 title="Personne sur la sellette"
-                description="Aucun aine ou adjoint sous 8/16 combats cette semaine ou la precedente."
+                description={`Aucun aine sous ${minWeeklyBattles}/16 combats sur la semaine de guerre en cours.`}
               />
             ) : (
               <ul className="space-y-3">
@@ -201,16 +197,9 @@ export function HrAssistantSection({
                     <p className="text-royale-red-500 mt-3 text-sm font-semibold">
                       Retrogradation conseillee
                     </p>
-                    <ul className="mt-1 flex flex-wrap gap-1">
-                      {candidate.reasons.map((reason) => (
-                        <li
-                          key={reason}
-                          className="text-royale-parchment rounded-full bg-red-900/60 px-2 py-0.5 text-xs"
-                        >
-                          {REASON_LABELS[reason]}
-                        </li>
-                      ))}
-                    </ul>
+                    <p className="text-royale-parchment-dim mt-1 text-xs">
+                      {candidate.currentWeekBattles}/16 combats cette semaine
+                    </p>
                     <div className="mt-3">
                       <CopyButton text={candidate.member.tag} />
                     </div>

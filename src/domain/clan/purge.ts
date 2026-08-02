@@ -1,84 +1,64 @@
 /**
- * Vue de renvoi (US 5.1) : compile dons et assiduite de guerre pour ne
- * garder que les joueurs problematiques.
+ * Vue de renvoi "A expulser" (regle produit du 2026-08-02) : membres
+ * (role `member` uniquement) dont l'activite de la semaine de guerre en
+ * cours est insuffisante.
  *
- * Regle par defaut du backlog : 0 don ET moins de X combats de guerre.
- * La regle de combinaison est explicite (`AND` / `OR`) et les bornes
- * sont strictes : donations === 0, combats totaux < seuil.
- * Un membre sans aucune donnee de guerre est traite comme 0 combat.
+ * Remplace l'ancienne regle (US 5.1 : 0 don ET/OU moins de X combats
+ * cumules sur toutes les semaines connues de l'historique). Ce total
+ * multi-semaines (jusqu'a 16 x N semaines) rendait le seuil quasi
+ * inoperant des que le clan avait plus d'une semaine d'historique, et
+ * melangeait deux signaux (dons, assiduite) difficiles a lire ensemble.
+ * La regle est desormais un seul critere, sur la semaine en cours
+ * uniquement - la meme semaine que celle affichee dans "Guerre en cours".
  */
 
-import type { PlayerAttendance } from '../war/war-history';
+import type { CurrentWarParticipant } from '../war/current-war';
 import type { ClanMember } from './members';
-
-export type PurgeReason = 'ZERO_DONATIONS' | 'LOW_WAR_ACTIVITY';
-
-export type PurgeCombinator = 'AND' | 'OR';
-
-export interface PurgeCriteria {
-  /** Seuil strict de combats : signale si total < minWarBattles. */
-  minWarBattles: number;
-  /** Regle de combinaison des criteres, `AND` par defaut. */
-  combinator?: PurgeCombinator;
-}
 
 export interface PurgeCandidate {
   member: ClanMember;
-  /** Motifs d'inclusion, toujours affiches a l'utilisateur. */
-  reasons: PurgeReason[];
-  /** Total de combats connus, `null` si absent de tout l'historique. */
-  totalWarBattles: number | null;
+  /** Decks joues sur la semaine de guerre en cours, borne [0, 16]. */
+  currentWeekBattles: number;
 }
 
-/** Libelles francais des motifs pour l'affichage. */
-export const PURGE_REASON_LABELS: Record<PurgeReason, string> = {
-  ZERO_DONATIONS: 'Aucun don',
-  LOW_WAR_ACTIVITY: 'Combats de guerre insuffisants',
-};
-
 /**
- * Filtre les membres problematiques selon les criteres.
+ * Membres (role `member`) sous `minWeeklyBattles` combats sur la semaine
+ * de guerre en cours.
  *
- * Le resultat est ordonne du plus problematique au moins problematique :
- * combats croissants puis dons croissants, tie-break nom puis tag.
+ * Un membre absent de `currentWeekParticipants` (pas de guerre active,
+ * ou membre arrive apres le debut de la guerre) n'est pas evalue plutot
+ * que disqualifie par defaut.
+ *
+ * Resultat trie du plus problematique au moins problematique (combats
+ * croissants), tie-break nom puis tag.
  */
 export function findPurgeCandidates(
   members: readonly ClanMember[],
-  attendance: readonly PlayerAttendance[],
-  criteria: PurgeCriteria,
+  currentWeekParticipants: readonly Pick<CurrentWarParticipant, 'tag' | 'decksUsed'>[],
+  minWeeklyBattles: number,
 ): PurgeCandidate[] {
-  const combinator: PurgeCombinator = criteria.combinator ?? 'AND';
-  const battlesByTag = new Map(
-    attendance.map((player) => [player.tag, player.totalBattles]),
+  const currentWeekByTag = new Map(
+    currentWeekParticipants.map((participant) => [
+      participant.tag,
+      participant.decksUsed,
+    ]),
   );
 
   const candidates: PurgeCandidate[] = [];
   for (const member of members) {
-    const totalWarBattles = battlesByTag.get(member.tag) ?? null;
-    const battlesForRule = totalWarBattles ?? 0;
-
-    const reasons: PurgeReason[] = [];
-    if (member.donations === 0) {
-      reasons.push('ZERO_DONATIONS');
+    if (member.role !== 'member') {
+      continue;
     }
-    if (battlesForRule < criteria.minWarBattles) {
-      reasons.push('LOW_WAR_ACTIVITY');
+    const currentWeekBattles = currentWeekByTag.get(member.tag);
+    if (currentWeekBattles === undefined || currentWeekBattles >= minWeeklyBattles) {
+      continue;
     }
-
-    const isCandidate = combinator === 'AND' ? reasons.length === 2 : reasons.length >= 1;
-    if (isCandidate) {
-      candidates.push({ member, reasons, totalWarBattles });
-    }
+    candidates.push({ member, currentWeekBattles });
   }
 
   candidates.sort((a, b) => {
-    const battlesA = a.totalWarBattles ?? 0;
-    const battlesB = b.totalWarBattles ?? 0;
-    if (battlesA !== battlesB) {
-      return battlesA - battlesB;
-    }
-    if (a.member.donations !== b.member.donations) {
-      return a.member.donations - b.member.donations;
+    if (a.currentWeekBattles !== b.currentWeekBattles) {
+      return a.currentWeekBattles - b.currentWeekBattles;
     }
     return (
       a.member.name.localeCompare(b.member.name) ||

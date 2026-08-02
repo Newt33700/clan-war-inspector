@@ -37,10 +37,18 @@ const success: ApiResource<unknown> = {
   refetch: () => undefined,
 };
 
+const MIN_WEEKLY_BATTLES = 8;
+
 describe('HrAssistantSection', () => {
   it('n affiche rien avant toute soumission de tag (idle)', () => {
     const { container } = render(
-      <HrAssistantSection members={[]} attendance={[]} logState={idle} warState={idle} />,
+      <HrAssistantSection
+        members={[]}
+        attendance={[]}
+        logState={idle}
+        warState={idle}
+        minWeeklyBattles={MIN_WEEKLY_BATTLES}
+      />,
     );
     expect(container).toBeEmptyDOMElement();
   });
@@ -52,6 +60,7 @@ describe('HrAssistantSection', () => {
         attendance={[]}
         logState={loading}
         warState={idle}
+        minWeeklyBattles={MIN_WEEKLY_BATTLES}
       />,
     );
     expect(screen.getAllByRole('status')).toHaveLength(1);
@@ -65,6 +74,7 @@ describe('HrAssistantSection', () => {
         attendance={[]}
         logState={success}
         warState={idle}
+        minWeeklyBattles={MIN_WEEKLY_BATTLES}
       />,
     );
     expect(screen.getByText(/aucun meritant pour l instant/i)).toBeInTheDocument();
@@ -84,6 +94,7 @@ describe('HrAssistantSection', () => {
         attendance={[attendance('#A', [16, 16, 16])]}
         logState={success}
         warState={idle}
+        minWeeklyBattles={MIN_WEEKLY_BATTLES}
       />,
     );
     const card = screen.getByTestId('merit-card');
@@ -95,29 +106,28 @@ describe('HrAssistantSection', () => {
     ).toBeInTheDocument();
   });
 
-  it('affiche une carte sur la sellette avec les motifs et l avertissement', () => {
+  it('affiche une carte sur la sellette avec le decompte de la semaine en cours', () => {
     const candidate = member({ tag: '#B', name: 'Bob', role: 'elder' });
     render(
       <HrAssistantSection
         members={[candidate]}
-        attendance={[attendance('#B', [3])]}
+        attendance={[]}
         logState={success}
         warState={{
           status: 'success',
-          data: { clan: { participants: [] } },
+          data: { clan: { participants: [{ tag: '#B', decksUsed: 3 }] } },
           refetch: () => undefined,
         }}
+        minWeeklyBattles={MIN_WEEKLY_BATTLES}
       />,
     );
     const card = screen.getByTestId('watch-card');
     expect(within(card).getByText('Bob')).toBeInTheDocument();
     expect(within(card).getByText(/retrogradation conseillee/i)).toBeInTheDocument();
-    expect(
-      within(card).getByText(/combats insuffisants la semaine derniere/i),
-    ).toBeInTheDocument();
+    expect(within(card).getByText(/3\/16 combats cette semaine/i)).toBeInTheDocument();
   });
 
-  it('prend en compte la guerre en cours (currentriverrace) pour la semaine en cours', () => {
+  it('exclut un role coLeader (seuls les elder sont evalues)', () => {
     const candidate = member({ tag: '#C', name: 'Carol', role: 'coLeader' });
     render(
       <HrAssistantSection
@@ -126,15 +136,13 @@ describe('HrAssistantSection', () => {
         logState={success}
         warState={{
           status: 'success',
-          data: { clan: { participants: [{ tag: '#C', decksUsed: 4 }] } },
+          data: { clan: { participants: [{ tag: '#C', decksUsed: 0 }] } },
           refetch: () => undefined,
         }}
+        minWeeklyBattles={MIN_WEEKLY_BATTLES}
       />,
     );
-    const card = screen.getByTestId('watch-card');
-    expect(
-      within(card).getByText(/combats insuffisants cette semaine/i),
-    ).toBeInTheDocument();
+    expect(screen.queryByTestId('watch-card')).not.toBeInTheDocument();
   });
 
   it('n evalue pas la semaine en cours tant que la guerre n est pas chargee', () => {
@@ -145,6 +153,7 @@ describe('HrAssistantSection', () => {
         attendance={[attendance('#D', [16])]}
         logState={success}
         warState={idle}
+        minWeeklyBattles={MIN_WEEKLY_BATTLES}
       />,
     );
     expect(screen.queryByTestId('watch-card')).not.toBeInTheDocument();
@@ -152,7 +161,13 @@ describe('HrAssistantSection', () => {
 
   it('n affiche rien en erreur (deja signalee par les sections membres/historique)', () => {
     const { container } = render(
-      <HrAssistantSection members={[]} attendance={[]} logState={idle} warState={idle} />,
+      <HrAssistantSection
+        members={[]}
+        attendance={[]}
+        logState={idle}
+        warState={idle}
+        minWeeklyBattles={MIN_WEEKLY_BATTLES}
+      />,
     );
     expect(container).toBeEmptyDOMElement();
   });
@@ -166,9 +181,14 @@ describe('HrAssistantSection', () => {
     render(
       <HrAssistantSection
         members={[merit, watch]}
-        attendance={[attendance('#A', [16, 16, 16]), attendance('#B', [3])]}
+        attendance={[attendance('#A', [16, 16, 16])]}
         logState={success}
-        warState={idle}
+        warState={{
+          status: 'success',
+          data: { clan: { participants: [{ tag: '#B', decksUsed: 3 }] } },
+          refetch: () => undefined,
+        }}
+        minWeeklyBattles={MIN_WEEKLY_BATTLES}
       />,
     );
 
@@ -184,9 +204,7 @@ describe('HrAssistantSection', () => {
 
     fireEvent.click(buttons[1]!);
     await waitFor(() =>
-      expect(writeText).toHaveBeenCalledWith(
-        'Bob (#B) - Combats insuffisants la semaine derniere',
-      ),
+      expect(writeText).toHaveBeenCalledWith('Bob (#B) - 3 combats cette semaine'),
     );
   });
 
@@ -197,6 +215,7 @@ describe('HrAssistantSection', () => {
         attendance={[]}
         logState={success}
         warState={idle}
+        minWeeklyBattles={MIN_WEEKLY_BATTLES}
       />,
     );
     expect(

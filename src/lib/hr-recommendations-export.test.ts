@@ -38,13 +38,13 @@ describe('formatMeritoriousForClipboard', () => {
 });
 
 describe('formatWatchlistForClipboard', () => {
-  it('formate une ligne par candidat avec ses motifs', () => {
+  it('formate une ligne par candidat avec son nombre de combats cette semaine', () => {
     const candidate: WatchCandidate = {
       member: member({ tag: '#C', name: 'Carol', role: 'elder' }),
-      reasons: ['CURRENT_WEEK_LOW', 'PREVIOUS_WEEK_LOW'],
+      currentWeekBattles: 4,
     };
     expect(formatWatchlistForClipboard([candidate])).toBe(
-      'Carol (#C) - Combats insuffisants cette semaine, Combats insuffisants la semaine derniere',
+      'Carol (#C) - 4 combats cette semaine',
     );
   });
 

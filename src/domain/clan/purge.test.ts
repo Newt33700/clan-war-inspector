@@ -1,13 +1,13 @@
 /**
- * Tests de la vue de renvoi (US 5.1) et du combinateur ET/OU (US 6.6).
- * Perimetre Stryker : chaque branche de la regle de combinaison et
- * chaque cle de tri sont verrouillees par un cas explicite.
+ * Tests de la vue de renvoi "A expulser" (regle produit du 2026-08-02) :
+ * role Membre et combats sur la semaine de guerre en cours sous un
+ * seuil configurable. Perimetre Stryker : chaque garde et chaque cle de
+ * tri sont verrouilles par un cas explicite.
  */
 
 import { describe, expect, it } from 'vitest';
-import { findPurgeCandidates, PURGE_REASON_LABELS } from './purge';
+import { findPurgeCandidates } from './purge';
 import type { ClanMember } from './members';
-import type { PlayerAttendance } from '../war/war-history';
 
 function member(overrides: Partial<ClanMember>): ClanMember {
   return {
@@ -21,170 +21,75 @@ function member(overrides: Partial<ClanMember>): ClanMember {
   };
 }
 
-function attendance(tag: string, totalBattles: number): PlayerAttendance {
-  return {
-    tag,
-    name: tag,
-    battlesByWeek: [],
-    totalBattles,
-    weeksPresent: 1,
-    averagePerPresentWeek: totalBattles,
-  };
+function participant(tag: string, decksUsed: number) {
+  return { tag, decksUsed };
 }
 
-describe('PURGE_REASON_LABELS', () => {
-  it('fournit un libelle francais pour chaque motif', () => {
-    expect(Object.values(PURGE_REASON_LABELS).every((label) => label.length > 0)).toBe(
-      true,
-    );
-  });
-});
-
 describe('findPurgeCandidates', () => {
-  const inactive = member({ tag: '#A', name: 'Alice', donations: 0 });
-  const bigDonorLowBattles = member({ tag: '#B', name: 'Bob', donations: 500 });
-  const zeroDonorHighBattles = member({ tag: '#C', name: 'Carol', donations: 0 });
-  const clean = member({ tag: '#D', name: 'Dave', donations: 200 });
-
-  const members = [inactive, bigDonorLowBattles, zeroDonorHighBattles, clean];
-  const attendanceList = [
-    attendance('#A', 2),
-    attendance('#B', 3),
-    attendance('#C', 16),
-    attendance('#D', 16),
-  ];
-
-  it('combinateur AND (defaut) : ne retient que 0 don ET combats insuffisants', () => {
-    const candidates = findPurgeCandidates(members, attendanceList, {
-      minWarBattles: 8,
-    });
-    expect(candidates.map((c) => c.member.tag)).toEqual(['#A']);
-    expect(candidates[0]?.reasons).toEqual(['ZERO_DONATIONS', 'LOW_WAR_ACTIVITY']);
+  it('retient un membre sous le seuil de combats cette semaine', () => {
+    const alice = member({ tag: '#A', name: 'Alice' });
+    const candidates = findPurgeCandidates([alice], [participant('#A', 3)], 8);
+    expect(candidates).toEqual([{ member: alice, currentWeekBattles: 3 }]);
   });
 
-  it('combinateur AND explicite : identique au defaut', () => {
-    const candidates = findPurgeCandidates(members, attendanceList, {
-      minWarBattles: 8,
-      combinator: 'AND',
-    });
-    expect(candidates.map((c) => c.member.tag)).toEqual(['#A']);
+  it('ignore un membre au-dessus ou exactement au seuil', () => {
+    const alice = member({ tag: '#A', name: 'Alice' });
+    expect(findPurgeCandidates([alice], [participant('#A', 8)], 8)).toEqual([]);
+    expect(findPurgeCandidates([alice], [participant('#A', 16)], 8)).toEqual([]);
   });
 
-  it('combinateur OR : retient chaque critere independamment', () => {
-    const candidates = findPurgeCandidates(members, attendanceList, {
-      minWarBattles: 8,
-      combinator: 'OR',
-    });
-    // #A : les deux criteres. #B : combats insuffisants seul. #C : 0 don seul.
-    expect(candidates.map((c) => c.member.tag).sort()).toEqual(['#A', '#B', '#C']);
-    const bob = candidates.find((c) => c.member.tag === '#B');
-    expect(bob?.reasons).toEqual(['LOW_WAR_ACTIVITY']);
-    const carol = candidates.find((c) => c.member.tag === '#C');
-    expect(carol?.reasons).toEqual(['ZERO_DONATIONS']);
+  it.each(['leader', 'coLeader', 'elder'] as const)(
+    'ignore un role %s meme sous le seuil',
+    (role) => {
+      const candidate = member({ tag: '#A', name: 'Alice', role });
+      expect(findPurgeCandidates([candidate], [participant('#A', 0)], 8)).toEqual([]);
+    },
+  );
+
+  it('n evalue pas un membre absent de la semaine en cours (pas disqualifie par defaut)', () => {
+    const alice = member({ tag: '#A', name: 'Alice' });
+    expect(findPurgeCandidates([alice], [], 8)).toEqual([]);
   });
 
-  it('traite un membre absent de l historique comme 0 combat', () => {
+  it('trie par combats croissants, tie-break nom puis tag', () => {
+    const zoe = member({ tag: '#Z', name: 'Zoe' });
+    const anna = member({ tag: '#Y', name: 'Anna' });
+    const xena = member({ tag: '#X', name: 'Xena' });
     const candidates = findPurgeCandidates(
-      [member({ tag: '#E', name: 'Eve', donations: 0 })],
-      [],
-      { minWarBattles: 1 },
-    );
-    expect(candidates).toHaveLength(1);
-    expect(candidates[0]?.totalWarBattles).toBeNull();
-  });
-
-  it('n inclut personne si aucun critere n est franchi', () => {
-    expect(findPurgeCandidates([clean], attendanceList, { minWarBattles: 1 })).toEqual(
-      [],
-    );
-  });
-
-  it('n inclut pas un joueur dont les combats atteignent exactement le seuil', () => {
-    const atThreshold = member({ tag: '#F', name: 'Faye', donations: 100 });
-    const candidates = findPurgeCandidates([atThreshold], [attendance('#F', 8)], {
-      minWarBattles: 8,
-      combinator: 'OR',
-    });
-    expect(candidates).toEqual([]);
-  });
-
-  it('trie par combats croissants, puis dons croissants, puis nom puis tag', () => {
-    const tie1 = member({ tag: '#Z', name: 'Zoe', donations: 0 });
-    const tie2 = member({ tag: '#Y', name: 'Anna', donations: 0 });
-    const moreBattles = member({ tag: '#X', name: 'Xena', donations: 0 });
-    const candidates = findPurgeCandidates(
-      [moreBattles, tie1, tie2],
-      [attendance('#Z', 1), attendance('#Y', 1), attendance('#X', 5)],
-      { minWarBattles: 10 },
+      [xena, zoe, anna],
+      [participant('#Z', 1), participant('#Y', 1), participant('#X', 5)],
+      8,
     );
     expect(candidates.map((c) => c.member.tag)).toEqual(['#Y', '#Z', '#X']);
   });
 
-  it('departage a combats egaux par les dons croissants', () => {
-    // Noms delibrement inverses par rapport aux dons : un tri qui
-    // ignorerait la comparaison de dons et retomberait sur le nom
-    // donnerait le mauvais ordre ici.
+  it('departage les ex-aequo par nom puis tag', () => {
+    const zoe = member({ tag: '#Z', name: 'Zoe' });
+    const anna = member({ tag: '#Y', name: 'Anna' });
     const candidates = findPurgeCandidates(
-      [
-        member({ tag: '#Z', name: 'Zoe', donations: 5 }),
-        member({ tag: '#Y', name: 'Anna', donations: 20 }),
-      ],
-      [attendance('#Z', 1), attendance('#Y', 1)],
-      { minWarBattles: 10, combinator: 'OR' },
-    );
-    expect(candidates.map((c) => c.member.name)).toEqual(['Zoe', 'Anna']);
-  });
-
-  it('trie 3 candidats par dons croissants (au-dela d une simple paire)', () => {
-    // Les dons ne sont jamais negatifs : une comparaison inversee (+ au
-    // lieu de -) peut laisser une paire adjacente inchangee par hasard.
-    // 3 elements avec un ordre initial deja "presque trie" force un vrai
-    // reordonnancement transitif que seule la soustraction produit.
-    const candidates = findPurgeCandidates(
-      [
-        member({ tag: '#C', name: 'Carol', donations: 30 }),
-        member({ tag: '#A', name: 'Alice', donations: 5 }),
-        member({ tag: '#B', name: 'Bob', donations: 15 }),
-      ],
-      [attendance('#C', 1), attendance('#A', 1), attendance('#B', 1)],
-      { minWarBattles: 10, combinator: 'OR' },
-    );
-    expect(candidates.map((c) => c.member.name)).toEqual(['Alice', 'Bob', 'Carol']);
-  });
-
-  it('departage a dons egaux par le nom', () => {
-    const candidates = findPurgeCandidates(
-      [
-        member({ tag: '#Z', name: 'Zoe', donations: 0 }),
-        member({ tag: '#Y', name: 'Anna', donations: 0 }),
-      ],
-      [attendance('#Z', 1), attendance('#Y', 1)],
-      { minWarBattles: 10 },
+      [zoe, anna],
+      [participant('#Z', 1), participant('#Y', 1)],
+      8,
     );
     expect(candidates.map((c) => c.member.name)).toEqual(['Anna', 'Zoe']);
   });
 
-  it('departage les homonymes par le tag quand nom et dons sont egaux', () => {
+  it('departage les homonymes par tag', () => {
+    const twinZ = member({ tag: '#Z', name: 'Jumeau' });
+    const twinA = member({ tag: '#A', name: 'Jumeau' });
     const candidates = findPurgeCandidates(
-      [
-        member({ tag: '#Z', name: 'Jumeau', donations: 0 }),
-        member({ tag: '#A', name: 'Jumeau', donations: 0 }),
-      ],
-      [attendance('#Z', 1), attendance('#A', 1)],
-      { minWarBattles: 10 },
+      [twinZ, twinA],
+      [participant('#Z', 1), participant('#A', 1)],
+      8,
     );
     expect(candidates.map((c) => c.member.tag)).toEqual(['#A', '#Z']);
   });
 
-  it('traite deux membres absents de l historique comme egaux (0 combat) au tri', () => {
-    const candidates = findPurgeCandidates(
-      [
-        member({ tag: '#Z', name: 'Zoe', donations: 0 }),
-        member({ tag: '#A', name: 'Anna', donations: 0 }),
-      ],
-      [],
-      { minWarBattles: 10 },
-    );
-    expect(candidates.map((c) => c.member.name)).toEqual(['Anna', 'Zoe']);
+  it('ne mute pas le tableau d entree', () => {
+    const alice = member({ tag: '#A', name: 'Alice' });
+    const bob = member({ tag: '#B', name: 'Bob' });
+    const input = [bob, alice];
+    findPurgeCandidates(input, [participant('#A', 1), participant('#B', 2)], 8);
+    expect(input).toEqual([bob, alice]);
   });
 });

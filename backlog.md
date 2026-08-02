@@ -684,6 +684,44 @@ Critères d'acceptation :
 
 ---
 
+### ÉPIQUE 11 — Refonte des règles « À expulser » et « Sur la sellette »
+
+> Demande produit du 2026-08-02, suite à un signalement : la vue
+> « À expulser » affichait des totaux de combats cumulés sur toutes les
+> semaines connues (ex. 113, 146 combats), un chiffre sans rapport avec
+> l'échelle habituelle 0-16 et qui rendait le seuil configurable quasi
+> inopérant (il aurait fallu être à 0 combat sur toute la période connue
+> pour être signalé). Remplace l'ancienne règle US 5.1 (dons + combats
+> cumulés, combinateur ET/OU) par un critère unique et simple.
+
+#### US 11.1 — Règle simplifiée : rôle et semaine de guerre en cours
+
+**En tant que** chef de clan, **je veux** que « À expulser » ne retienne
+que les Membres sous un seuil de combats sur la semaine de guerre _en
+cours_, et que « Sur la sellette » ne retienne que les Aînés sous ce même
+seuil, **afin d'**avoir une règle lisible sur la même échelle 0-16 que le
+reste de l'outil, sans avoir à interpréter un total multi-semaines.
+
+Critères d'acceptation :
+
+- `findPurgeCandidates` (domain/clan/purge.ts) : rôle `member` uniquement,
+  combats de la semaine en cours (`currentriverrace`) strictement sous un
+  seuil configurable. Dons et total historique ne sont plus des critères.
+- `findWatchlistMembers` (domain/clan/hr-assistant.ts) : rôle `elder`
+  uniquement (le rôle `coLeader` n'est plus éligible), même critère de
+  semaine en cours. La semaine précédente n'est plus évaluée.
+- Un membre absent de la semaine en cours (pas de guerre active) n'est pas
+  évalué plutôt que disqualifié par défaut, comme ailleurs dans l'outil.
+- Le seuil est **partagé** entre les deux vues (un seul réglage,
+  configurable depuis « À expulser », mémorisé en `localStorage`) : le
+  combinateur ET/OU disparaît, il n'y a plus qu'un seul critère.
+- Message distinct si le clan n'est pas en guerre (« rien à évaluer sur la
+  semaine en cours ») plutôt qu'une liste vide ambiguë.
+- Domaine à 100 % de couverture et 100 % de mutation Stryker sur les deux
+  modules réécrits.
+
+---
+
 ## 3. Ordre de réalisation et avancement
 
 1. ✅ **US 1.1** — socle du projet
@@ -726,6 +764,11 @@ Critères d'acceptation :
     Domaine à 100 % de couverture, mutation 93–100 % sur le périmètre
     touché (un mutant équivalent documenté, identique au pattern
     `isRecord` de `members.ts`)
+16. ✅ **Épique 11** — refonte À expulser / Sur la sellette (US 11.1) :
+    règle unique (rôle + combats de la semaine en cours), seuil partagé
+    et mémorisé, combinateur ET/OU et critère de dons retirés. Domaine
+    (`purge.ts`, `hr-assistant.ts`) à 100 % de couverture et 100 % de
+    mutation Stryker.
 
 ### Finition produit (hors backlog initial)
 

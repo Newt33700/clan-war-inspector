@@ -6,12 +6,7 @@
  */
 
 import type { ClanMember } from '@/domain/clan/members';
-import type { WatchCandidate, WatchReason } from '@/domain/clan/hr-assistant';
-
-const WATCH_REASON_LABELS: Record<WatchReason, string> = {
-  CURRENT_WEEK_LOW: 'Combats insuffisants cette semaine',
-  PREVIOUS_WEEK_LOW: 'Combats insuffisants la semaine derniere',
-};
+import type { WatchCandidate } from '@/domain/clan/hr-assistant';
 
 /** Une ligne "Nom (#TAG) - Promotion suggeree : Aine" par meritant. */
 export function formatMeritoriousForClipboard(members: readonly ClanMember[]): string {
@@ -20,14 +15,14 @@ export function formatMeritoriousForClipboard(members: readonly ClanMember[]): s
     .join('\n');
 }
 
-/** Une ligne "Nom (#TAG) - motif1, motif2" par candidat sur la sellette. */
+/** Une ligne "Nom (#TAG) - N combats cette semaine" par candidat sur la sellette. */
 export function formatWatchlistForClipboard(
   candidates: readonly WatchCandidate[],
 ): string {
   return candidates
-    .map((candidate) => {
-      const reasons = candidate.reasons.map((reason) => WATCH_REASON_LABELS[reason]);
-      return `${candidate.member.name} (${candidate.member.tag}) - ${reasons.join(', ')}`;
-    })
+    .map(
+      (candidate) =>
+        `${candidate.member.name} (${candidate.member.tag}) - ${candidate.currentWeekBattles} combats cette semaine`,
+    )
     .join('\n');
 }

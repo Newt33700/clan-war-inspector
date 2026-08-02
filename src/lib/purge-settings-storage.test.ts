@@ -1,6 +1,6 @@
 /**
- * Tests de la persistance du reglage "A expulser" (audit UX du 2026-08-02,
- * US-9).
+ * Tests de la persistance du seuil d'activite hebdomadaire (regle produit
+ * du 2026-08-02, partagee entre "A expulser" et "Sur la sellette").
  */
 
 import { beforeEach, describe, expect, it, vi } from 'vitest';
@@ -12,8 +12,8 @@ beforeEach(() => {
 
 describe('storePurgeSettings / readStoredPurgeSettings', () => {
   it('relit un reglage memorise', () => {
-    storePurgeSettings({ minWarBattles: 10, combinator: 'OR' });
-    expect(readStoredPurgeSettings()).toEqual({ minWarBattles: 10, combinator: 'OR' });
+    storePurgeSettings({ minWeeklyBattles: 10 });
+    expect(readStoredPurgeSettings()).toEqual({ minWeeklyBattles: 10 });
   });
 
   it('retourne null si rien n est memorise', () => {
@@ -23,10 +23,9 @@ describe('storePurgeSettings / readStoredPurgeSettings', () => {
   it.each([
     ['JSON invalide', 'not json'],
     ['tableau', '[]'],
-    ['champ manquant', '{"minWarBattles": 8}'],
-    ['minWarBattles non numerique', '{"minWarBattles": "8", "combinator": "AND"}'],
-    ['minWarBattles negatif', '{"minWarBattles": -1, "combinator": "AND"}'],
-    ['combinator invalide', '{"minWarBattles": 8, "combinator": "XOR"}'],
+    ['champ manquant', '{}'],
+    ['minWeeklyBattles non numerique', '{"minWeeklyBattles": "8"}'],
+    ['minWeeklyBattles negatif', '{"minWeeklyBattles": -1}'],
   ])('retourne null pour une valeur stockee inexploitable (%s)', (_label, raw) => {
     window.localStorage.setItem('clan-war-inspector:purge-settings', raw);
     expect(readStoredPurgeSettings()).toBeNull();
@@ -42,9 +41,7 @@ describe('storePurgeSettings / readStoredPurgeSettings', () => {
     const setItem = vi.spyOn(window.localStorage, 'setItem').mockImplementation(() => {
       throw new Error('storage full');
     });
-    expect(() =>
-      storePurgeSettings({ minWarBattles: 5, combinator: 'AND' }),
-    ).not.toThrow();
+    expect(() => storePurgeSettings({ minWeeklyBattles: 5 })).not.toThrow();
     setItem.mockRestore();
   });
 });
