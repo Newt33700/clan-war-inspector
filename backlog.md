@@ -383,8 +383,13 @@ Critères d'acceptation :
 9. ⬜ **US 1.4** — Playwright (**délégué à la passe testing dédiée**)
 10. ✅ **US 4.1** — suivi en direct (`domain/war/current-war` : decks du jour /4, cumul /16, badge « A quitté le clan », tri par urgence)
 11. ✅ **US 5.1** — vue de purge (`domain/clan/purge` : règle ET/OU explicite, seuil X configurable, motifs affichés)
-12. ⬜ **Épique 6** — audit UX du 2026-08-02 : 8 US priorisées (US 6.1 à US 6.8,
-    P0 à P2), non démarrées
+12. ✅ **Épique 6** — audit UX du 2026-08-02 : US 6.1 à US 6.8 implémentées
+    (en-tête de clan, deep-link `?clan=`, reprise après erreur par section,
+    rafraîchissement + horodatage de la guerre en cours, saisie non
+    intrusive, combinateur ET/OU et export de la purge, tri et scroll de
+    l'historique, contraste AA du rouge critique). `purge.ts` et
+    `use-debounced-value.ts` à 100 % de mutation ; le reste du périmètre
+    touché à 95,6 % (mutants restants équivalents, documentés en commentaire)
 
 ### Finition produit (hors backlog initial)
 
