@@ -38,14 +38,37 @@ describe('ClanDashboard', () => {
     expect(screen.getByText(/saisissez le tag de votre clan/i)).toBeInTheDocument();
   });
 
-  it('desactive le bouton et explique quand le tag est invalide', async () => {
+  it('desactive le bouton immediatement quand le tag est invalide', async () => {
     render(<ClanDashboard />);
     const user = userEvent.setup();
 
     await user.type(screen.getByLabelText(/tag du clan/i), '#2PZ');
 
     expect(screen.getByRole('button', { name: /inspecter/i })).toBeDisabled();
-    expect(screen.getByText(/tag invalide/i)).toBeInTheDocument();
+  });
+
+  it('n affiche le message de format invalide qu apres une pause de frappe (US 6.5)', async () => {
+    render(<ClanDashboard />);
+    const user = userEvent.setup();
+
+    await user.type(screen.getByLabelText(/tag du clan/i), '#2PZ');
+
+    // Pas encore affiche juste apres la frappe.
+    expect(screen.queryByText(/tag invalide/i)).not.toBeInTheDocument();
+
+    await waitFor(() => {
+      expect(screen.getByText(/tag invalide/i)).toBeInTheDocument();
+    });
+  });
+
+  it('affiche un exemple de tag realiste et une aide pour le retrouver', () => {
+    render(<ClanDashboard />);
+
+    expect(screen.getByLabelText(/tag du clan/i)).toHaveAttribute(
+      'placeholder',
+      '#20J20QG',
+    );
+    expect(screen.getByText(/visible dans clash royale/i)).toBeInTheDocument();
   });
 
   it('charge puis affiche les membres du clan via le proxy mocke', async () => {

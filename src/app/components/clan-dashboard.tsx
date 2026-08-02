@@ -22,11 +22,16 @@ import {
 } from '@/domain/clan/members';
 import { buildClanWarHistory } from '@/domain/war/war-history';
 import { useApiResource } from '@/hooks/use-api-resource';
+import { useDebouncedValue } from '@/hooks/use-debounced-value';
 import { ClanHeader } from './clan-header';
 import { CurrentWarSection } from './current-war-section';
 import { MembersTable } from './members-table';
 import { PurgeSection } from './purge-section';
 import { WarHistorySection } from './war-history-section';
+
+// Delai avant d'afficher l'erreur de format (US 6.5) : le temps d'une
+// pause de frappe, pour ne pas juger une saisie encore en cours.
+const FORMAT_ERROR_DEBOUNCE_MS = 400;
 
 export function ClanDashboard() {
   const [draftTag, setDraftTag] = useState('');
@@ -60,6 +65,9 @@ export function ClanDashboard() {
   }, []);
 
   const draftIsValid = isValidClanTag(draftTag);
+  const debouncedDraftTag = useDebouncedValue(draftTag, FORMAT_ERROR_DEBOUNCE_MS);
+  const showFormatError =
+    debouncedDraftTag.length > 0 && !isValidClanTag(debouncedDraftTag);
 
   const summary = useMemo(
     () => (clanState.status === 'success' ? parseClanSummary(clanState.data) : null),
@@ -127,7 +135,7 @@ export function ClanDashboard() {
               type="text"
               value={draftTag}
               onChange={(event) => setDraftTag(event.target.value)}
-              placeholder="#20PP"
+              placeholder="#20J20QG"
               className="border-royale-blue-800 bg-royale-navy-900 text-royale-parchment rounded-md border px-3 py-2"
             />
           </label>
@@ -138,7 +146,11 @@ export function ClanDashboard() {
           >
             Inspecter
           </button>
-          {draftTag.length > 0 && !draftIsValid && (
+          <p className="text-royale-parchment-dim w-full text-xs">
+            Le tag de votre clan est visible dans Clash Royale, sous son nom, sur l ecran
+            du clan.
+          </p>
+          {showFormatError && (
             <p className="text-royale-red-500 w-full text-sm">
               Tag invalide : caracteres autorises 0289PYLQGRJCUV, longueur 3 a 14.
             </p>
