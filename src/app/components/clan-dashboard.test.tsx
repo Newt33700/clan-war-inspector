@@ -210,6 +210,44 @@ describe('ClanDashboard', () => {
     });
   });
 
+  describe('US 6.4 : horodatage et rafraichissement de la guerre en cours', () => {
+    it('affiche l heure de derniere mise a jour et permet un rafraichissement cible', async () => {
+      setMockResponse('clan', FIXTURE_FULL_CLAN);
+      setMockResponse('currentRiverRace', FIXTURE_RIVER_RACE_IDLE);
+      render(<ClanDashboard />);
+      const user = await submitTag('#20PP');
+      await screen.findAllByTestId('member-row');
+
+      const warSection = screen
+        .getByRole('heading', { name: /guerre en cours/i })
+        .closest('section')!;
+      await waitFor(() => {
+        expect(
+          within(warSection).getByText(/mise a jour a \d{2}:\d{2}/i),
+        ).toBeInTheDocument();
+      });
+
+      // Le tri des membres et le tag saisi ne doivent pas etre affectes.
+      await user.click(screen.getByRole('button', { name: /trophees/i }));
+      const beforeRows = screen
+        .getAllByTestId('member-row')
+        .map((row) => within(row).getAllByRole('cell')[0]?.textContent);
+
+      await user.click(within(warSection).getByRole('button', { name: /actualiser/i }));
+
+      await waitFor(() => {
+        expect(
+          within(warSection).getByText(/mise a jour a \d{2}:\d{2}/i),
+        ).toBeInTheDocument();
+      });
+      expect(screen.getByLabelText(/tag du clan/i)).toHaveValue('#20PP');
+      const afterRows = screen
+        .getAllByTestId('member-row')
+        .map((row) => within(row).getAllByRole('cell')[0]?.textContent);
+      expect(afterRows).toEqual(beforeRows);
+    });
+  });
+
   describe('US 6.3 : reprise apres erreur, section par section', () => {
     it('reessaie uniquement le clan sans re-soumettre le formulaire', async () => {
       // Pas de mock configure : le handler global repond 404.

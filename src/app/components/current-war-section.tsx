@@ -6,7 +6,7 @@
  * signalement des inscrits ayant quitte le clan.
  */
 
-import { useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
   annotateWithMembership,
   DECKS_PER_DAY,
@@ -15,6 +15,7 @@ import {
 } from '@/domain/war/current-war';
 import { BATTLES_PER_WAR_WEEK } from '@/domain/war/war-history';
 import type { ApiResource } from '@/hooks/use-api-resource';
+import { formatTimeOfDay } from '@/lib/format-time';
 
 interface CurrentWarSectionProps {
   /** Etat du chargement de /currentriverrace, pilote par le dashboard. */
@@ -42,6 +43,16 @@ function periodBadge(isTrainingDay: boolean, periodType: string) {
 }
 
 export function CurrentWarSection({ warState, memberTags }: CurrentWarSectionProps) {
+  // Horodatage de la derniere donnee recue avec succes (US 6.4) : la guerre
+  // en cours evolue toute la journee, sans lui rien n'indique la fraicheur
+  // de ce qui est affiche.
+  const [updatedAt, setUpdatedAt] = useState<Date | null>(null);
+  useEffect(() => {
+    if (warState.status === 'success') {
+      setUpdatedAt(new Date());
+    }
+  }, [warState]);
+
   const war = useMemo(
     () => (warState.status === 'success' ? parseCurrentWar(warState.data) : null),
     [warState],
@@ -68,6 +79,21 @@ export function CurrentWarSection({ warState, memberTags }: CurrentWarSectionPro
           Guerre en cours
         </h2>
         {war !== null && periodBadge(war.isTrainingDay, war.periodType)}
+        {updatedAt !== null && (
+          <div className="ml-auto flex items-center gap-3">
+            <span className="text-royale-parchment-dim text-xs">
+              Mise a jour a {formatTimeOfDay(updatedAt)}
+            </span>
+            <button
+              type="button"
+              onClick={warState.refetch}
+              disabled={warState.status === 'loading'}
+              className="border-royale-blue-800 text-royale-parchment-dim rounded-md border px-3 py-1 text-xs font-semibold disabled:opacity-40"
+            >
+              Actualiser
+            </button>
+          </div>
+        )}
       </div>
 
       {warState.status === 'loading' && (
