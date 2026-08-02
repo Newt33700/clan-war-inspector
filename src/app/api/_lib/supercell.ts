@@ -13,6 +13,7 @@
  */
 
 import { InvalidClanTagError, toApiTagSegment } from '@/domain/clan/clan-tag';
+import { isSearchableClanName, MIN_SEARCH_NAME_LENGTH } from '@/domain/clan/clan-search';
 import { toApiPlayerTagSegment } from '@/domain/clan/player-tag';
 
 /** URL officielle Supercell, utilisee par defaut. */
@@ -30,6 +31,7 @@ const DEFAULT_TIMEOUT_MS = 10_000;
 
 export type ProxyErrorCode =
   | 'INVALID_TAG'
+  | 'INVALID_SEARCH_QUERY'
   | 'MISSING_API_TOKEN'
   | 'API_KEY_REJECTED'
   | 'CLAN_NOT_FOUND'
@@ -48,6 +50,7 @@ export interface ProxyErrorBody {
 
 const ERROR_STATUS: Record<ProxyErrorCode, number> = {
   INVALID_TAG: 400,
+  INVALID_SEARCH_QUERY: 400,
   MISSING_API_TOKEN: 500,
   API_KEY_REJECTED: 502,
   CLAN_NOT_FOUND: 404,
@@ -59,6 +62,7 @@ const ERROR_STATUS: Record<ProxyErrorCode, number> = {
 
 const ERROR_MESSAGES: Record<ProxyErrorCode, string> = {
   INVALID_TAG: 'Le tag de clan fourni est invalide.',
+  INVALID_SEARCH_QUERY: `Un nom de clan compte au moins ${MIN_SEARCH_NAME_LENGTH} caracteres.`,
   MISSING_API_TOKEN: 'CLASH_ROYALE_API_TOKEN est absent de la configuration serveur.',
   API_KEY_REJECTED:
     'Cle API refusee par Supercell (restriction IP). Sur un hebergeur a IP ' +
@@ -177,4 +181,26 @@ export async function proxyPlayerResource(
   }
 
   return relaySupercellPath(`/players/${tagSegment}`, options, 'PLAYER_NOT_FOUND');
+}
+
+/**
+ * Relaye une recherche de clan par nom de l'API Supercell (US 10.1) :
+ * la zone de saisie du dashboard accepte desormais un tag ou un nom.
+ * Une requete trop courte est rejetee sans appel reseau (l'API Supercell
+ * l'aurait refusee de toute facon).
+ */
+export async function proxyClanSearch(
+  rawName: string,
+  options: ProxyOptions = {},
+): Promise<Response> {
+  const trimmedName = rawName.trim();
+  if (!isSearchableClanName(trimmedName)) {
+    return errorResponse('INVALID_SEARCH_QUERY');
+  }
+
+  return relaySupercellPath(
+    `/clans?name=${encodeURIComponent(trimmedName)}`,
+    options,
+    'CLAN_NOT_FOUND',
+  );
 }

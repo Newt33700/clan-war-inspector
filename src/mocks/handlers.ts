@@ -11,6 +11,7 @@ type StubResolver =
   | RiverRace
   | RiverRaceLog
   | PlayerProfileInfo
+  | { items: unknown[] }
   | { error: string }
   | null
   | undefined;
@@ -24,6 +25,7 @@ const mockResponses: Record<string, StubResolver> = {
   currentRiverRace: null,
   riverRaceLog: null,
   playerProfile: null,
+  clanSearch: null,
 };
 
 /** Récupère la réponse mockée pour un endpoint. */
@@ -42,6 +44,7 @@ export function resetMockResponses(): void {
   mockResponses.currentRiverRace = null;
   mockResponses.riverRaceLog = null;
   mockResponses.playerProfile = null;
+  mockResponses.clanSearch = null;
 }
 
 /** Handlers MSW pour l'API Supercell. */
@@ -106,6 +109,29 @@ export const handlers = [
         status: 404,
         headers: { 'content-type': 'application/json' },
       });
+    }
+
+    if (typeof response === 'object' && 'error' in response) {
+      return new HttpResponse(JSON.stringify(response), {
+        status: 500,
+        headers: { 'content-type': 'application/json' },
+      });
+    }
+
+    return HttpResponse.json(response);
+  }),
+
+  /**
+   * GET /api/clans?name=...
+   * Recherche de clan par nom (US 10.1). Sans mock configuré, retourne
+   * une liste vide (200) plutôt qu'une 404 : l'absence de résultat est
+   * un cas nominal de la recherche, pas une erreur.
+   */
+  http.get('*/api/clans', () => {
+    const response = getMockResponse('clanSearch');
+
+    if (response === null) {
+      return HttpResponse.json({ items: [] });
     }
 
     if (typeof response === 'object' && 'error' in response) {

@@ -634,6 +634,56 @@ Critères d'acceptation :
 
 ---
 
+### ÉPIQUE 10 — Recherche de clan par nom
+
+> Demande produit du 2026-08-02 : aujourd'hui, la zone de saisie
+> n'accepte qu'un tag de clan (`#20J20QG`). Beaucoup de chefs de clan ne
+> connaissent que le nom affiché en jeu, pas le tag — les obliger à aller
+> le chercher ailleurs avant de pouvoir utiliser l'outil est une friction
+> d'entrée inutile.
+
+#### US 10.1 — Recherche par tag ou par nom depuis la même zone de saisie
+
+**En tant qu'**utilisateur, **je veux** pouvoir saisir soit le tag, soit
+le nom de mon clan dans le même champ **afin de** ne pas avoir à connaître
+ou aller chercher le tag avant de pouvoir inspecter mon clan.
+
+Critères d'acceptation :
+
+- La détection est automatique et transparente pour l'utilisateur, sans
+  bouton ni interrupteur pour choisir le mode : une saisie commençant par
+  `#` (ou reconnue comme tag valide via `isValidClanTag`) est traitée comme
+  un tag ; toute autre saisie non vide est traitée comme une recherche par
+  nom.
+- La recherche par nom utilise `GET /clans?name=...` de l'API Supercell,
+  relayé par un nouveau Route Handler proxy (`/api/clans?name=`) qui
+  respecte le même contrat que l'existant (clé API cachée, erreurs
+  mappées : 400 nom trop court, 429, 500/503, timeout).
+- Une nouvelle fonction pure `parseClanSearchResults` (domaine,
+  couverture 100 %, mutation ≥ 90 %) extrait de la réponse brute la liste
+  des clans candidats : tag, nom, badge, effectif, score de clan.
+- **Un seul résultat** correspondant : le dashboard du clan se charge
+  directement, sans étape intermédiaire (comme une recherche par tag
+  aujourd'hui).
+- **Plusieurs résultats** : une liste de candidats s'affiche sous le champ
+  (nom, tag, badge, effectif) ; cliquer sur un candidat charge son
+  dashboard. Recherche re-déclenchée si la saisie change à nouveau.
+- **Aucun résultat** : message explicite (« Aucun clan ne correspond à
+  "..." »), sans casser le formulaire.
+- Une recherche par nom trop courte (< 3 caractères, minimum imposé par
+  l'API Supercell) affiche une aide plutôt qu'un appel réseau voué à
+  l'échec.
+- Le debounce de saisie existant (US 6.5, `useDebouncedValue`) s'applique
+  aussi à la recherche par nom, pour ne pas déclencher un appel réseau à
+  chaque caractère tapé.
+- Le lien partageable par URL (US 6.2, `?clan=%23TAG`) continue de ne
+  porter que le tag final résolu, jamais une requête de nom brute.
+- Testé : bascule tag ↔ nom sur la même saisie, cas 0/1/N résultats,
+  requête trop courte, erreurs réseau, non-régression de la recherche par
+  tag existante.
+
+---
+
 ## 3. Ordre de réalisation et avancement
 
 1. ✅ **US 1.1** — socle du projet
@@ -668,6 +718,14 @@ Critères d'acceptation :
     touché (`members.ts`, `clamp.ts`, `player-profile.ts`, `clan-summary.ts`)
     est à 95–99 % de mutation (mutants restants équivalents, documentés en
     commentaire ou déjà présents avant cet audit)
+15. ✅ **Épique 10** — recherche de clan par nom (US 10.1) : détection
+    transparente tag/nom depuis la même zone de saisie, nouveau proxy
+    `GET /api/clans?name=...` (`proxyClanSearch`), `domain/clan/clan-search.ts`
+    (réutilise `parseClanSummary`), résolution automatique à 1 résultat,
+    liste de candidats cliquable à N résultats, aide sous 3 caractères.
+    Domaine à 100 % de couverture, mutation 93–100 % sur le périmètre
+    touché (un mutant équivalent documenté, identique au pattern
+    `isRecord` de `members.ts`)
 
 ### Finition produit (hors backlog initial)
 
