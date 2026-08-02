@@ -12,22 +12,10 @@ describe('HomePage', () => {
     ).toBeInTheDocument();
   });
 
-  it('decrit la jauge d assiduite pour les lecteurs d ecran', () => {
+  it('rend le dashboard membres avec son formulaire de recherche', () => {
     render(<HomePage />);
 
-    expect(screen.getByRole('img', { name: '11 combats sur 16' })).toBeInTheDocument();
-  });
-
-  it('rend un segment par combat hebdomadaire', () => {
-    render(<HomePage />);
-
-    expect(screen.getAllByTestId('battle-segment')).toHaveLength(16);
-  });
-
-  it('liste les briques du socle technique', () => {
-    render(<HomePage />);
-
-    expect(screen.getByRole('list')).toBeInTheDocument();
-    expect(screen.getAllByRole('listitem')).toHaveLength(4);
+    expect(screen.getByRole('form', { name: /recherche de clan/i })).toBeInTheDocument();
+    expect(screen.getByLabelText(/tag du clan/i)).toBeInTheDocument();
   });
 });

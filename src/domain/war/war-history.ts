@@ -9,6 +9,7 @@
  */
 
 import { normalizeClanTag } from '../clan/clan-tag';
+import { canonicalizePlayerTag } from '../clan/player-tag';
 
 /** Nombre de combats possibles par semaine de guerre : 4 decks x 4 jours. */
 export const BATTLES_PER_WAR_WEEK = 16;
@@ -75,23 +76,6 @@ function clanTagEquals(value: unknown, targetTag: string): boolean {
   } catch {
     return false;
   }
-}
-
-/**
- * Canonicalise un tag joueur SANS le valider strictement : ces tags
- * viennent de la machine Supercell, pas d'une saisie humaine. On refuse
- * seulement les tags vides ou non textuels, pour ne jamais perdre un
- * participant du decompte.
- */
-function canonicalizePlayerTag(value: unknown): string | null {
-  if (typeof value !== 'string') {
-    return null;
-  }
-  const candidate = value.trim().toUpperCase().replace(/^#+/, '');
-  if (candidate.length === 0) {
-    return null;
-  }
-  return `#${candidate}`;
 }
 
 function extractItems(raw: unknown): unknown[] {

@@ -79,8 +79,9 @@ Le detail des epiques et des criteres d'acceptation est dans [`backlog.md`](./ba
 - [x] **US 1.5** Proxy API securise
 - [x] **US 2.1** Pipeline CI bloquante (GitHub Actions)
 - [x] **US 4.2** Moteur de calcul de l'historique (100 % couverture, 98 % mutation)
+- [x] **US 3.1 / 3.2** Dashboard membres avec tris robustes
 - [ ] **US 1.4** Stack E2E Playwright
-- [ ] Epiques 3 et 5, US 4.1 / 4.3 / 4.4
+- [ ] US 4.1 / 4.3 / 4.4, US 5.1
 
 ## Convention de developpement
 
