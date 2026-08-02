@@ -45,6 +45,7 @@
     "eslint-config-next": "^16.2.12",
     "eslint-config-prettier": "^10.1.5",
     "jsdom": "^26.1.0",
+    "msw": "^2.15.0",
     "prettier": "^3.6.0",
     "prettier-plugin-tailwindcss": "^0.6.13",
     "tailwindcss": "^4.3.3",
