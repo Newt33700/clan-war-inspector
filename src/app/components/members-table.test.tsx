@@ -47,4 +47,21 @@ describe('MembersTable', () => {
     await user.click(screen.getByRole('button', { name: /alice/i }));
     expect(onSelectMember).toHaveBeenCalledExactlyOnceWith('#A');
   });
+
+  it('affiche un tiret plutot que 0 quand le niveau est indisponible (clan reel #20J20QG)', () => {
+    // /clans/{tag} renvoie expLevel: 0 pour tous les membres en prod ;
+    // afficher "0" laisserait croire a un vrai niveau 0, impossible dans le jeu.
+    const unavailable: ClanMember[] = [{ ...members[0]!, expLevel: 0 }];
+    render(
+      <MembersTable
+        members={unavailable}
+        sortKey="name"
+        direction="asc"
+        onSortChange={() => undefined}
+        onSelectMember={() => undefined}
+      />,
+    );
+    expect(screen.getByText('—')).toBeInTheDocument();
+    expect(screen.queryByText('0')).not.toBeInTheDocument();
+  });
 });

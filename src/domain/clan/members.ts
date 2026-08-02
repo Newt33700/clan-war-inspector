@@ -89,6 +89,19 @@ export function parseClanMembers(raw: unknown): ClanMember[] {
   return members;
 }
 
+/**
+ * Un niveau de joueur n'existe jamais a 0 dans Clash Royale (minimum
+ * reel : 1). Verifie sur le clan reel #20J20QG (2026-08-02) : l'endpoint
+ * `/clans/{tag}` renvoie `expLevel: 0` (un `number`, pas une chaine) pour
+ * ses 47 membres, alors que `/players/{tag}` renvoie la vraie valeur pour
+ * ces memes joueurs. Un `expLevel` a 0 issu de cette liste signale donc
+ * une donnee non fiable de cet endpoint, pas un vrai niveau 0 — a afficher
+ * comme indisponible plutot que comme une valeur mesuree.
+ */
+export function isExpLevelAvailable(expLevel: number): boolean {
+  return expLevel > 0;
+}
+
 export type MemberSortKey = 'name' | 'role' | 'expLevel' | 'trophies' | 'donations';
 
 export type SortDirection = 'asc' | 'desc';
