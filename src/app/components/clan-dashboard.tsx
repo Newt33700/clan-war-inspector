@@ -11,7 +11,9 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { isValidClanTag, toApiTagSegment } from '@/domain/clan/clan-tag';
+import { parseClanSummary } from '@/domain/clan/clan-summary';
 import { readStoredClanTag, storeClanTag } from '@/lib/clan-tag-storage';
+import { readClanTagFromUrl, writeClanTagToUrl } from '@/lib/clan-tag-url';
 import {
   parseClanMembers,
   sortMembers,
@@ -20,6 +22,7 @@ import {
 } from '@/domain/clan/members';
 import { buildClanWarHistory } from '@/domain/war/war-history';
 import { useApiResource } from '@/hooks/use-api-resource';
+import { ClanHeader } from './clan-header';
 import { CurrentWarSection } from './current-war-section';
 import { MembersTable } from './members-table';
 import { PurgeSection } from './purge-section';
@@ -44,17 +47,30 @@ export function ClanDashboard() {
     clanConfirmed && clanPath !== null ? `${clanPath}/riverracelog` : null,
   );
 
-  // Au retour sur le site, recharge automatiquement le dernier clan inspecte.
+  // Au chargement : un tag valide dans l'URL (lien partage) prime sur le
+  // dernier tag memorise en localStorage.
   useEffect(() => {
-    const storedTag = readStoredClanTag();
-    if (storedTag !== null) {
-      setDraftTag(storedTag);
-      setSubmittedTag(storedTag);
-      setClanPath(`/api/clans/${toApiTagSegment(storedTag)}`);
+    const tagFromUrl = readClanTagFromUrl(window.location.search);
+    const tag = tagFromUrl ?? readStoredClanTag();
+    if (tag !== null) {
+      setDraftTag(tag);
+      setSubmittedTag(tag);
+      setClanPath(`/api/clans/${toApiTagSegment(tag)}`);
     }
   }, []);
 
   const draftIsValid = isValidClanTag(draftTag);
+
+  const summary = useMemo(
+    () => (clanState.status === 'success' ? parseClanSummary(clanState.data) : null),
+    [clanState],
+  );
+
+  useEffect(() => {
+    if (summary !== null) {
+      document.title = `${summary.name} | Clan War Inspector`;
+    }
+  }, [summary]);
 
   const members = useMemo(
     () => (clanState.status === 'success' ? parseClanMembers(clanState.data) : []),
@@ -78,6 +94,7 @@ export function ClanDashboard() {
     setClanPath(`/api/clans/${toApiTagSegment(draftTag)}`);
     setSubmittedTag(draftTag);
     storeClanTag(draftTag);
+    writeClanTagToUrl(draftTag);
   }
 
   function handleSortChange(key: MemberSortKey) {
@@ -145,6 +162,8 @@ export function ClanDashboard() {
             {clanState.message}
           </p>
         )}
+
+        {summary !== null && <ClanHeader summary={summary} />}
 
         {clanState.status === 'success' &&
           (sortedMembers.length === 0 ? (

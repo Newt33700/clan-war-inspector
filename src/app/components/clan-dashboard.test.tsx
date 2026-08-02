@@ -7,7 +7,7 @@
 import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { http, HttpResponse } from 'msw';
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it } from 'vitest';
 import { setMockResponse } from '@/mocks/handlers';
 import { FIXTURE_EMPTY_CLAN, FIXTURE_FULL_CLAN } from '@/mocks/fixtures';
 import { mockServer } from '@/mocks/server';
@@ -21,6 +21,13 @@ async function submitTag(tag: string) {
 }
 
 describe('ClanDashboard', () => {
+  // La soumission (US 6.2) ecrit le tag dans l'URL : on repart d'une URL
+  // propre a chaque test pour ne pas contaminer le mount suivant.
+  afterEach(() => {
+    window.history.replaceState(null, '', '/');
+    window.localStorage.clear();
+  });
+
   it('invite a saisir un tag au premier affichage', () => {
     render(<ClanDashboard />);
     expect(screen.getByText(/saisissez le tag de votre clan/i)).toBeInTheDocument();
@@ -46,6 +53,55 @@ describe('ClanDashboard', () => {
     expect(rows).toHaveLength(3);
     expect(within(rows[0]!).getByText('Joueur 1')).toBeInTheDocument();
     expect(within(rows[0]!).getByText('Chef')).toBeInTheDocument();
+  });
+
+  it('affiche l en-tete d identite du clan une fois charge (US 6.1)', async () => {
+    setMockResponse('clan', FIXTURE_FULL_CLAN);
+    render(<ClanDashboard />);
+
+    await submitTag('#20PP');
+    await screen.findAllByTestId('member-row');
+
+    const header = screen.getByTestId('clan-header');
+    expect(within(header).getByText('Test Clan')).toBeInTheDocument();
+    expect(within(header).getByText(/3\/50 membres/)).toBeInTheDocument();
+    expect(document.title).toBe('Test Clan | Clan War Inspector');
+  });
+
+  it('n affiche pas l en-tete de clan avant chargement reussi', () => {
+    render(<ClanDashboard />);
+    expect(screen.queryByTestId('clan-header')).not.toBeInTheDocument();
+  });
+
+  it('met a jour l URL au clic sur Inspecter, sans recharger la page (US 6.2)', async () => {
+    setMockResponse('clan', FIXTURE_FULL_CLAN);
+    render(<ClanDashboard />);
+
+    await submitTag('#20PP');
+
+    expect(window.location.search).toBe('?clan=%2320PP');
+  });
+
+  it('charge automatiquement le tag present dans l URL au demarrage (US 6.2)', async () => {
+    setMockResponse('clan', FIXTURE_FULL_CLAN);
+    window.history.replaceState(null, '', '/?clan=%2320PP');
+
+    render(<ClanDashboard />);
+
+    const rows = await screen.findAllByTestId('member-row');
+    expect(rows).toHaveLength(3);
+    expect(screen.getByLabelText(/tag du clan/i)).toHaveValue('#20PP');
+  });
+
+  it('priorise le tag de l URL sur celui memorise en localStorage (US 6.2)', async () => {
+    setMockResponse('clan', FIXTURE_FULL_CLAN);
+    window.localStorage.setItem('clan-war-inspector:last-clan-tag', '#RRRR');
+    window.history.replaceState(null, '', '/?clan=%2320PP');
+
+    render(<ClanDashboard />);
+
+    await screen.findAllByTestId('member-row');
+    expect(screen.getByLabelText(/tag du clan/i)).toHaveValue('#20PP');
   });
 
   it('trie par role descendant par defaut (chef en premier)', async () => {
