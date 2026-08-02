@@ -80,8 +80,11 @@ Le detail des epiques et des criteres d'acceptation est dans [`backlog.md`](./ba
 - [x] **US 2.1** Pipeline CI bloquante (GitHub Actions)
 - [x] **US 4.2** Moteur de calcul de l'historique (100 % couverture, 98 % mutation)
 - [x] **US 3.1 / 3.2** Dashboard membres avec tris robustes
-- [ ] **US 1.4** Stack E2E Playwright
-- [ ] US 4.1 / 4.3 / 4.4, US 5.1
+- [x] **US 4.3 / 4.4** Historique d'assiduite et alertes visuelles
+- [x] **US 4.1** Suivi en direct de la guerre en cours
+- [x] **US 5.1** Vue de renvoi (0 don + combats < seuil configurable)
+- [ ] **US 1.4** Stack E2E Playwright (delegue a la passe testing)
+- [ ] Passe testing dediee sur les modules recents (voir backlog.md)
 
 ## Convention de developpement
 

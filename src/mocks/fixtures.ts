@@ -187,9 +187,15 @@ export const FIXTURE_RIVER_RACE_LOG: RiverRaceLog = {
   ],
 };
 
-/** Guerre en cours (state: war). */
+/**
+ * Guerre en cours, jour de bataille.
+ * #PLAYER9 est inscrit a la guerre mais absent de FIXTURE_FULL_CLAN :
+ * il a quitte le clan en cours de semaine (cas US 4.1).
+ */
 export const FIXTURE_RIVER_RACE_IN_PROGRESS: RiverRace = {
   state: 'war',
+  periodType: 'warDay',
+  periodIndex: 4,
   clan: {
     tag: '#20PP',
     name: 'Test Clan',
@@ -197,6 +203,7 @@ export const FIXTURE_RIVER_RACE_IN_PROGRESS: RiverRace = {
       { tag: '#PLAYER1', name: 'Joueur 1', decksUsedToday: 4, decksUsed: 4 },
       { tag: '#PLAYER2', name: 'Joueur 2', decksUsedToday: 2, decksUsed: 14 },
       { tag: '#PLAYER3', name: 'Joueur 3', decksUsedToday: 0, decksUsed: 5 },
+      { tag: '#PLAYER9', name: 'Parti En Guerre', decksUsedToday: 0, decksUsed: 8 },
     ],
   },
 };

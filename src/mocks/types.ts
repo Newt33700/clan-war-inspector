@@ -68,6 +68,8 @@ export interface RiverRaceLog {
 
 export interface RiverRace {
   state: 'notInWar' | 'preparation' | 'war' | 'collectionDay' | 'riverRace';
+  periodType?: 'training' | 'warDay' | 'colosseum';
+  periodIndex?: number;
   clan: {
     tag: string;
     name: string;

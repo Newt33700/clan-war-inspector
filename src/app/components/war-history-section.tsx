@@ -19,7 +19,7 @@ import {
   buildClanWarHistory,
   type WarWeek,
 } from '@/domain/war/war-history';
-import { useApiResource } from '@/hooks/use-api-resource';
+import type { ApiResourceState } from '@/hooks/use-api-resource';
 
 const LEVEL_TEXT_CLASSES: Record<AttendanceLevel, string> = {
   complete: 'text-royale-gold-400',
@@ -78,22 +78,19 @@ function BattleCell({ battles }: { battles: number | null }) {
 }
 
 interface WarHistorySectionProps {
-  /** Chemin proxy du clan (ex. `/api/clans/%2320PP`), `null` au repos. */
-  clanPath: string | null;
+  /** Etat du chargement de /riverracelog, pilote par le dashboard. */
+  logState: ApiResourceState<unknown>;
   clanTag: string;
 }
 
-export function WarHistorySection({ clanPath, clanTag }: WarHistorySectionProps) {
-  const historyPath = clanPath === null ? null : `${clanPath}/riverracelog`;
-  const logState = useApiResource<unknown>(historyPath);
-
+export function WarHistorySection({ logState, clanTag }: WarHistorySectionProps) {
   const history = useMemo(
     () =>
       logState.status === 'success' ? buildClanWarHistory(logState.data, clanTag) : null,
     [logState, clanTag],
   );
 
-  if (clanPath === null) {
+  if (logState.status === 'idle') {
     return null;
   }
 

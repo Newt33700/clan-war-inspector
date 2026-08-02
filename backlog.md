@@ -232,10 +232,24 @@ Critères d'acceptation :
 5. ✅ **US 2.1** — CI bloquante GitHub Actions (lint, types, couverture, Stryker, build)
 6. ✅ **US 4.2** — moteur de calcul `domain/war/war-history` (couverture 100 %, mutation 98 %, 5 mutants équivalents documentés)
 7. ✅ **US 3.1 / 3.2** — dashboard membres (tri hiérarchique des rôles, tie-break nom puis tag, hook `useApiResource` testé sous Stryker)
-8. ⬜ **US 4.3 / 4.4** — restitution de l'historique et alertes
-9. ⬜ **US 1.4** — Playwright (peut être avancé si l'on veut de l'E2E dès le dashboard)
-10. ⬜ **US 4.1** — suivi en direct
-11. ⬜ **US 5.1** — vue de purge
+8. ✅ **US 4.3 / 4.4** — historique croisé joueurs × semaines, classification aux bornes 11/12/15/16, jauges, distinction — / 0
+9. ⬜ **US 1.4** — Playwright (**délégué à la passe testing dédiée**)
+10. ✅ **US 4.1** — suivi en direct (`domain/war/current-war` : decks du jour /4, cumul /16, badge « A quitté le clan », tri par urgence)
+11. ✅ **US 5.1** — vue de purge (`domain/clan/purge` : règle ET/OU explicite, seuil X configurable, motifs affichés)
+
+### Dette de test assumée (à reprendre par la passe testing)
+
+Les US 4.3, 4.4, 4.1 et 5.1 ont été livrées **code métier d'abord** sur
+demande : les modules domaine sont purs et documentés, mais seuls
+`attendance-level` et les modules antérieurs ont leur suite complète.
+À écrire par l'agent testing :
+
+- tests unitaires + mutation pour `domain/war/current-war`,
+  `domain/war/clamp`, `domain/clan/purge` (périmètre Stryker, seuil 90 %) ;
+- tests RTL pour `WarHistorySection`, `CurrentWarSection`, `PurgeSection`
+  et le nouveau câblage de `ClanDashboard` (couverture globale 80 %) ;
+- US 1.4 : Playwright + MSW (instrumentation Next `MOCK_API=1`), parcours
+  critiques : recherche de clan → membres → historique → purge.
 
 ### Décisions techniques prises en cours de route
 

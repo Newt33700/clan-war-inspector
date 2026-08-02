@@ -10,6 +10,7 @@
 
 import { normalizeClanTag } from '../clan/clan-tag';
 import { canonicalizePlayerTag } from '../clan/player-tag';
+import { clampCount } from './clamp';
 
 /** Nombre de combats possibles par semaine de guerre : 4 decks x 4 jours. */
 export const BATTLES_PER_WAR_WEEK = 16;
@@ -58,15 +59,12 @@ function isRecord(value: unknown): value is UnknownRecord {
 }
 
 /**
- * Borne un decompte de combats dans [0, 16].
+ * Borne un decompte de combats hebdomadaires dans [0, 16].
  * Toute valeur manquante, non numerique ou aberrante retombe sur un
  * entier sur (une valeur infiniment grande est ecretee a 16).
  */
 export function clampBattleCount(value: unknown): number {
-  if (typeof value !== 'number' || Number.isNaN(value)) {
-    return 0;
-  }
-  return Math.min(BATTLES_PER_WAR_WEEK, Math.max(0, Math.trunc(value)));
+  return clampCount(value, BATTLES_PER_WAR_WEEK);
 }
 
 /** Compare un tag de clan brut du log au tag cible deja normalise. */
