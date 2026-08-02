@@ -228,6 +228,23 @@ export function computeAttendance(weeks: WarWeek[]): PlayerAttendance[] {
   return result;
 }
 
+/**
+ * Ne conserve que les joueurs actuellement membres du clan.
+ *
+ * Le journal de guerre contient l'historique de tous les participants,
+ * y compris ceux qui ont quitte le clan depuis : l'historique reste
+ * exact (US 4.2), mais l'affichage (US 4.3) ne doit montrer que les
+ * joueurs presents aujourd'hui. Les tags sont deja canonicalises des
+ * deux cotes par `canonicalizePlayerTag`.
+ */
+export function filterCurrentMembers(
+  players: readonly PlayerAttendance[],
+  currentMemberTags: readonly string[],
+): PlayerAttendance[] {
+  const currentTags = new Set(currentMemberTags);
+  return players.filter((player) => currentTags.has(player.tag));
+}
+
 /** Enchaine parsing et pivot : l'entree unique du dashboard historique. */
 export function buildClanWarHistory(raw: unknown, clanTag: string): ClanWarHistory {
   const weeks = parseRiverRaceLog(raw, clanTag);

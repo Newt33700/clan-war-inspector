@@ -157,7 +157,11 @@ export function ClanDashboard() {
 
       <CurrentWarSection warState={warState} memberTags={memberTags} />
 
-      <WarHistorySection logState={logState} clanTag={submittedTag} />
+      <WarHistorySection
+        logState={logState}
+        clanTag={submittedTag}
+        currentMemberTags={memberTags}
+      />
 
       <PurgeSection
         members={members}

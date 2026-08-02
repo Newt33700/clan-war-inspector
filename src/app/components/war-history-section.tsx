@@ -17,6 +17,7 @@ import {
 import {
   BATTLES_PER_WAR_WEEK,
   buildClanWarHistory,
+  filterCurrentMembers,
   type WarWeek,
 } from '@/domain/war/war-history';
 import type { ApiResourceState } from '@/hooks/use-api-resource';
@@ -81,13 +82,24 @@ interface WarHistorySectionProps {
   /** Etat du chargement de /riverracelog, pilote par le dashboard. */
   logState: ApiResourceState<unknown>;
   clanTag: string;
+  /** Tags des membres actuels : les joueurs partis sont exclus du tableau. */
+  currentMemberTags: readonly string[];
 }
 
-export function WarHistorySection({ logState, clanTag }: WarHistorySectionProps) {
+export function WarHistorySection({
+  logState,
+  clanTag,
+  currentMemberTags,
+}: WarHistorySectionProps) {
   const history = useMemo(
     () =>
       logState.status === 'success' ? buildClanWarHistory(logState.data, clanTag) : null,
     [logState, clanTag],
+  );
+  const currentPlayers = useMemo(
+    () =>
+      history === null ? [] : filterCurrentMembers(history.players, currentMemberTags),
+    [history, currentMemberTags],
   );
 
   if (logState.status === 'idle') {
@@ -120,6 +132,10 @@ export function WarHistorySection({ logState, clanTag }: WarHistorySectionProps)
           <p className="text-royale-parchment-dim">
             Aucun historique de guerre disponible pour ce clan.
           </p>
+        ) : currentPlayers.length === 0 ? (
+          <p className="text-royale-parchment-dim">
+            Aucun membre actuel n a d historique de guerre sur cette periode.
+          </p>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full border-collapse text-sm">
@@ -145,7 +161,7 @@ export function WarHistorySection({ logState, clanTag }: WarHistorySectionProps)
                 </tr>
               </thead>
               <tbody>
-                {history.players.map((player) => (
+                {currentPlayers.map((player) => (
                   <tr
                     key={player.tag}
                     data-testid="history-row"
