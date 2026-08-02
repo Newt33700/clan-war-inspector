@@ -76,7 +76,7 @@ Le detail des epiques et des criteres d'acceptation est dans [`backlog.md`](./ba
 - [x] **US 1.3** Stack de tests unitaires et mutation
 - [x] **US 1.2** Mocking MSW
 - [x] **US 1.5** Proxy API securise
-- [ ] **US 2.1** Pipeline CI bloquante
+- [x] **US 2.1** Pipeline CI bloquante (GitHub Actions)
 - [ ] **US 1.4** Stack E2E Playwright
 - [ ] Epiques 3 a 5
 
