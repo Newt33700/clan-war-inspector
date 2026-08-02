@@ -16,10 +16,12 @@ import {
 } from '@/domain/clan/members';
 import { useApiResource } from '@/hooks/use-api-resource';
 import { MembersTable } from './members-table';
+import { WarHistorySection } from './war-history-section';
 
 export function ClanDashboard() {
   const [draftTag, setDraftTag] = useState('');
   const [clanPath, setClanPath] = useState<string | null>(null);
+  const [submittedTag, setSubmittedTag] = useState('');
   const [sortKey, setSortKey] = useState<MemberSortKey>('role');
   const [direction, setDirection] = useState<SortDirection>('desc');
 
@@ -38,6 +40,7 @@ export function ClanDashboard() {
   function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setClanPath(`/api/clans/${toApiTagSegment(draftTag)}`);
+    setSubmittedTag(draftTag);
   }
 
   function handleSortChange(key: MemberSortKey) {
@@ -116,6 +119,8 @@ export function ClanDashboard() {
             onSortChange={handleSortChange}
           />
         ))}
+
+      <WarHistorySection clanPath={clanPath} clanTag={submittedTag} />
     </section>
   );
 }
