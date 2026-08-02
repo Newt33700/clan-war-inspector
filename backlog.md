@@ -697,8 +697,8 @@ Critères d'acceptation :
 #### US 11.1 — Règle simplifiée : rôle et semaine de guerre en cours
 
 **En tant que** chef de clan, **je veux** que « À expulser » ne retienne
-que les Membres sous un seuil de combats sur la semaine de guerre *en
-cours*, et que « Sur la sellette » ne retienne que les Aînés sous ce même
+que les Membres sous un seuil de combats sur la semaine de guerre _en
+cours_, et que « Sur la sellette » ne retienne que les Aînés sous ce même
 seuil, **afin d'**avoir une règle lisible sur la même échelle 0-16 que le
 reste de l'outil, sans avoir à interpréter un total multi-semaines.
 
