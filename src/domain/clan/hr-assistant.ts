@@ -7,15 +7,14 @@
  * l'assiduite de guerre (`domain/war/war-history`, `domain/war/current-war`).
  */
 
-import type { ClanMember } from './members';
+import type { CurrentWarParticipant } from '../war/current-war';
 import type { PlayerAttendance } from '../war/war-history';
+import type { ClanMember } from './members';
 
 /** Nombre de semaines completes exigees pour le filtre "meritants". */
 const MERIT_REQUIRED_WEEKS = 3;
 /** Combats attendus par semaine (US 4.2) : le maximum, jamais moins pour un meritant. */
 const MERIT_REQUIRED_BATTLES = 16;
-/** Sous ce nombre de combats (strict), l'assiduite est jugee insuffisante. */
-const WATCH_THRESHOLD = 8;
 
 function compareByNameThenTag(a: ClanMember, b: ClanMember): number {
   return a.name.localeCompare(b.name) || a.tag.localeCompare(b.tag);
@@ -48,59 +47,39 @@ export function findMeritoriousMembers(
   return [...candidates].sort(compareByNameThenTag);
 }
 
-export type WatchReason = 'CURRENT_WEEK_LOW' | 'PREVIOUS_WEEK_LOW';
-
 export interface WatchCandidate {
   member: ClanMember;
-  reasons: WatchReason[];
-}
-
-/** Forme minimale requise d'un participant a la guerre en cours. */
-export interface CurrentWeekParticipant {
-  tag: string;
-  decksUsed: number;
+  /** Decks joues sur la semaine de guerre en cours, borne [0, 16]. */
+  currentWeekBattles: number;
 }
 
 /**
- * Membres `elder` ou `coLeader` sous 8/16 combats sur la semaine en cours
- * (guerre en cours) ou la derniere semaine complete. Une semaine sans
- * donnee disponible (pas de guerre en cours, historique absent, joueur
- * non membre cette semaine-la) n'est simplement pas evaluee : elle ne
- * disqualifie ni ne blanchit le joueur.
+ * Membres `elder` sous `minWeeklyBattles` combats sur la semaine de
+ * guerre en cours (regle produit du 2026-08-02 : remplace l'ancien
+ * critere elargi a `elder`/`coLeader` et a la derniere semaine complete
+ * en plus de la semaine en cours). Un membre absent de
+ * `currentWeekParticipants` (pas de guerre active) n'est pas evalue
+ * plutot que disqualifie par defaut.
  */
 export function findWatchlistMembers(
   members: readonly ClanMember[],
-  attendance: readonly PlayerAttendance[],
-  currentWeekParticipants: readonly CurrentWeekParticipant[],
+  currentWeekParticipants: readonly Pick<CurrentWarParticipant, 'tag' | 'decksUsed'>[],
+  minWeeklyBattles: number,
 ): WatchCandidate[] {
-  const attendanceByTag = new Map(attendance.map((entry) => [entry.tag, entry]));
   const currentWeekByTag = new Map(
     currentWeekParticipants.map((entry) => [entry.tag, entry.decksUsed]),
   );
 
   const candidates: WatchCandidate[] = [];
   for (const member of members) {
-    if (member.role !== 'elder' && member.role !== 'coLeader') {
+    if (member.role !== 'elder') {
       continue;
     }
-
-    const reasons: WatchReason[] = [];
-    const currentWeek = currentWeekByTag.get(member.tag);
-    if (currentWeek !== undefined && currentWeek < WATCH_THRESHOLD) {
-      reasons.push('CURRENT_WEEK_LOW');
+    const currentWeekBattles = currentWeekByTag.get(member.tag);
+    if (currentWeekBattles === undefined || currentWeekBattles >= minWeeklyBattles) {
+      continue;
     }
-    const previousWeek = attendanceByTag.get(member.tag)?.battlesByWeek[0];
-    if (
-      previousWeek !== undefined &&
-      previousWeek !== null &&
-      previousWeek < WATCH_THRESHOLD
-    ) {
-      reasons.push('PREVIOUS_WEEK_LOW');
-    }
-
-    if (reasons.length > 0) {
-      candidates.push({ member, reasons });
-    }
+    candidates.push({ member, currentWeekBattles });
   }
 
   return candidates.sort((a, b) => compareByNameThenTag(a.member, b.member));

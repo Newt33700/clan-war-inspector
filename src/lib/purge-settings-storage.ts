@@ -1,22 +1,18 @@
 /**
- * Persistance du reglage de la vue "A expulser" (audit UX du 2026-08-02,
- * US-9) : le seuil et le combinateur ET/OU repartaient a leurs valeurs par
- * defaut a chaque rechargement, obligeant le chef de clan a les
- * reconfigurer a chaque visite. Tolerant comme `clan-tag-storage.ts` :
- * en cas d'echec de stockage, on se comporte comme sans memoire.
+ * Persistance du seuil d'activite hebdomadaire (regle produit du
+ * 2026-08-02) : partage entre la vue "A expulser" (role `member`) et
+ * "Sur la sellette" (role `elder`) de l'Assistant RH, toutes deux basees
+ * sur le meme critere (combats sur la semaine de guerre en cours). Le
+ * seuil repartait a sa valeur par defaut a chaque rechargement, obligeant
+ * le chef de clan a le reconfigurer a chaque visite. Tolerant comme
+ * `clan-tag-storage.ts` : en cas d'echec de stockage, on se comporte
+ * comme sans memoire.
  */
-
-import type { PurgeCombinator } from '@/domain/clan/purge';
 
 const STORAGE_KEY = 'clan-war-inspector:purge-settings';
 
 export interface PurgeSettings {
-  minWarBattles: number;
-  combinator: PurgeCombinator;
-}
-
-function isPurgeCombinator(value: unknown): value is PurgeCombinator {
-  return value === 'AND' || value === 'OR';
+  minWeeklyBattles: number;
 }
 
 /** Lit le reglage memorise, `null` si absent ou invalide. */
@@ -30,21 +26,19 @@ export function readStoredPurgeSettings(): PurgeSettings | null {
     if (
       typeof parsed !== 'object' ||
       parsed === null ||
-      !('minWarBattles' in parsed) ||
-      !('combinator' in parsed)
+      !('minWeeklyBattles' in parsed)
     ) {
       return null;
     }
-    const { minWarBattles, combinator } = parsed as Record<string, unknown>;
+    const { minWeeklyBattles } = parsed as Record<string, unknown>;
     if (
-      typeof minWarBattles !== 'number' ||
-      !Number.isFinite(minWarBattles) ||
-      minWarBattles < 0 ||
-      !isPurgeCombinator(combinator)
+      typeof minWeeklyBattles !== 'number' ||
+      !Number.isFinite(minWeeklyBattles) ||
+      minWeeklyBattles < 0
     ) {
       return null;
     }
-    return { minWarBattles, combinator };
+    return { minWeeklyBattles };
   } catch {
     return null;
   }

@@ -124,88 +124,42 @@ describe('findMeritoriousMembers', () => {
 });
 
 describe('findWatchlistMembers', () => {
-  it.each(['elder', 'coLeader'] as const)(
-    'retient un role %s sous 8/16 la semaine en cours',
+  it('retient un role elder sous le seuil de combats de la semaine en cours', () => {
+    const candidate = member({ tag: '#A', role: 'elder' });
+    const candidates = findWatchlistMembers(
+      [candidate],
+      [{ tag: '#A', decksUsed: 7 }],
+      8,
+    );
+    expect(candidates).toEqual([{ member: candidate, currentWeekBattles: 7 }]);
+  });
+
+  it.each(['leader', 'coLeader', 'member'] as const)(
+    'exclut un role %s meme sous le seuil',
     (role) => {
       const candidate = member({ tag: '#A', role });
       const candidates = findWatchlistMembers(
         [candidate],
-        [attendance('#A', [16])],
-        [{ tag: '#A', decksUsed: 7 }],
+        [{ tag: '#A', decksUsed: 2 }],
+        8,
       );
-      expect(candidates.map((c) => c.member.tag)).toEqual(['#A']);
-      expect(candidates[0]?.reasons).toEqual(['CURRENT_WEEK_LOW']);
+      expect(candidates).toEqual([]);
     },
   );
 
-  it('exclut un role member ou leader meme sous le seuil', () => {
-    const memberRole = member({ tag: '#A', role: 'member' });
-    const leaderRole = member({ tag: '#B', role: 'leader' });
-    const candidates = findWatchlistMembers(
-      [memberRole, leaderRole],
+  it('n inclut pas un elder au-dessus ou exactement au seuil', () => {
+    const candidate = member({ tag: '#A', role: 'elder' });
+    expect(findWatchlistMembers([candidate], [{ tag: '#A', decksUsed: 8 }], 8)).toEqual(
       [],
-      [
-        { tag: '#A', decksUsed: 2 },
-        { tag: '#B', decksUsed: 2 },
-      ],
     );
-    expect(candidates).toEqual([]);
-  });
-
-  it('retient un role eligible sous 8/16 la semaine precedente (pas la semaine en cours)', () => {
-    const candidate = member({ tag: '#A', role: 'elder' });
-    const candidates = findWatchlistMembers(
-      [candidate],
-      [attendance('#A', [5])],
-      [{ tag: '#A', decksUsed: 16 }],
-    );
-    expect(candidates[0]?.reasons).toEqual(['PREVIOUS_WEEK_LOW']);
-  });
-
-  it('cumule les deux motifs si les deux semaines sont sous le seuil', () => {
-    const candidate = member({ tag: '#A', role: 'elder' });
-    const candidates = findWatchlistMembers(
-      [candidate],
-      [attendance('#A', [3])],
-      [{ tag: '#A', decksUsed: 2 }],
-    );
-    expect(candidates[0]?.reasons).toEqual(['CURRENT_WEEK_LOW', 'PREVIOUS_WEEK_LOW']);
-  });
-
-  it('n inclut pas un joueur exactement a 8/16 (seuil non strict)', () => {
-    const candidate = member({ tag: '#A', role: 'elder' });
-    const candidates = findWatchlistMembers(
-      [candidate],
-      [attendance('#A', [8])],
-      [{ tag: '#A', decksUsed: 8 }],
-    );
-    expect(candidates).toEqual([]);
-  });
-
-  it('n evalue pas la semaine en cours si le joueur n y participe pas (pas de guerre)', () => {
-    const candidate = member({ tag: '#A', role: 'elder' });
-    const candidates = findWatchlistMembers([candidate], [attendance('#A', [16])], []);
-    expect(candidates).toEqual([]);
-  });
-
-  it('n evalue pas la semaine precedente si aucun historique n est disponible', () => {
-    const candidate = member({ tag: '#A', role: 'elder' });
-    const candidates = findWatchlistMembers(
-      [candidate],
+    expect(findWatchlistMembers([candidate], [{ tag: '#A', decksUsed: 16 }], 8)).toEqual(
       [],
-      [{ tag: '#A', decksUsed: 16 }],
     );
-    expect(candidates).toEqual([]);
   });
 
-  it('traite une semaine precedente non-membre (null) comme non disponible', () => {
+  it('n evalue pas un elder absent de la semaine en cours (pas de guerre)', () => {
     const candidate = member({ tag: '#A', role: 'elder' });
-    const candidates = findWatchlistMembers(
-      [candidate],
-      [attendance('#A', [null])],
-      [{ tag: '#A', decksUsed: 16 }],
-    );
-    expect(candidates).toEqual([]);
+    expect(findWatchlistMembers([candidate], [], 8)).toEqual([]);
   });
 
   it('trie les resultats par nom puis tag', () => {
@@ -213,11 +167,11 @@ describe('findWatchlistMembers', () => {
     const anna = member({ tag: '#Y', name: 'Anna', role: 'elder' });
     const candidates = findWatchlistMembers(
       [zoe, anna],
-      [],
       [
         { tag: '#Z', decksUsed: 1 },
         { tag: '#Y', decksUsed: 1 },
       ],
+      8,
     );
     expect(candidates.map((c) => c.member.name)).toEqual(['Anna', 'Zoe']);
   });

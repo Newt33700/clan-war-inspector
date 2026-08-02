@@ -29,6 +29,10 @@ import {
 import { buildClanWarHistory } from '@/domain/war/war-history';
 import { useApiResource } from '@/hooks/use-api-resource';
 import { useDebouncedValue } from '@/hooks/use-debounced-value';
+import {
+  readStoredPurgeSettings,
+  storePurgeSettings,
+} from '@/lib/purge-settings-storage';
 import { ClanHeader } from './clan-header';
 import { CurrentWarSection } from './current-war-section';
 import { HallOfFameSection } from './hall-of-fame-section';
@@ -43,6 +47,10 @@ import { WarHistorySection } from './war-history-section';
 // pause de frappe, pour ne pas juger une saisie encore en cours.
 const FORMAT_ERROR_DEBOUNCE_MS = 400;
 
+// Seuil par defaut de combats sur la semaine en cours (regle produit du
+// 2026-08-02), partage entre "A expulser" et "Sur la sellette".
+const DEFAULT_MIN_WEEKLY_BATTLES = 8;
+
 export function ClanDashboard() {
   const [draftTag, setDraftTag] = useState('');
   const [clanPath, setClanPath] = useState<string | null>(null);
@@ -53,6 +61,12 @@ export function ClanDashboard() {
   // joueur precis dans 47+ lignes n'etait possible qu'a l'oeil.
   const [memberQuery, setMemberQuery] = useState('');
   const [selectedPlayerTag, setSelectedPlayerTag] = useState<string | null>(null);
+  // Seuil de combats sur la semaine en cours (regle produit du 2026-08-02),
+  // partage entre "A expulser" et "Sur la sellette" et memorise entre deux
+  // visites.
+  const [minWeeklyBattles, setMinWeeklyBattles] = useState(
+    () => readStoredPurgeSettings()?.minWeeklyBattles ?? DEFAULT_MIN_WEEKLY_BATTLES,
+  );
 
   const clanState = useApiResource<unknown>(clanPath);
   // Ne charge la guerre en cours et l'historique qu'une fois le clan confirme :
@@ -131,6 +145,10 @@ export function ClanDashboard() {
       document.title = `${summary.name} | Clan War Inspector`;
     }
   }, [summary]);
+
+  useEffect(() => {
+    storePurgeSettings({ minWeeklyBattles });
+  }, [minWeeklyBattles]);
 
   const members = useMemo(
     () => (clanState.status === 'success' ? parseClanMembers(clanState.data) : []),
@@ -364,12 +382,15 @@ export function ClanDashboard() {
         attendance={attendance}
         logState={logState}
         warState={warState}
+        minWeeklyBattles={minWeeklyBattles}
       />
 
       <PurgeSection
         members={members}
-        attendance={attendance}
-        ready={clanState.status === 'success' && logState.status === 'success'}
+        warState={warState}
+        minWeeklyBattles={minWeeklyBattles}
+        onMinWeeklyBattlesChange={setMinWeeklyBattles}
+        ready={clanState.status === 'success' && warState.status === 'success'}
       />
 
       <PlayerDrawer tag={selectedPlayerTag} onClose={() => setSelectedPlayerTag(null)} />

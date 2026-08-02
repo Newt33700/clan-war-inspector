@@ -14,6 +14,7 @@ import {
   FIXTURE_FULL_CLAN,
   FIXTURE_PLAYER_PROFILE,
   FIXTURE_RIVER_RACE_IDLE,
+  FIXTURE_RIVER_RACE_IN_PROGRESS,
   FIXTURE_RIVER_RACE_LOG,
 } from '@/mocks/fixtures';
 import { mockServer } from '@/mocks/server';
@@ -338,39 +339,56 @@ describe('ClanDashboard', () => {
     });
   });
 
-  describe('US 6.6 : combinateur ET/OU et export de la vue A expulser', () => {
+  describe('regle produit du 2026-08-02 : A expulser (role Membre, semaine en cours)', () => {
     async function loadPurgeReady() {
       const heading = await screen.findByRole('heading', { name: /^a expulser$/i });
       return heading.closest('section')!;
     }
 
-    it('bascule ET/OU et recalcule la liste des candidats', async () => {
+    it('liste un membre (pas un elder/leader) sous le seuil de combats cette semaine', async () => {
       setMockResponse('clan', FIXTURE_FULL_CLAN);
-      setMockResponse('riverRaceLog', FIXTURE_RIVER_RACE_LOG);
+      setMockResponse('currentRiverRace', FIXTURE_RIVER_RACE_IN_PROGRESS);
+      render(<ClanDashboard />);
+      await submitTag('#20PP');
+      const purgeSection = await loadPurgeReady();
+
+      // Joueur 3 (role member, 5/16 combats) est sous le seuil par defaut (8).
+      // Joueur 1 (leader, 4/16) et Joueur 2 (elder, 14/16) ne sont jamais
+      // candidats a l'expulsion, quel que soit leur nombre de combats.
+      expect(await within(purgeSection).findByText('Joueur 3')).toBeInTheDocument();
+      expect(within(purgeSection).queryByText('Joueur 1')).not.toBeInTheDocument();
+      expect(within(purgeSection).queryByText('Joueur 2')).not.toBeInTheDocument();
+    });
+
+    it('recalcule la liste quand le seuil change', async () => {
+      setMockResponse('clan', FIXTURE_FULL_CLAN);
+      setMockResponse('currentRiverRace', FIXTURE_RIVER_RACE_IN_PROGRESS);
       render(<ClanDashboard />);
       const user = await submitTag('#20PP');
       const purgeSection = await loadPurgeReady();
+      await within(purgeSection).findByText('Joueur 3');
 
-      // ET (par defaut) : Joueur 3 a des dons non nuls, donc pas candidat.
-      expect(
-        within(purgeSection).getByText(/aucun joueur problematique/i),
-      ).toBeInTheDocument();
-
-      await user.selectOptions(
-        within(purgeSection).getByLabelText(/combinaison des criteres/i),
-        'OR',
+      await user.clear(
+        within(purgeSection).getByLabelText(/seuil de combats sur la semaine en cours/i),
+      );
+      await user.type(
+        within(purgeSection).getByLabelText(/seuil de combats sur la semaine en cours/i),
+        '2',
       );
 
-      // OU : Joueur 3 (5 combats < 8) devient candidat sur ce seul critere.
-      expect(within(purgeSection).getByText('Joueur 3')).toBeInTheDocument();
+      // Sous le seuil 2, Joueur 3 (5 combats) n est plus candidat.
+      expect(
+        await within(purgeSection).findByText(/aucun membre problematique/i),
+      ).toBeInTheDocument();
     });
 
     it('copie la liste des candidats et affiche une confirmation', async () => {
       setMockResponse('clan', FIXTURE_FULL_CLAN);
-      setMockResponse('riverRaceLog', FIXTURE_RIVER_RACE_LOG);
+      setMockResponse('currentRiverRace', FIXTURE_RIVER_RACE_IN_PROGRESS);
       render(<ClanDashboard />);
       const user = await submitTag('#20PP');
       const purgeSection = await loadPurgeReady();
+      await within(purgeSection).findByText('Joueur 3');
 
       // Definie apres userEvent.setup() (dans submitTag) : celui-ci installe
       // son propre stub de presse-papiers qui ecraserait un mock pose avant.
@@ -380,18 +398,12 @@ describe('ClanDashboard', () => {
         configurable: true,
       });
 
-      await user.selectOptions(
-        within(purgeSection).getByLabelText(/combinaison des criteres/i),
-        'OR',
-      );
-      await within(purgeSection).findByText('Joueur 3');
-
       await user.click(
         within(purgeSection).getByRole('button', { name: /copier la liste/i }),
       );
 
       expect(writeText).toHaveBeenCalledWith(
-        'Joueur 3 (#PLAYER3) - Combats de guerre insuffisants',
+        'Joueur 3 (#PLAYER3) - 5 combats cette semaine',
       );
       expect(await within(purgeSection).findByText(/liste copiee/i)).toBeInTheDocument();
     });

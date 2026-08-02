@@ -4,16 +4,16 @@
  * la liste a la main.
  */
 
-import { PURGE_REASON_LABELS, type PurgeCandidate } from '@/domain/clan/purge';
+import type { PurgeCandidate } from '@/domain/clan/purge';
 
-/** Une ligne "Nom (#TAG) - motif1, motif2" par candidat. */
+/** Une ligne "Nom (#TAG) - N combats cette semaine" par candidat. */
 export function formatPurgeCandidatesForClipboard(
   candidates: readonly PurgeCandidate[],
 ): string {
   return candidates
-    .map((candidate) => {
-      const reasons = candidate.reasons.map((reason) => PURGE_REASON_LABELS[reason]);
-      return `${candidate.member.name} (${candidate.member.tag}) - ${reasons.join(', ')}`;
-    })
+    .map(
+      (candidate) =>
+        `${candidate.member.name} (${candidate.member.tag}) - ${candidate.currentWeekBattles} combats cette semaine`,
+    )
     .join('\n');
 }
