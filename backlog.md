@@ -403,14 +403,15 @@ Critères d'acceptation :
 ### Dette de test assumée (à reprendre par la passe testing)
 
 Les US 4.3, 4.4, 4.1 et 5.1 ont été livrées **code métier d'abord** sur
-demande : les modules domaine sont purs et documentés, mais seuls
-`attendance-level` et les modules antérieurs ont leur suite complète.
-À écrire par l'agent testing :
+demande : les modules domaine sont purs et documentés. Mis à jour lors de
+l'Épique 6 (audit UX du 2026-08-02) : `domain/war/current-war` et
+`domain/clan/purge` ont désormais leur suite complète (100 % couverture,
+98–100 % mutation) — nécessaire pour que le pipeline CI (seuil domaine
+100 %, mutation 90 %) redevienne vert. Reste à écrire par l'agent testing :
 
-- tests unitaires + mutation pour `domain/war/current-war`,
-  `domain/war/clamp`, `domain/clan/purge` (périmètre Stryker, seuil 90 %) ;
 - tests RTL pour `WarHistorySection`, `CurrentWarSection`, `PurgeSection`
-  et le nouveau câblage de `ClanDashboard` (couverture globale 80 %) ;
+  (couverture composant encore partielle, ~80–90 %, périmètre hors
+  domaine donc non bloquant pour le seuil global 80 %) ;
 - US 1.4 : Playwright + MSW (instrumentation Next `MOCK_API=1`), parcours
   critiques : recherche de clan → membres → historique → purge.
 

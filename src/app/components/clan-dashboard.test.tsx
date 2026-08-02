@@ -278,13 +278,13 @@ describe('ClanDashboard', () => {
     it('affiche un indice de scroll au-dela de 4 semaines', async () => {
       const manyWeeksLog = {
         items: FIXTURE_RIVER_RACE_LOG.items.concat(
-          FIXTURE_RIVER_RACE_LOG.items.map((item, index) => ({
+          FIXTURE_RIVER_RACE_LOG.items.map((item) => ({
             ...item,
-            sectionIndex: item.sectionIndex + 10 + index,
+            sectionIndex: item.sectionIndex + 10,
           })),
-          FIXTURE_RIVER_RACE_LOG.items.map((item, index) => ({
+          FIXTURE_RIVER_RACE_LOG.items.map((item) => ({
             ...item,
-            sectionIndex: item.sectionIndex + 20 + index,
+            sectionIndex: item.sectionIndex + 20,
           })),
         ),
       };
