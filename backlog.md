@@ -370,6 +370,84 @@ Critères d'acceptation :
 
 ---
 
+### ÉPIQUE 7 — Gamification et Assistant de Gestion
+
+> Directive générale UX/UI (toutes les US de cette épique) : SPA fluide, sans
+> rechargement de page ; animations subtiles (Tailwind `animate-`, transitions
+> CSS) sur l'apparition des éléments ; états de chargement (squelette) et
+> données vides (empty state illustré) gérés systématiquement.
+
+#### US 7 — L'Assistant « Ressources Humaines » (Recommandations)
+
+**En tant que** chef de clan, **je veux** un tableau de bord qui suggère
+promotions et rétrogradations selon des critères précis, **afin de** ne plus
+chercher manuellement qui mérite une promotion et qui pénalise le clan.
+
+Critères d'acceptation :
+
+- Filtre « Méritants » : rôle `member` uniquement, 16/16 combats sur les 3
+  dernières semaines **complètes** (`riverracelog`), et au moins 1 don cette
+  semaine (`donations` de `/clans/{tag}`, remis à zéro chaque semaine par
+  Supercell — c'est déjà la donnée « cette semaine »)
+- Filtre « Sur la sellette » : rôle `elder` ou `coLeader`, moins de 8/16
+  combats sur la semaine en cours (guerre en cours, `decksUsed`) **ou** sur
+  la dernière semaine complète ; un critère non disponible (pas de guerre en
+  cours, historique insuffisant) n'est pas évalué plutôt que de disqualifier
+  le joueur par défaut
+- Layout : deux colonnes (`grid-cols-2`) sur desktop, empilées (`flex-col`)
+  sur mobile
+- Carte « Méritant » : gradient vert (`from-emerald-900 to-slate-900`),
+  pseudo en gras, badge « Promotion suggérée : Aîné »
+- Carte « Sur la sellette » : gradient rouge sombre, icône d'avertissement,
+  texte « Rétrogradation conseillée »
+- CTA « Copier le tag » sur chaque carte : passe au vert avec un check
+  pendant 2 secondes au clic
+- État vide illustré si aucun candidat ; squelette pendant le chargement
+
+---
+
+#### US 8 — Le « Hall of Fame » (Podium hebdomadaire)
+
+**En tant que** membre du clan, **je veux** voir les meilleurs joueurs de la
+semaine dernière mis en avant, **afin de** créer une compétition saine.
+
+Critères d'acceptation :
+
+- Dernière semaine **révolue** de `/riverracelog`, participants triés par
+  `fame` décroissant, top 3
+- Composant "Hero" tout en haut du dashboard, au-dessus du tableau des membres
+- Podium desktop en 3 blocs : 1er au centre (plus grand), 2e à gauche, 3e à
+  droite ; empilé sur mobile
+- 1er : bordure `border-yellow-400`, ombre dorée, couronne dorée ; 2e :
+  bordure `border-slate-300`, couronne argentée ; 3e : bordure
+  `border-amber-700`, couronne bronze
+- Survol d'une carte : `hover:scale-105 transition-transform duration-300`
+- État vide si aucune semaine complète disponible pour ce clan
+
+---
+
+#### US 9 — Inspection profonde « à la demande » (panneau latéral)
+
+**En tant que** gestionnaire, **je veux** cliquer sur un joueur du tableau
+pour voir ses statistiques détaillées sans quitter la page, **afin de**
+décider vite sans perdre le contexte.
+
+Critères d'acceptation :
+
+- Anti-spam API : l'appel à `/players/{tag}` ne part qu'au clic sur la ligne,
+  jamais en préchargement
+- Cache en mémoire par tag : rouvrir un joueur déjà consulté n'effectue pas
+  de nouvel appel réseau
+- Panneau coulissant depuis la droite (`translate-x-full` → `translate-x-0`),
+  100 % de la largeur sur mobile, 400px sur desktop
+- Overlay `bg-black/50 backdrop-blur-sm`, clic dessus = fermeture
+- Squelette (`animate-pulse`) pendant le chargement du profil
+- Contenu : rôle, niveau d'expérience, total de dons, et le deck (jusqu'à 8
+  cartes, grille 4x2) — `currentDeck` en priorité, repli sur
+  `currentFavouriteCard` si `currentDeck` est absent
+
+---
+
 ## 3. Ordre de réalisation et avancement
 
 1. ✅ **US 1.1** — socle du projet
@@ -390,6 +468,8 @@ Critères d'acceptation :
     l'historique, contraste AA du rouge critique). `purge.ts` et
     `use-debounced-value.ts` à 100 % de mutation ; le reste du périmètre
     touché à 95,6 % (mutants restants équivalents, documentés en commentaire)
+13. ⬜ **Épique 7** — gamification et assistant de gestion : US 7 (assistant
+    RH), US 8 (Hall of Fame), US 9 (panneau joueur), en cours
 
 ### Finition produit (hors backlog initial)
 
