@@ -25,7 +25,10 @@ import { useApiResource } from '@/hooks/use-api-resource';
 import { useDebouncedValue } from '@/hooks/use-debounced-value';
 import { ClanHeader } from './clan-header';
 import { CurrentWarSection } from './current-war-section';
+import { HallOfFameSection } from './hall-of-fame-section';
+import { HrAssistantSection } from './hr-assistant-section';
 import { MembersTable } from './members-table';
+import { PlayerDrawer } from './player-drawer';
 import { PurgeSection } from './purge-section';
 import { WarHistorySection } from './war-history-section';
 
@@ -39,6 +42,7 @@ export function ClanDashboard() {
   const [submittedTag, setSubmittedTag] = useState('');
   const [sortKey, setSortKey] = useState<MemberSortKey>('role');
   const [direction, setDirection] = useState<SortDirection>('desc');
+  const [selectedPlayerTag, setSelectedPlayerTag] = useState<string | null>(null);
 
   const clanState = useApiResource<unknown>(clanPath);
   // Ne charge la guerre en cours et l'historique qu'une fois le clan confirme :
@@ -116,6 +120,8 @@ export function ClanDashboard() {
 
   return (
     <div className="space-y-12">
+      <HallOfFameSection logState={logState} clanTag={submittedTag} />
+
       <section aria-labelledby="dashboard-title" className="space-y-6">
         <h2
           id="dashboard-title"
@@ -195,6 +201,7 @@ export function ClanDashboard() {
               sortKey={sortKey}
               direction={direction}
               onSortChange={handleSortChange}
+              onSelectMember={setSelectedPlayerTag}
             />
           ))}
       </section>
@@ -207,11 +214,20 @@ export function ClanDashboard() {
         currentMemberTags={memberTags}
       />
 
+      <HrAssistantSection
+        members={members}
+        attendance={attendance}
+        logState={logState}
+        warState={warState}
+      />
+
       <PurgeSection
         members={members}
         attendance={attendance}
         ready={clanState.status === 'success' && logState.status === 'success'}
       />
+
+      <PlayerDrawer tag={selectedPlayerTag} onClose={() => setSelectedPlayerTag(null)} />
     </div>
   );
 }

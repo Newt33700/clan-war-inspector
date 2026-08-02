@@ -29,16 +29,29 @@ function attendance(tag: string, battlesByWeek: (number | null)[]): PlayerAttend
   };
 }
 
-const idleWarState: ApiResource<unknown> = { status: 'idle', refetch: () => undefined };
+const idle: ApiResource<unknown> = { status: 'idle', refetch: () => undefined };
+const loading: ApiResource<unknown> = { status: 'loading', refetch: () => undefined };
+const success: ApiResource<unknown> = {
+  status: 'success',
+  data: {},
+  refetch: () => undefined,
+};
 
 describe('HrAssistantSection', () => {
-  it('affiche un squelette tant que ready est faux', () => {
+  it('n affiche rien avant toute soumission de tag (idle)', () => {
+    const { container } = render(
+      <HrAssistantSection members={[]} attendance={[]} logState={idle} warState={idle} />,
+    );
+    expect(container).toBeEmptyDOMElement();
+  });
+
+  it('affiche un squelette pendant le chargement de l historique', () => {
     render(
       <HrAssistantSection
         members={[]}
         attendance={[]}
-        warState={idleWarState}
-        ready={false}
+        logState={loading}
+        warState={idle}
       />,
     );
     expect(screen.getAllByRole('status')).toHaveLength(1);
@@ -47,7 +60,12 @@ describe('HrAssistantSection', () => {
 
   it('affiche un etat vide illustre quand personne ne qualifie', () => {
     render(
-      <HrAssistantSection members={[]} attendance={[]} warState={idleWarState} ready />,
+      <HrAssistantSection
+        members={[]}
+        attendance={[]}
+        logState={success}
+        warState={idle}
+      />,
     );
     expect(screen.getByText(/aucun meritant pour l instant/i)).toBeInTheDocument();
     expect(screen.getByText(/personne sur la sellette/i)).toBeInTheDocument();
@@ -64,8 +82,8 @@ describe('HrAssistantSection', () => {
       <HrAssistantSection
         members={[candidate]}
         attendance={[attendance('#A', [16, 16, 16])]}
-        warState={idleWarState}
-        ready
+        logState={success}
+        warState={idle}
       />,
     );
     const card = screen.getByTestId('merit-card');
@@ -83,12 +101,12 @@ describe('HrAssistantSection', () => {
       <HrAssistantSection
         members={[candidate]}
         attendance={[attendance('#B', [3])]}
+        logState={success}
         warState={{
           status: 'success',
           data: { clan: { participants: [] } },
           refetch: () => undefined,
         }}
-        ready
       />,
     );
     const card = screen.getByTestId('watch-card');
@@ -105,12 +123,12 @@ describe('HrAssistantSection', () => {
       <HrAssistantSection
         members={[candidate]}
         attendance={[]}
+        logState={success}
         warState={{
           status: 'success',
           data: { clan: { participants: [{ tag: '#C', decksUsed: 4 }] } },
           refetch: () => undefined,
         }}
-        ready
       />,
     );
     const card = screen.getByTestId('watch-card');
@@ -125,10 +143,17 @@ describe('HrAssistantSection', () => {
       <HrAssistantSection
         members={[candidate]}
         attendance={[attendance('#D', [16])]}
-        warState={idleWarState}
-        ready
+        logState={success}
+        warState={idle}
       />,
     );
     expect(screen.queryByTestId('watch-card')).not.toBeInTheDocument();
+  });
+
+  it('n affiche rien en erreur (deja signalee par les sections membres/historique)', () => {
+    const { container } = render(
+      <HrAssistantSection members={[]} attendance={[]} logState={idle} warState={idle} />,
+    );
+    expect(container).toBeEmptyDOMElement();
   });
 });

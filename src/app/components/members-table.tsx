@@ -26,6 +26,8 @@ interface MembersTableProps {
   sortKey: MemberSortKey;
   direction: SortDirection;
   onSortChange: (key: MemberSortKey) => void;
+  /** Ouvre le panneau d'inspection du joueur (US 9). */
+  onSelectMember: (tag: string) => void;
 }
 
 export function MembersTable({
@@ -33,6 +35,7 @@ export function MembersTable({
   sortKey,
   direction,
   onSortChange,
+  onSelectMember,
 }: MembersTableProps) {
   return (
     <div className="overflow-x-auto">
@@ -73,13 +76,23 @@ export function MembersTable({
             <tr
               key={memberEntry.tag}
               data-testid="member-row"
-              className="border-royale-blue-800/40 text-royale-parchment border-b"
+              onClick={() => onSelectMember(memberEntry.tag)}
+              className="border-royale-blue-800/40 text-royale-parchment hover:bg-royale-blue-800/20 cursor-pointer border-b"
             >
               <td className="px-3 py-2">
-                {memberEntry.name}
-                <span className="text-royale-parchment-dim block text-xs">
-                  {memberEntry.tag}
-                </span>
+                <button
+                  type="button"
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    onSelectMember(memberEntry.tag);
+                  }}
+                  className="text-left hover:underline focus-visible:underline"
+                >
+                  {memberEntry.name}
+                  <span className="text-royale-parchment-dim block text-xs">
+                    {memberEntry.tag}
+                  </span>
+                </button>
               </td>
               <td className="px-3 py-2">{ROLE_LABELS[memberEntry.role]}</td>
               <td className="px-3 py-2 text-right">{memberEntry.expLevel}</td>

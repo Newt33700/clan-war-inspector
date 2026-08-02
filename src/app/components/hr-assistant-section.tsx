@@ -48,18 +48,26 @@ function TriangleWarningIcon({ className = 'h-8 w-8' }: { className?: string }) 
 interface HrAssistantSectionProps {
   members: readonly ClanMember[];
   attendance: readonly PlayerAttendance[];
+  /**
+   * Pilote l'affichage (squelette / contenu / rien). L'historique n'est
+   * charge qu'une fois le clan confirme (US 6.3) : son statut reflete
+   * deja fidelement "rien soumis", "clan en cours", "pret" ou "en erreur",
+   * sans avoir besoin de l'etat du clan en plus.
+   */
+  logState: ApiResource<unknown>;
   /** Etat de /currentriverrace, pour le critere "semaine en cours". */
   warState: ApiResource<unknown>;
-  /** Vrai quand membres ET historique sont charges. */
-  ready: boolean;
 }
 
 export function HrAssistantSection({
   members,
   attendance,
+  logState,
   warState,
-  ready,
 }: HrAssistantSectionProps) {
+  const ready = logState.status === 'success';
+  const loading = logState.status === 'loading';
+
   const currentWeekParticipants = useMemo(
     () =>
       warState.status === 'success' ? parseCurrentWar(warState.data).participants : [],
@@ -75,6 +83,12 @@ export function HrAssistantSection({
       ready ? findWatchlistMembers(members, attendance, currentWeekParticipants) : [],
     [ready, members, attendance, currentWeekParticipants],
   );
+
+  if (!ready && !loading) {
+    // Rien soumis, ou une erreur deja signalee par les sections membres /
+    // historique sur les memes ressources : pas de bandeau redondant.
+    return null;
+  }
 
   return (
     <section aria-labelledby="hr-assistant-title" className="space-y-4">
