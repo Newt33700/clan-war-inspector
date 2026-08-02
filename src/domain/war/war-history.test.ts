@@ -578,6 +578,32 @@ describe('sortPlayerAttendance (US 6.7)', () => {
     ).toEqual(['Anna', 'Zoe']);
   });
 
+  it('trie sur la cle demandee, pas sur l autre metrique', () => {
+    // Total et moyenne divergent expres : un present depuis longtemps avec
+    // une moyenne mediocre (dave) contre un arrive recemment avec une
+    // excellente moyenne (erin). Les deux tris doivent donner l'inverse.
+    const dave = attendance({
+      tag: '#D',
+      name: 'Dave',
+      totalBattles: 100,
+      averagePerPresentWeek: 5,
+    });
+    const erin = attendance({
+      tag: '#E',
+      name: 'Erin',
+      totalBattles: 20,
+      averagePerPresentWeek: 20,
+    });
+
+    expect(sortPlayerAttendance([dave, erin], 'total', 'asc').map((p) => p.tag)).toEqual([
+      '#E',
+      '#D',
+    ]);
+    expect(
+      sortPlayerAttendance([dave, erin], 'average', 'asc').map((p) => p.tag),
+    ).toEqual(['#D', '#E']);
+  });
+
   it('departage les homonymes par tag ascendant', () => {
     const twinB = attendance({ tag: '#ZZ', name: 'Jumeau', totalBattles: 10 });
     const twinA = attendance({ tag: '#AA', name: 'Jumeau', totalBattles: 10 });
@@ -598,5 +624,9 @@ describe('formatWarWeekPeriod (US 6.7)', () => {
 
   it('retourne null si la date est illisible', () => {
     expect(formatWarWeekPeriod('pas-une-date')).toBeNull();
+  });
+
+  it('exige le motif en debut de chaine, pas n importe ou dedans', () => {
+    expect(formatWarWeekPeriod('x20260727T093602.000Z')).toBeNull();
   });
 });

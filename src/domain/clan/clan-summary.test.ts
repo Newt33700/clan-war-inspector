@@ -61,11 +61,42 @@ describe('parseClanSummary', () => {
     expect(parseClanSummary({ tag: '#A', badgeUrls: {} })?.badgeUrl).toBe('');
   });
 
+  it('ignore une url de badge vide et passe au format suivant', () => {
+    expect(
+      parseClanSummary({ tag: '#A', badgeUrls: { medium: '', large: 'l.png' } })
+        ?.badgeUrl,
+    ).toBe('l.png');
+  });
+
   it('replie l effectif sur la taille de memberList si members est absent ou aberrant', () => {
     expect(parseClanSummary({ tag: '#A', memberList: [{}, {}] })?.memberCount).toBe(2);
     expect(
       parseClanSummary({ tag: '#A', members: -3, memberList: [{}] })?.memberCount,
     ).toBe(1);
+    expect(
+      parseClanSummary({ tag: '#A', members: Number.NaN, memberList: [{}] })?.memberCount,
+    ).toBe(1);
+    expect(
+      parseClanSummary({
+        tag: '#A',
+        members: Number.POSITIVE_INFINITY,
+        memberList: [{}],
+      })?.memberCount,
+    ).toBe(1);
+  });
+
+  it('utilise members meme quand il differe de la taille de memberList', () => {
+    // members est la source officielle Supercell : ne jamais le confondre
+    // avec un simple recalcul depuis memberList (page partielle, etc.).
+    expect(
+      parseClanSummary({ tag: '#A', members: 5, memberList: [{}, {}] })?.memberCount,
+    ).toBe(5);
+  });
+
+  it('accepte members a 0 sans repli sur memberList', () => {
+    expect(
+      parseClanSummary({ tag: '#A', members: 0, memberList: [{}, {}] })?.memberCount,
+    ).toBe(0);
   });
 
   it('retombe a 0 quand ni members ni memberList ne sont exploitables', () => {
@@ -77,5 +108,11 @@ describe('parseClanSummary', () => {
     expect(
       parseClanSummary({ tag: '#A', clanScore: 'oops', clanWarTrophies: -5 }),
     ).toMatchObject({ clanScore: 0, warTrophies: 0 });
+    expect(
+      parseClanSummary({ tag: '#A', clanScore: Number.POSITIVE_INFINITY }),
+    ).toMatchObject({ clanScore: 0 });
+    expect(parseClanSummary({ tag: '#A', clanScore: Number.NaN })).toMatchObject({
+      clanScore: 0,
+    });
   });
 });

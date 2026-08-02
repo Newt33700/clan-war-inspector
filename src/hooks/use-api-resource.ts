@@ -44,7 +44,13 @@ export function readApiErrorMessage(payload: unknown, status: number): string {
  * reessayer une ressource en erreur sans re-soumettre tout le formulaire.
  */
 export function useApiResource<T>(path: string | null): ApiResource<T> {
+  // Valeur initiale sans consequence observable : l'effet ci-dessous la
+  // recalcule et l'ecrase au premier rendu, que path soit null ou non
+  // (mutant Stryker "equivalent" sur ce litteral).
   const [state, setState] = useState<ApiResourceState<T>>({ status: 'idle' });
+  // Seul compte le fait que la valeur change (dependance d'effet plus bas) :
+  // +1 est arbitraire, -1 serait tout aussi correct (mutant Stryker
+  // "equivalent" sur l'operateur arithmetique).
   const [attempt, setAttempt] = useState(0);
   const refetch = useCallback(() => setAttempt((current) => current + 1), []);
 

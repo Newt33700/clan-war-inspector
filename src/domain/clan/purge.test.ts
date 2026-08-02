@@ -99,6 +99,15 @@ describe('findPurgeCandidates', () => {
     );
   });
 
+  it('n inclut pas un joueur dont les combats atteignent exactement le seuil', () => {
+    const atThreshold = member({ tag: '#F', name: 'Faye', donations: 100 });
+    const candidates = findPurgeCandidates([atThreshold], [attendance('#F', 8)], {
+      minWarBattles: 8,
+      combinator: 'OR',
+    });
+    expect(candidates).toEqual([]);
+  });
+
   it('trie par combats croissants, puis dons croissants, puis nom puis tag', () => {
     const tie1 = member({ tag: '#Z', name: 'Zoe', donations: 0 });
     const tie2 = member({ tag: '#Y', name: 'Anna', donations: 0 });
@@ -112,15 +121,35 @@ describe('findPurgeCandidates', () => {
   });
 
   it('departage a combats egaux par les dons croissants', () => {
+    // Noms delibrement inverses par rapport aux dons : un tri qui
+    // ignorerait la comparaison de dons et retomberait sur le nom
+    // donnerait le mauvais ordre ici.
     const candidates = findPurgeCandidates(
       [
-        member({ tag: '#Z', name: 'Zoe', donations: 20 }),
-        member({ tag: '#Y', name: 'Anna', donations: 5 }),
+        member({ tag: '#Z', name: 'Zoe', donations: 5 }),
+        member({ tag: '#Y', name: 'Anna', donations: 20 }),
       ],
       [attendance('#Z', 1), attendance('#Y', 1)],
       { minWarBattles: 10, combinator: 'OR' },
     );
-    expect(candidates.map((c) => c.member.name)).toEqual(['Anna', 'Zoe']);
+    expect(candidates.map((c) => c.member.name)).toEqual(['Zoe', 'Anna']);
+  });
+
+  it('trie 3 candidats par dons croissants (au-dela d une simple paire)', () => {
+    // Les dons ne sont jamais negatifs : une comparaison inversee (+ au
+    // lieu de -) peut laisser une paire adjacente inchangee par hasard.
+    // 3 elements avec un ordre initial deja "presque trie" force un vrai
+    // reordonnancement transitif que seule la soustraction produit.
+    const candidates = findPurgeCandidates(
+      [
+        member({ tag: '#C', name: 'Carol', donations: 30 }),
+        member({ tag: '#A', name: 'Alice', donations: 5 }),
+        member({ tag: '#B', name: 'Bob', donations: 15 }),
+      ],
+      [attendance('#C', 1), attendance('#A', 1), attendance('#B', 1)],
+      { minWarBattles: 10, combinator: 'OR' },
+    );
+    expect(candidates.map((c) => c.member.name)).toEqual(['Alice', 'Bob', 'Carol']);
   });
 
   it('departage a dons egaux par le nom', () => {

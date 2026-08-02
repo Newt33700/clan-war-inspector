@@ -23,6 +23,10 @@ function isRecord(value: unknown): value is UnknownRecord {
 }
 
 function toSafeCount(value: unknown): number {
+  // `Number.isFinite` (contrairement au global `isFinite`) ne coerce pas :
+  // il vaut deja false pour toute valeur non-number, ce qui rend le
+  // `typeof value !== 'number'` logiquement redondant (mutant Stryker
+  // "equivalent"). Conserve pour la clarte du garde et le typage TS.
   if (typeof value !== 'number' || !Number.isFinite(value)) {
     return 0;
   }
@@ -44,6 +48,8 @@ function toBadgeUrl(badgeUrls: unknown): string {
 
 function toMemberCount(raw: UnknownRecord): number {
   const declared = raw.members;
+  // Meme redondance logique assumee que dans toSafeCount ci-dessus :
+  // `Number.isFinite` suffit deja a exclure les valeurs non-number.
   if (typeof declared === 'number' && Number.isFinite(declared) && declared >= 0) {
     return Math.trunc(declared);
   }

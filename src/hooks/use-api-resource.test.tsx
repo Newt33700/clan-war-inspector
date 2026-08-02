@@ -148,6 +148,28 @@ describe('useApiResource', () => {
     expect(result.current).toMatchObject({ message: 'Aucun clan.' });
   });
 
+  it('refetch relance a nouveau apres un premier refetch deja aboutit', async () => {
+    setMockResponse('clan', FIXTURE_FULL_CLAN);
+    const { result } = renderHook(() => useApiResource('/api/clans/%2320PP'));
+    await waitFor(() => {
+      expect(result.current.status).toBe('success');
+    });
+
+    act(() => {
+      result.current.refetch();
+    });
+    await waitFor(() => {
+      expect(result.current.status).toBe('success');
+    });
+
+    // Second refetch, une fois le premier deja retombe sur un etat stable :
+    // doit repartir en chargement, pas rester bloque sur l'etat precedent.
+    act(() => {
+      result.current.refetch();
+    });
+    expect(result.current.status).toBe('loading');
+  });
+
   it('refetch ne fait rien tant que le chemin est null', () => {
     const { result } = renderHook(() => useApiResource(null));
 

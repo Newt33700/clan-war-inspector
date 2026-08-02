@@ -47,6 +47,17 @@ describe('useDebouncedValue', () => {
     expect(result.current).toBe('abc');
   });
 
+  it('annule le timer precedent a chaque changement, n en laisse pas plusieurs actifs', () => {
+    const { rerender } = renderHook(({ value }) => useDebouncedValue(value, 300), {
+      initialProps: { value: 'a' },
+    });
+
+    rerender({ value: 'ab' });
+    rerender({ value: 'abc' });
+
+    expect(vi.getTimerCount()).toBe(1);
+  });
+
   it('annule le delai en cours quand le composant est demonte', () => {
     const { rerender, unmount } = renderHook(
       ({ value }) => useDebouncedValue(value, 300),

@@ -282,6 +282,10 @@ export function sortPlayerAttendance(
  * l'info-bulle des en-tetes de semaine. `null` si absente ou illisible.
  */
 export function formatWarWeekPeriod(createdDate: string | null): string | null {
+  // Necessaire pour le typage (RegExp#exec attend un string), meme si
+  // l'appel a `.exec(null)` coerce en "null" et echoue de toute facon sur
+  // le motif ancre : mutant Stryker "equivalent" (comportement identique
+  // avec ou sans ce garde, mais requis par TypeScript).
   if (createdDate === null) {
     return null;
   }
