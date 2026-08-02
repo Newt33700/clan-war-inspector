@@ -15,6 +15,7 @@ import { parseClanSummary } from '@/domain/clan/clan-summary';
 import { readStoredClanTag, storeClanTag } from '@/lib/clan-tag-storage';
 import { readClanTagFromUrl, writeClanTagToUrl } from '@/lib/clan-tag-url';
 import {
+  filterMembersByQuery,
   parseClanMembers,
   sortMembers,
   type MemberSortKey,
@@ -30,6 +31,7 @@ import { HrAssistantSection } from './hr-assistant-section';
 import { MembersTable } from './members-table';
 import { PlayerDrawer } from './player-drawer';
 import { PurgeSection } from './purge-section';
+import { SectionNav } from './section-nav';
 import { WarHistorySection } from './war-history-section';
 
 // Delai avant d'afficher l'erreur de format (US 6.5) : le temps d'une
@@ -42,6 +44,9 @@ export function ClanDashboard() {
   const [submittedTag, setSubmittedTag] = useState('');
   const [sortKey, setSortKey] = useState<MemberSortKey>('role');
   const [direction, setDirection] = useState<SortDirection>('desc');
+  // Recherche par pseudo/tag (audit UX du 2026-08-02, US-8) : retrouver un
+  // joueur precis dans 47+ lignes n'etait possible qu'a l'oeil.
+  const [memberQuery, setMemberQuery] = useState('');
   const [selectedPlayerTag, setSelectedPlayerTag] = useState<string | null>(null);
 
   const clanState = useApiResource<unknown>(clanPath);
@@ -92,6 +97,10 @@ export function ClanDashboard() {
     () => sortMembers(members, sortKey, direction),
     [members, sortKey, direction],
   );
+  const visibleMembers = useMemo(
+    () => filterMembersByQuery(sortedMembers, memberQuery),
+    [sortedMembers, memberQuery],
+  );
   const memberTags = useMemo(() => members.map((member) => member.tag), [members]);
   const attendance = useMemo(
     () =>
@@ -105,6 +114,7 @@ export function ClanDashboard() {
     event.preventDefault();
     setClanPath(`/api/clans/${toApiTagSegment(draftTag)}`);
     setSubmittedTag(draftTag);
+    setMemberQuery('');
     storeClanTag(draftTag);
     writeClanTagToUrl(draftTag);
   }
@@ -120,9 +130,15 @@ export function ClanDashboard() {
 
   return (
     <div className="space-y-12">
+      {clanState.status === 'success' && <SectionNav />}
+
       <HallOfFameSection logState={logState} clanTag={submittedTag} />
 
-      <section aria-labelledby="dashboard-title" className="space-y-6">
+      <section
+        id="membres"
+        aria-labelledby="dashboard-title"
+        className="scroll-mt-16 space-y-6"
+      >
         <h2
           id="dashboard-title"
           className="text-royale-parchment font-display text-xl tracking-wide"
@@ -192,12 +208,31 @@ export function ClanDashboard() {
 
         {summary !== null && <ClanHeader summary={summary} />}
 
+        {clanState.status === 'success' && sortedMembers.length > 0 && (
+          <label className="flex flex-col gap-1">
+            <span className="text-royale-parchment-dim text-sm">
+              Rechercher un membre
+            </span>
+            <input
+              type="search"
+              value={memberQuery}
+              onChange={(event) => setMemberQuery(event.target.value)}
+              placeholder="Pseudo ou tag..."
+              className="border-royale-blue-800 bg-royale-navy-900 text-royale-parchment w-full max-w-xs rounded-md border px-3 py-2"
+            />
+          </label>
+        )}
+
         {clanState.status === 'success' &&
           (sortedMembers.length === 0 ? (
             <p className="text-royale-parchment-dim">Ce clan ne compte aucun membre.</p>
+          ) : visibleMembers.length === 0 ? (
+            <p className="text-royale-parchment-dim">
+              Aucun membre ne correspond a « {memberQuery} ».
+            </p>
           ) : (
             <MembersTable
-              members={sortedMembers}
+              members={visibleMembers}
               sortKey={sortKey}
               direction={direction}
               onSortChange={handleSortChange}

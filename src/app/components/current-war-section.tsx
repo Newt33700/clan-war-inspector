@@ -4,6 +4,13 @@
  * Suivi en direct de la guerre en cours (US 4.1) : qui a joue ses 4 decks
  * aujourd'hui, distinction jour d'entrainement / jour de bataille, et
  * signalement des inscrits ayant quitte le clan.
+ *
+ * Audit UX du 2026-08-02 (US-1/US-3) : sur le clan reel inspecte, 21 des
+ * 68 lignes du tableau etaient d'anciens membres, mecaniquement remontes
+ * en tete de tri (0/16). Ce tableau est le plus consulte, notamment les
+ * jours de guerre : les ex-membres, inactionnables (ni evaluables ni
+ * sanctionnables), sont donc masques par defaut plutot que simplement
+ * annotes, avec un controle explicite pour les reafficher au besoin.
  */
 
 import { useEffect, useMemo, useState } from 'react';
@@ -13,9 +20,21 @@ import {
   parseCurrentWar,
   sortByUrgency,
 } from '@/domain/war/current-war';
+import {
+  classifyBattleCount,
+  LEVEL_LABELS,
+  LEVEL_SYMBOLS,
+  type AttendanceLevel,
+} from '@/domain/war/attendance-level';
 import { BATTLES_PER_WAR_WEEK } from '@/domain/war/war-history';
 import type { ApiResource } from '@/hooks/use-api-resource';
 import { formatTimeOfDay } from '@/lib/format-time';
+
+const WEEK_TEXT_CLASSES: Record<AttendanceLevel, string> = {
+  complete: 'text-royale-gold-400',
+  warning: 'text-orange-400',
+  critical: 'text-royale-red-500',
+};
 
 interface CurrentWarSectionProps {
   /** Etat du chargement de /currentriverrace, pilote par le dashboard. */
@@ -53,16 +72,35 @@ export function CurrentWarSection({ warState, memberTags }: CurrentWarSectionPro
     }
   }, [warState]);
 
+  // Anciens membres masques par defaut (audit UX du 2026-08-02, US-1/US-3) :
+  // desactive a chaque nouveau tag de clan pour ne pas garder un choix
+  // pertinent pour un autre clan.
+  const [showFormerMembers, setShowFormerMembers] = useState(false);
+  useEffect(() => {
+    setShowFormerMembers(false);
+  }, [memberTags]);
+
   const war = useMemo(
     () => (warState.status === 'success' ? parseCurrentWar(warState.data) : null),
     [warState],
   );
-  const participants = useMemo(
+  const allParticipants = useMemo(
     () =>
       war === null
         ? []
         : sortByUrgency(annotateWithMembership(war.participants, memberTags)),
     [war, memberTags],
+  );
+  const formerMemberCount = useMemo(
+    () => allParticipants.filter((participant) => !participant.stillInClan).length,
+    [allParticipants],
+  );
+  const participants = useMemo(
+    () =>
+      showFormerMembers
+        ? allParticipants
+        : allParticipants.filter((participant) => participant.stillInClan),
+    [allParticipants, showFormerMembers],
   );
 
   if (warState.status === 'idle') {
@@ -70,7 +108,11 @@ export function CurrentWarSection({ warState, memberTags }: CurrentWarSectionPro
   }
 
   return (
-    <section aria-labelledby="current-war-title" className="space-y-4">
+    <section
+      id="guerre-en-cours"
+      aria-labelledby="current-war-title"
+      className="scroll-mt-16 space-y-4"
+    >
       <div className="flex flex-wrap items-center gap-3">
         <h2
           id="current-war-title"
@@ -117,10 +159,25 @@ export function CurrentWarSection({ warState, memberTags }: CurrentWarSectionPro
         </div>
       )}
 
+      {war !== null && formerMemberCount > 0 && (
+        <label className="text-royale-parchment-dim inline-flex items-center gap-2 text-xs">
+          <input
+            type="checkbox"
+            checked={showFormerMembers}
+            onChange={(event) => setShowFormerMembers(event.target.checked)}
+          />
+          Afficher les anciens membres ({formerMemberCount})
+        </label>
+      )}
+
       {war !== null &&
-        (war.state === 'notInWar' || participants.length === 0 ? (
+        (war.state === 'notInWar' || allParticipants.length === 0 ? (
           <p className="text-royale-parchment-dim">
             Le clan n est pas en guerre actuellement.
+          </p>
+        ) : participants.length === 0 ? (
+          <p className="text-royale-parchment-dim">
+            Aucun membre actuel n a participe a cette guerre pour l instant.
           </p>
         ) : (
           <div className="overflow-x-auto">
@@ -144,11 +201,14 @@ export function CurrentWarSection({ warState, memberTags }: CurrentWarSectionPro
               <tbody>
                 {participants.map((participant) => {
                   const idleToday = participant.decksUsedToday === 0;
+                  const weekLevel = classifyBattleCount(participant.decksUsed);
                   return (
                     <tr
                       key={participant.tag}
                       data-testid="war-row"
-                      className="border-royale-blue-800/40 text-royale-parchment border-b"
+                      className={`border-royale-blue-800/40 text-royale-parchment border-b ${
+                        participant.stillInClan ? '' : 'opacity-50'
+                      }`}
                     >
                       <th scope="row" className="px-3 py-2 text-left font-normal">
                         {participant.name}
@@ -162,7 +222,7 @@ export function CurrentWarSection({ warState, memberTags }: CurrentWarSectionPro
                         )}
                       </th>
                       <td
-                        className={`px-3 py-2 text-right font-semibold ${
+                        className={`px-3 py-2 text-right font-semibold tabular-nums ${
                           idleToday ? 'text-royale-red-500' : 'text-royale-parchment'
                         }`}
                       >
@@ -171,8 +231,12 @@ export function CurrentWarSection({ warState, memberTags }: CurrentWarSectionPro
                           <span className="sr-only"> - aucun deck joue aujourd hui</span>
                         )}
                       </td>
-                      <td className="px-3 py-2 text-right">
+                      <td
+                        className={`px-3 py-2 text-right font-semibold tabular-nums ${WEEK_TEXT_CLASSES[weekLevel]}`}
+                      >
                         {participant.decksUsed}/{BATTLES_PER_WAR_WEEK}
+                        <span aria-hidden="true"> {LEVEL_SYMBOLS[weekLevel]}</span>
+                        <span className="sr-only"> - {LEVEL_LABELS[weekLevel]}</span>
                       </td>
                     </tr>
                   );

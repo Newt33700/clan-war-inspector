@@ -3,6 +3,7 @@
  * logique de tri pure (US 3.2, score de mutation >= 90 % exige).
  */
 
+import { toSafeCount } from '../shared/numeric';
 import { canonicalizePlayerTag } from './player-tag';
 
 export type ClanRole = 'leader' | 'coLeader' | 'elder' | 'member';
@@ -39,14 +40,6 @@ type UnknownRecord = Record<string, unknown>;
 
 function isRecord(value: unknown): value is UnknownRecord {
   return typeof value === 'object' && value !== null;
-}
-
-/** Entier positif sur : 0 pour toute valeur manquante ou aberrante. */
-function toSafeCount(value: unknown): number {
-  if (typeof value !== 'number' || !Number.isFinite(value)) {
-    return 0;
-  }
-  return Math.max(0, Math.trunc(value));
 }
 
 function toRole(value: unknown): ClanRole {
@@ -130,4 +123,26 @@ export function sortMembers(
     }
     return a.name.localeCompare(b.name) || a.tag.localeCompare(b.tag);
   });
+}
+
+/**
+ * Filtre les membres par pseudo ou tag (audit UX du 2026-08-02, US-8) :
+ * retrouver un joueur precis dans une liste de 47+ lignes n'etait
+ * possible qu'a l'oeil. Recherche insensible a la casse, sous-chaine.
+ *
+ * Pas de cas particulier pour une requete vide ou blanche : `.includes('')`
+ * vaut toujours vrai, donc le filtre laisse deja passer tout le monde sans
+ * branche dediee (un premier essai avec un retour anticipe s'est revele
+ * un mutant Stryker equivalent pour cette meme raison).
+ */
+export function filterMembersByQuery(
+  members: readonly ClanMember[],
+  query: string,
+): ClanMember[] {
+  const trimmed = query.trim().toLowerCase();
+  return members.filter(
+    (member) =>
+      member.name.toLowerCase().includes(trimmed) ||
+      member.tag.toLowerCase().includes(trimmed),
+  );
 }

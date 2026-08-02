@@ -115,4 +115,10 @@ describe('parseClanSummary', () => {
       clanScore: 0,
     });
   });
+
+  it('coerce un score serialise en chaine (audit UX 2026-08-02, US-4)', () => {
+    expect(parseClanSummary({ tag: '#A', clanScore: '45000' })).toMatchObject({
+      clanScore: 45000,
+    });
+  });
 });

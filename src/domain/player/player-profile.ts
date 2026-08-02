@@ -6,6 +6,7 @@
 
 import { canonicalizePlayerTag } from '../clan/player-tag';
 import type { ClanRole } from '../clan/members';
+import { toSafeCount } from '../shared/numeric';
 
 export interface PlayerDeckCard {
   name: string;
@@ -28,13 +29,6 @@ type UnknownRecord = Record<string, unknown>;
 
 function isRecord(value: unknown): value is UnknownRecord {
   return typeof value === 'object' && value !== null;
-}
-
-function toSafeCount(value: unknown): number {
-  if (typeof value !== 'number' || !Number.isFinite(value)) {
-    return 0;
-  }
-  return Math.max(0, Math.trunc(value));
 }
 
 function toRole(value: unknown): ClanRole | null {

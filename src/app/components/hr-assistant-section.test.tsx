@@ -1,5 +1,5 @@
-import { render, screen, within } from '@testing-library/react';
-import { describe, expect, it } from 'vitest';
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
+import { describe, expect, it, vi } from 'vitest';
 import type { ClanMember } from '@/domain/clan/members';
 import type { ApiResource } from '@/hooks/use-api-resource';
 import type { PlayerAttendance } from '@/domain/war/war-history';
@@ -155,5 +155,50 @@ describe('HrAssistantSection', () => {
       <HrAssistantSection members={[]} attendance={[]} logState={idle} warState={idle} />,
     );
     expect(container).toBeEmptyDOMElement();
+  });
+
+  it('propose de copier l ensemble des recommandations quand des candidats existent (audit UX 2026-08-02, US-10)', async () => {
+    const writeText = vi.fn().mockResolvedValue(undefined);
+    Object.assign(navigator, { clipboard: { writeText } });
+
+    const merit = member({ tag: '#A', name: 'Alice', role: 'member', donations: 2 });
+    const watch = member({ tag: '#B', name: 'Bob', role: 'elder' });
+    render(
+      <HrAssistantSection
+        members={[merit, watch]}
+        attendance={[attendance('#A', [16, 16, 16]), attendance('#B', [3])]}
+        logState={success}
+        warState={idle}
+      />,
+    );
+
+    const buttons = screen.getAllByRole('button', { name: /copier les recommandations/i });
+    expect(buttons).toHaveLength(2);
+
+    fireEvent.click(buttons[0]!);
+    await waitFor(() =>
+      expect(writeText).toHaveBeenCalledWith('Alice (#A) - Promotion suggeree : Aine'),
+    );
+
+    fireEvent.click(buttons[1]!);
+    await waitFor(() =>
+      expect(writeText).toHaveBeenCalledWith(
+        'Bob (#B) - Combats insuffisants la semaine derniere',
+      ),
+    );
+  });
+
+  it('n affiche pas de bouton de copie globale quand les listes sont vides', () => {
+    render(
+      <HrAssistantSection
+        members={[]}
+        attendance={[]}
+        logState={success}
+        warState={idle}
+      />,
+    );
+    expect(
+      screen.queryByRole('button', { name: /copier les recommandations/i }),
+    ).not.toBeInTheDocument();
   });
 });

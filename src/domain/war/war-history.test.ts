@@ -92,10 +92,20 @@ describe('clampBattleCount', () => {
     ['undefined', undefined],
     ['null', null],
     ['NaN', Number.NaN],
-    ['chaine', '12'],
+    ['chaine non numerique', 'oops'],
     ['objet', {}],
   ])('retombe a 0 pour une valeur inutilisable (%s)', (_label, value) => {
     expect(clampBattleCount(value)).toBe(0);
+  });
+
+  it('coerce un decompte serialise en chaine (audit UX 2026-08-02, US-4)', () => {
+    expect(clampBattleCount('12')).toBe(12);
+  });
+
+  it('ignore un booleen malgre sa coercion numerique non nulle (Number(true) === 1)', () => {
+    // Verrouille le typeof value === 'string' : sans lui, un booleen
+    // emprunterait la branche de coercion numerique et donnerait 1.
+    expect(clampBattleCount(true)).toBe(0);
   });
 });
 

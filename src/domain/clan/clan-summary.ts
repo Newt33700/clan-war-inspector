@@ -6,6 +6,8 @@
  * confirme que le tag saisi correspond bien au clan attendu.
  */
 
+import { toSafeCount } from '../shared/numeric';
+
 export interface ClanSummary {
   tag: string;
   name: string;
@@ -20,17 +22,6 @@ type UnknownRecord = Record<string, unknown>;
 
 function isRecord(value: unknown): value is UnknownRecord {
   return typeof value === 'object' && value !== null;
-}
-
-function toSafeCount(value: unknown): number {
-  // `Number.isFinite` (contrairement au global `isFinite`) ne coerce pas :
-  // il vaut deja false pour toute valeur non-number, ce qui rend le
-  // `typeof value !== 'number'` logiquement redondant (mutant Stryker
-  // "equivalent"). Conserve pour la clarte du garde et le typage TS.
-  if (typeof value !== 'number' || !Number.isFinite(value)) {
-    return 0;
-  }
-  return Math.max(0, Math.trunc(value));
 }
 
 function toBadgeUrl(badgeUrls: unknown): string {

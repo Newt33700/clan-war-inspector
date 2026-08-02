@@ -73,6 +73,12 @@ describe('parsePlayerProfile', () => {
     ).toMatchObject({ expLevel: 0, donations: 0 });
   });
 
+  it('coerce un expLevel serialise en chaine (audit UX 2026-08-02, US-4)', () => {
+    expect(parsePlayerProfile({ tag: '#A', expLevel: '62' })).toMatchObject({
+      expLevel: 62,
+    });
+  });
+
   it('deck vide quand ni currentDeck ni currentFavouriteCard ne sont exploitables', () => {
     expect(parsePlayerProfile({ tag: '#A' })?.deck).toEqual([]);
     expect(parsePlayerProfile({ tag: '#A', currentDeck: 'oops' })?.deck).toEqual([]);
