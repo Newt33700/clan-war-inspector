@@ -21,7 +21,7 @@ import { ClanDashboard } from './clan-dashboard';
 
 async function submitTag(tag: string) {
   const user = userEvent.setup();
-  await user.type(screen.getByLabelText(/tag du clan/i), tag);
+  await user.type(screen.getByLabelText(/tag ou nom du clan/i), tag);
   await user.click(screen.getByRole('button', { name: /inspecter/i }));
   return user;
 }
@@ -43,7 +43,7 @@ describe('ClanDashboard', () => {
     render(<ClanDashboard />);
     const user = userEvent.setup();
 
-    await user.type(screen.getByLabelText(/tag du clan/i), '#2PZ');
+    await user.type(screen.getByLabelText(/tag ou nom du clan/i), '#2PZ');
 
     expect(screen.getByRole('button', { name: /inspecter/i })).toBeDisabled();
   });
@@ -52,7 +52,7 @@ describe('ClanDashboard', () => {
     render(<ClanDashboard />);
     const user = userEvent.setup();
 
-    await user.type(screen.getByLabelText(/tag du clan/i), '#2PZ');
+    await user.type(screen.getByLabelText(/tag ou nom du clan/i), '#2PZ');
 
     // Pas encore affiche juste apres la frappe.
     expect(screen.queryByText(/tag invalide/i)).not.toBeInTheDocument();
@@ -65,9 +65,9 @@ describe('ClanDashboard', () => {
   it('affiche un exemple de tag realiste et une aide pour le retrouver', () => {
     render(<ClanDashboard />);
 
-    expect(screen.getByLabelText(/tag du clan/i)).toHaveAttribute(
+    expect(screen.getByLabelText(/tag ou nom du clan/i)).toHaveAttribute(
       'placeholder',
-      '#20J20QG',
+      '#20J20QG ou Chevreaux Team',
     );
     expect(screen.getByText(/visible dans clash royale/i)).toBeInTheDocument();
   });
@@ -119,7 +119,7 @@ describe('ClanDashboard', () => {
 
     const rows = await screen.findAllByTestId('member-row');
     expect(rows).toHaveLength(3);
-    expect(screen.getByLabelText(/tag du clan/i)).toHaveValue('#20PP');
+    expect(screen.getByLabelText(/tag ou nom du clan/i)).toHaveValue('#20PP');
   });
 
   it('priorise le tag de l URL sur celui memorise en localStorage (US 6.2)', async () => {
@@ -130,7 +130,7 @@ describe('ClanDashboard', () => {
     render(<ClanDashboard />);
 
     await screen.findAllByTestId('member-row');
-    expect(screen.getByLabelText(/tag du clan/i)).toHaveValue('#20PP');
+    expect(screen.getByLabelText(/tag ou nom du clan/i)).toHaveValue('#20PP');
   });
 
   it('trie par role descendant par defaut (chef en premier)', async () => {
@@ -330,7 +330,7 @@ describe('ClanDashboard', () => {
           within(warSection).getByText(/mise a jour a \d{2}:\d{2}/i),
         ).toBeInTheDocument();
       });
-      expect(screen.getByLabelText(/tag du clan/i)).toHaveValue('#20PP');
+      expect(screen.getByLabelText(/tag ou nom du clan/i)).toHaveValue('#20PP');
       const afterRows = screen
         .getAllByTestId('member-row')
         .map((row) => within(row).getAllByRole('cell')[0]?.textContent);
@@ -415,6 +415,157 @@ describe('ClanDashboard', () => {
       await user.click(within(drawer).getByRole('button', { name: /fermer/i }));
 
       expect(drawer).toHaveAttribute('aria-hidden', 'true');
+    });
+  });
+
+  describe('US 10.1 : recherche de clan par tag ou par nom', () => {
+    async function typeQuery(query: string) {
+      const user = userEvent.setup();
+      await user.type(screen.getByLabelText(/tag ou nom du clan/i), query);
+      return user;
+    }
+
+    it('charge directement le dashboard quand la recherche par nom ne retourne qu un candidat', async () => {
+      setMockResponse('clanSearch', {
+        items: [{ tag: '#20PP', name: 'Chevreaux Team', members: 3 }],
+      });
+      setMockResponse('clan', FIXTURE_FULL_CLAN);
+      render(<ClanDashboard />);
+
+      await typeQuery('Chevreaux Team');
+
+      const rows = await screen.findAllByTestId('member-row');
+      expect(rows).toHaveLength(3);
+      expect(screen.getByTestId('clan-header')).toBeInTheDocument();
+    });
+
+    it('affiche une liste de candidats cliquable quand plusieurs clans correspondent', async () => {
+      setMockResponse('clanSearch', {
+        items: [
+          { tag: '#2PYU', name: 'Chevreaux Team', members: 10 },
+          { tag: '#2GVR', name: 'Chevreaux Legends', members: 20 },
+        ],
+      });
+      setMockResponse('clan', FIXTURE_FULL_CLAN);
+      render(<ClanDashboard />);
+
+      await typeQuery('Chevreaux');
+
+      const candidates = await screen.findAllByTestId('clan-search-candidate');
+      expect(candidates).toHaveLength(2);
+      expect(candidates[0]).toHaveTextContent('Chevreaux Team');
+      expect(candidates[0]).toHaveTextContent('#2PYU');
+      expect(candidates[1]).toHaveTextContent('Chevreaux Legends');
+
+      const user = userEvent.setup();
+      await user.click(candidates[0]!);
+
+      const rows = await screen.findAllByTestId('member-row');
+      expect(rows).toHaveLength(3);
+    });
+
+    it('affiche un message distinct quand aucun clan ne correspond au nom', async () => {
+      setMockResponse('clanSearch', { items: [] });
+      render(<ClanDashboard />);
+
+      await typeQuery('Introuvable');
+
+      expect(
+        await screen.findByText(/aucun clan ne correspond a « introuvable »/i),
+      ).toBeInTheDocument();
+    });
+
+    it('affiche une aide plutot qu un appel reseau pour une requete trop courte', async () => {
+      const upstreamCalls: string[] = [];
+      mockServer.use(
+        http.get('*/api/clans', ({ request }) => {
+          upstreamCalls.push(request.url);
+          return HttpResponse.json({ items: [] });
+        }),
+      );
+      render(<ClanDashboard />);
+
+      await typeQuery('ab');
+
+      expect(
+        await screen.findByText(/continuez a taper \(3 caracteres minimum\)/i),
+      ).toBeInTheDocument();
+      // Laisse le debounce (400ms) largement le temps de se declencher.
+      await new Promise((resolve) => setTimeout(resolve, 500));
+      expect(upstreamCalls).toHaveLength(0);
+    });
+
+    it('affiche un etat de chargement pendant la recherche par nom', async () => {
+      let resolveSearch!: (response: Response) => void;
+      mockServer.use(
+        http.get(
+          '*/api/clans',
+          () => new Promise<Response>((resolve) => (resolveSearch = resolve)),
+        ),
+      );
+      render(<ClanDashboard />);
+
+      await typeQuery('Chevreaux');
+
+      expect(await screen.findByRole('status')).toHaveTextContent(/recherche de clans/i);
+
+      resolveSearch(HttpResponse.json({ items: [] }));
+      expect(
+        await screen.findByText(/aucun clan ne correspond a « chevreaux »/i),
+      ).toBeInTheDocument();
+    });
+
+    it('affiche une erreur de recherche et permet de reessayer', async () => {
+      setMockResponse('clanSearch', { error: 'boom' });
+      render(<ClanDashboard />);
+
+      await typeQuery('Chevreaux');
+
+      const alert = await screen.findByRole('alert');
+      expect(alert).toBeInTheDocument();
+
+      setMockResponse('clanSearch', { items: [] });
+      const user = userEvent.setup();
+      await user.click(screen.getByRole('button', { name: /reessayer/i }));
+
+      expect(
+        await screen.findByText(/aucun clan ne correspond a « chevreaux »/i),
+      ).toBeInTheDocument();
+    });
+
+    it('affiche le badge du candidat quand il est fourni', async () => {
+      setMockResponse('clanSearch', {
+        items: [
+          { tag: '#2PYU', name: 'Chevreaux Team', members: 10, badgeUrls: {} },
+          {
+            tag: '#2GVR',
+            name: 'Chevreaux Legends',
+            members: 20,
+            badgeUrls: { medium: 'https://example.com/badge.png' },
+          },
+        ],
+      });
+      render(<ClanDashboard />);
+
+      await typeQuery('Chevreaux');
+
+      const candidates = await screen.findAllByTestId('clan-search-candidate');
+      expect(candidates[0]!.querySelector('img')).not.toBeInTheDocument();
+      expect(candidates[1]!.querySelector('img')).toHaveAttribute(
+        'src',
+        'https://example.com/badge.png',
+      );
+    });
+
+    it('continue de traiter un tag explicite (#...) comme un tag, pas une recherche', async () => {
+      setMockResponse('clan', FIXTURE_FULL_CLAN);
+      render(<ClanDashboard />);
+
+      await submitTag('#20PP');
+
+      const rows = await screen.findAllByTestId('member-row');
+      expect(rows).toHaveLength(3);
+      expect(screen.queryByTestId('clan-search-candidate')).not.toBeInTheDocument();
     });
   });
 

@@ -16,6 +16,6 @@ describe('HomePage', () => {
     render(<HomePage />);
 
     expect(screen.getByRole('form', { name: /recherche de clan/i })).toBeInTheDocument();
-    expect(screen.getByLabelText(/tag du clan/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/tag ou nom du clan/i)).toBeInTheDocument();
   });
 });

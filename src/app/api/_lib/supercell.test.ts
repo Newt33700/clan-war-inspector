@@ -11,6 +11,7 @@ import { delay, http, HttpResponse } from 'msw';
 import { mockServer } from '@/mocks/server';
 import {
   proxyClanResource,
+  proxyClanSearch,
   proxyPlayerResource,
   SUPERCELL_API_BASE_URL,
   type ProxyErrorBody,
@@ -349,5 +350,105 @@ describe('proxyPlayerResource (US 9)', () => {
 
     expect(response.status).toBe(502);
     expect(body.error.code).toBe('API_KEY_REJECTED');
+  });
+});
+
+/** Enregistre un handler amont sur /clans (recherche) et capture chaque requete. */
+function stubClanSearchUpstream(
+  respond: (request: Request) => Response | Promise<Response>,
+): { requests: Request[] } {
+  const captured: { requests: Request[] } = { requests: [] };
+  mockServer.use(
+    http.get(`${SUPERCELL_API_BASE_URL}/clans`, async ({ request }) => {
+      captured.requests.push(request.clone());
+      return respond(request);
+    }),
+  );
+  return captured;
+}
+
+describe('proxyClanSearch (US 10.1)', () => {
+  beforeEach(() => {
+    vi.stubEnv('CLASH_ROYALE_API_TOKEN', '');
+  });
+
+  afterEach(() => {
+    vi.unstubAllEnvs();
+  });
+
+  it('rejette une requete de moins de 3 caracteres sans appeler Supercell', async () => {
+    const upstream = stubClanSearchUpstream(() => HttpResponse.json({ items: [] }));
+
+    const response = await proxyClanSearch('ab', TOKEN_OPTIONS);
+    const body = await readError(response);
+
+    expect(response.status).toBe(400);
+    expect(body.error.code).toBe('INVALID_SEARCH_QUERY');
+    expect(upstream.requests).toHaveLength(0);
+  });
+
+  it('rejette une requete blanche sans appeler Supercell', async () => {
+    const upstream = stubClanSearchUpstream(() => HttpResponse.json({ items: [] }));
+
+    const response = await proxyClanSearch('   ', TOKEN_OPTIONS);
+
+    expect(response.status).toBe(400);
+    expect(upstream.requests).toHaveLength(0);
+  });
+
+  it('encode le nom recherche dans l URL Supercell', async () => {
+    const upstream = stubClanSearchUpstream(() => HttpResponse.json({ items: [] }));
+
+    await proxyClanSearch('Chevreaux Team', TOKEN_OPTIONS);
+
+    expect(upstream.requests[0]?.url).toBe(
+      `${SUPERCELL_API_BASE_URL}/clans?name=${encodeURIComponent('Chevreaux Team')}`,
+    );
+  });
+
+  it('coupe les espaces superflus avant l appel', async () => {
+    const upstream = stubClanSearchUpstream(() => HttpResponse.json({ items: [] }));
+
+    await proxyClanSearch('  abc  ', TOKEN_OPTIONS);
+
+    expect(upstream.requests[0]?.url).toBe(`${SUPERCELL_API_BASE_URL}/clans?name=abc`);
+  });
+
+  it('retransmet le JSON de Supercell en 200', async () => {
+    const payload = { items: [{ tag: '#A', name: 'Clan A' }] };
+    stubClanSearchUpstream(() => HttpResponse.json(payload));
+
+    const response = await proxyClanSearch('abc', TOKEN_OPTIONS);
+
+    expect(response.status).toBe(200);
+    expect(await response.json()).toEqual(payload);
+  });
+
+  it('repond 500 MISSING_API_TOKEN quand aucun token n est configure', async () => {
+    const response = await proxyClanSearch('abc');
+    const body = await readError(response);
+
+    expect(response.status).toBe(500);
+    expect(body.error.code).toBe('MISSING_API_TOKEN');
+  });
+
+  it('mappe 429 vers RATE_LIMITED', async () => {
+    stubClanSearchUpstream(() => new HttpResponse(null, { status: 429 }));
+
+    const response = await proxyClanSearch('abc', TOKEN_OPTIONS);
+    const body = await readError(response);
+
+    expect(response.status).toBe(429);
+    expect(body.error.code).toBe('RATE_LIMITED');
+  });
+
+  it('mappe 404 vers CLAN_NOT_FOUND (pas PLAYER_NOT_FOUND)', async () => {
+    stubClanSearchUpstream(() => new HttpResponse(null, { status: 404 }));
+
+    const response = await proxyClanSearch('abc', TOKEN_OPTIONS);
+    const body = await readError(response);
+
+    expect(response.status).toBe(404);
+    expect(body.error.code).toBe('CLAN_NOT_FOUND');
   });
 });

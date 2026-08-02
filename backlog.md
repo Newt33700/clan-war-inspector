@@ -718,8 +718,14 @@ Critères d'acceptation :
     touché (`members.ts`, `clamp.ts`, `player-profile.ts`, `clan-summary.ts`)
     est à 95–99 % de mutation (mutants restants équivalents, documentés en
     commentaire ou déjà présents avant cet audit)
-15. ⬜ **Épique 10** — recherche de clan par nom (US 10.1), depuis la même
-    zone de saisie que la recherche par tag
+15. ✅ **Épique 10** — recherche de clan par nom (US 10.1) : détection
+    transparente tag/nom depuis la même zone de saisie, nouveau proxy
+    `GET /api/clans?name=...` (`proxyClanSearch`), `domain/clan/clan-search.ts`
+    (réutilise `parseClanSummary`), résolution automatique à 1 résultat,
+    liste de candidats cliquable à N résultats, aide sous 3 caractères.
+    Domaine à 100 % de couverture, mutation 93–100 % sur le périmètre
+    touché (un mutant équivalent documenté, identique au pattern
+    `isRecord` de `members.ts`)
 
 ### Finition produit (hors backlog initial)
 
