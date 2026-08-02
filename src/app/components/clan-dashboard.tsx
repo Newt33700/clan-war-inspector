@@ -33,11 +33,15 @@ export function ClanDashboard() {
   const [direction, setDirection] = useState<SortDirection>('desc');
 
   const clanState = useApiResource<unknown>(clanPath);
+  // Ne charge la guerre en cours et l'historique qu'une fois le clan confirme :
+  // sinon un tag valide mais inexistant declenche 3 requetes vouees au 404,
+  // affichees comme 3 alertes redondantes au lieu d'une seule.
+  const clanConfirmed = clanState.status === 'success';
   const warState = useApiResource<unknown>(
-    clanPath === null ? null : `${clanPath}/currentriverrace`,
+    clanConfirmed && clanPath !== null ? `${clanPath}/currentriverrace` : null,
   );
   const logState = useApiResource<unknown>(
-    clanPath === null ? null : `${clanPath}/riverracelog`,
+    clanConfirmed && clanPath !== null ? `${clanPath}/riverracelog` : null,
   );
 
   // Au retour sur le site, recharge automatiquement le dernier clan inspecte.

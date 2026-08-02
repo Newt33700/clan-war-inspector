@@ -128,17 +128,22 @@ describe('ClanDashboard', () => {
   });
 
   it('passe par un etat de chargement visible', async () => {
+    // Reponse controlee manuellement plutot qu'un delai fixe : evite une
+    // course avec l'horloge reelle si l'environnement de test est lent.
+    let resolveClanResponse!: (response: Response) => void;
     mockServer.use(
-      http.get('*/api/clans/:clanTag', async () => {
-        await new Promise((resolve) => setTimeout(resolve, 30));
-        return HttpResponse.json(FIXTURE_FULL_CLAN);
-      }),
+      http.get(
+        '*/api/clans/:clanTag',
+        () => new Promise<Response>((resolve) => (resolveClanResponse = resolve)),
+      ),
     );
     render(<ClanDashboard />);
 
     await submitTag('#20PP');
 
     expect(screen.getByRole('status')).toHaveTextContent(/chargement/i);
+
+    resolveClanResponse(HttpResponse.json(FIXTURE_FULL_CLAN));
     await waitFor(() => {
       expect(screen.getAllByTestId('member-row')).toHaveLength(3);
     });
