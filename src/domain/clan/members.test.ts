@@ -7,6 +7,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   filterMembersByQuery,
+  isExpLevelAvailable,
   parseClanMembers,
   ROLE_LABELS,
   ROLE_RANK,
@@ -128,6 +129,32 @@ describe('parseClanMembers', () => {
       memberList: [{ tag: '#P1', trophies: 5000.9 }],
     });
     expect(members[0]?.trophies).toBe(5000);
+  });
+
+  it('conserve expLevel a 0 tel que recu (validation clan reel #20J20QG, 2026-08-02)', () => {
+    // Sur le clan reel, /clans/{tag} renvoie expLevel: 0 (un `number`, pas
+    // une chaine) pour tous les membres, alors que /players/{tag} renvoie
+    // la vraie valeur pour le meme joueur. Le parsing ne doit rien inventer
+    // ici : c'est `isExpLevelAvailable` qui porte la distinction "donnee
+    // indisponible" pour l'affichage.
+    const members = parseClanMembers({ memberList: [{ tag: '#P1', expLevel: 0 }] });
+    expect(members[0]?.expLevel).toBe(0);
+  });
+});
+
+describe('isExpLevelAvailable', () => {
+  // Validation sur le clan reel #20J20QG (2026-08-02) : /clans/{tag}
+  // renvoie expLevel: 0 pour les 47 membres, alors que /players/{tag}
+  // renvoie la vraie valeur (ex. 66) pour ces memes joueurs. Un niveau 0
+  // n'existe pas dans le jeu (minimum reel : 1), donc 0 signale ici une
+  // donnee non fiable de cet endpoint plutot qu'un vrai niveau.
+  it('signale un niveau indisponible quand expLevel vaut 0', () => {
+    expect(isExpLevelAvailable(0)).toBe(false);
+  });
+
+  it('signale un niveau disponible pour toute valeur strictement positive', () => {
+    expect(isExpLevelAvailable(1)).toBe(true);
+    expect(isExpLevelAvailable(66)).toBe(true);
   });
 });
 

@@ -1,14 +1,16 @@
 /**
- * Coercion numerique partagee entre les parsers du domaine (audit UX du
- * 2026-08-02, US-4) : la colonne "Niveau" du tableau des membres affichait
- * 0 pour tous les joueurs en production, alors que la fiche joueur
- * (/players/{tag}) affiche la bonne valeur pour le meme champ `expLevel`.
+ * Coercion numerique partagee entre les parsers du domaine : accepte un
+ * compteur serialise en chaine (`"62"` au lieu de `62`) sans le rejeter,
+ * pour tolerer les hebergements passant par un proxy tiers
+ * (proxy.royaleapi.dev, cf. `_lib/supercell.ts`) qui peuvent produire ce
+ * genre d'incoherence entre deux endpoints.
  *
- * Cause : `typeof value !== 'number'` rejetait tout compteur serialise en
- * chaine (`"62"` au lieu de `62`), ce qu'un hebergement passant par un
- * proxy tiers (proxy.royaleapi.dev, cf. `_lib/supercell.ts`) peut produire
- * de facon inconsistante entre deux endpoints. Un entier legitime ne doit
- * pas retomber a 0 pour cette seule raison.
+ * Verifie contre le clan reel #20J20QG (validation du 2026-08-02) : ce
+ * n'est PAS la cause du bug "Niveau a 0" observe en production sur la
+ * colonne "Niveau" du tableau des membres — `expLevel` y arrive comme un
+ * `number` valant deja `0` pour tous les membres, pas comme une chaine.
+ * La vraie cause et le vrai correctif sont documentes dans
+ * `domain/clan/members.ts` (`isExpLevelAvailable`).
  */
 
 /** Coerce une valeur en nombre fini, `null` si impossible. */

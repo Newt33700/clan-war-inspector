@@ -7,6 +7,7 @@
  */
 
 import {
+  isExpLevelAvailable,
   ROLE_LABELS,
   type ClanMember,
   type MemberSortKey,
@@ -95,7 +96,13 @@ export function MembersTable({
                 </button>
               </td>
               <td className="px-3 py-2">{ROLE_LABELS[memberEntry.role]}</td>
-              <td className="px-3 py-2 text-right">{memberEntry.expLevel}</td>
+              <td className="px-3 py-2 text-right">
+                {isExpLevelAvailable(memberEntry.expLevel) ? (
+                  memberEntry.expLevel
+                ) : (
+                  <span title="Niveau indisponible depuis l API clan">—</span>
+                )}
+              </td>
               <td className="px-3 py-2 text-right">{memberEntry.trophies}</td>
               <td className="px-3 py-2 text-right">{memberEntry.donations}</td>
             </tr>
