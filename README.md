@@ -26,29 +26,29 @@ L'application demarre sur http://localhost:3000.
 
 ## Scripts
 
-| Commande                | Role                                                        |
-| ----------------------- | ----------------------------------------------------------- |
-| `npm run dev`           | Serveur de developpement                                    |
-| `npm run build`         | Build de production                                         |
-| `npm run lint`          | ESLint (config Next + regles projet)                        |
-| `npm run format`        | Prettier en ecriture (`format:check` en verification)       |
-| `npm run typecheck`     | `tsc --noEmit`                                              |
-| `npm test`              | Tests unitaires et d'integration (Vitest)                   |
-| `npm run test:watch`    | Vitest en mode watch                                        |
-| `npm run test:coverage` | Tests + couverture, **echoue sous les seuils**              |
-| `npm run test:mutation` | Mutation testing Stryker, **echoue sous 90 %**              |
-| `npm run verify`        | Enchaine format, lint, types, couverture et mutation        |
+| Commande                | Role                                                  |
+| ----------------------- | ----------------------------------------------------- |
+| `npm run dev`           | Serveur de developpement                              |
+| `npm run build`         | Build de production                                   |
+| `npm run lint`          | ESLint (config Next + regles projet)                  |
+| `npm run format`        | Prettier en ecriture (`format:check` en verification) |
+| `npm run typecheck`     | `tsc --noEmit`                                        |
+| `npm test`              | Tests unitaires et d'integration (Vitest)             |
+| `npm run test:watch`    | Vitest en mode watch                                  |
+| `npm run test:coverage` | Tests + couverture, **echoue sous les seuils**        |
+| `npm run test:mutation` | Mutation testing Stryker, **echoue sous 90 %**        |
+| `npm run verify`        | Enchaine format, lint, types, couverture et mutation  |
 
 ## Portes de qualite
 
 Ces seuils ne sont pas indicatifs : les commandes sortent en erreur quand ils ne sont
 pas atteints, et la CI (US 2.1) bloquera la merge request.
 
-| Perimetre                       | Outil          | Seuil                     |
-| ------------------------------- | -------------- | ------------------------- |
-| Global                          | Vitest + v8    | 80 % lignes / branches    |
-| `src/domain/**`                 | Vitest + v8    | **100 %**                 |
-| `src/domain`, `src/app/api`, `src/hooks` | Stryker | **90 %** de mutants tues |
+| Perimetre                                | Outil       | Seuil                    |
+| ---------------------------------------- | ----------- | ------------------------ |
+| Global                                   | Vitest + v8 | 80 % lignes / branches   |
+| `src/domain/**`                          | Vitest + v8 | **100 %**                |
+| `src/domain`, `src/app/api`, `src/hooks` | Stryker     | **90 %** de mutants tues |
 
 Rapports generes : `coverage/index.html` et `reports/mutation/index.html`.
 

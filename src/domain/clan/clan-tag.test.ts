@@ -23,7 +23,9 @@ const captureError = (input: string): InvalidClanTagError => {
     }
     throw error;
   }
-  throw new Error(`normalizeClanTag(${JSON.stringify(input)}) aurait du lever une erreur`);
+  throw new Error(
+    `normalizeClanTag(${JSON.stringify(input)}) aurait du lever une erreur`,
+  );
 };
 
 describe('normalizeClanTag', () => {
@@ -133,7 +135,9 @@ describe('normalizeClanTag', () => {
     });
 
     it('mentionne la longueur maximale dans le message trop long', () => {
-      expect(() => normalizeClanTag(tagOfLength(15))).toThrow(String(CLAN_TAG_MAX_LENGTH));
+      expect(() => normalizeClanTag(tagOfLength(15))).toThrow(
+        String(CLAN_TAG_MAX_LENGTH),
+      );
     });
 
     it('mentionne l alphabet autorise dans le message de caractere invalide', () => {

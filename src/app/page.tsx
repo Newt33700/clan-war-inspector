@@ -21,8 +21,8 @@ export default function HomePage() {
           Clan War Inspector
         </h1>
         <p className="text-royale-parchment-dim max-w-xl text-lg">
-          Seize combats par semaine, par joueur. Le tableau de bord dit qui les a
-          joues, qui les a oublies, et depuis combien de semaines.
+          Seize combats par semaine, par joueur. Le tableau de bord dit qui les a joues,
+          qui les a oublies, et depuis combien de semaines.
         </p>
       </header>
 
@@ -46,9 +46,7 @@ export default function HomePage() {
               key={index}
               data-testid="battle-segment"
               className={`h-8 flex-1 rounded-sm ${
-                index < PREVIEW_BATTLES
-                  ? 'bg-royale-gold-400'
-                  : 'bg-royale-red-700/60'
+                index < PREVIEW_BATTLES ? 'bg-royale-gold-400' : 'bg-royale-red-700/60'
               }`}
             />
           ))}

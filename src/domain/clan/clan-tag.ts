@@ -13,10 +13,7 @@ export const CLAN_TAG_MIN_LENGTH = 3;
 export const CLAN_TAG_MAX_LENGTH = 14;
 
 export type ClanTagRejectionReason =
-  | 'EMPTY'
-  | 'TOO_SHORT'
-  | 'TOO_LONG'
-  | 'INVALID_CHARACTER';
+  'EMPTY' | 'TOO_SHORT' | 'TOO_LONG' | 'INVALID_CHARACTER';
 
 const REJECTION_MESSAGES: Record<ClanTagRejectionReason, string> = {
   EMPTY: 'Saisissez un tag de clan.',
@@ -45,11 +42,7 @@ export class InvalidClanTagError extends Error {
  * @throws {InvalidClanTagError} si le tag ne peut pas exister chez Supercell.
  */
 export function normalizeClanTag(input: string): string {
-  const candidate = input
-    .trim()
-    .toUpperCase()
-    .replace(/^#+/, '')
-    .replaceAll('O', '0');
+  const candidate = input.trim().toUpperCase().replace(/^#+/, '').replaceAll('O', '0');
 
   if (candidate.length === 0) {
     throw new InvalidClanTagError('EMPTY', input);
