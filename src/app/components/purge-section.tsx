@@ -14,11 +14,17 @@ import {
   type PurgeCombinator,
 } from '@/domain/clan/purge';
 import { formatPurgeCandidatesForClipboard } from '@/lib/purge-export';
+import {
+  readStoredPurgeSettings,
+  storePurgeSettings,
+} from '@/lib/purge-settings-storage';
 import type { PlayerAttendance } from '@/domain/war/war-history';
 
 const DEFAULT_MIN_WAR_BATTLES = 8;
 const EXPECTED_WEEKLY_BATTLES = 16;
 const COPY_CONFIRMATION_MS = 2000;
+
+const COMBINATOR_LABELS: Record<PurgeCombinator, string> = { AND: 'ET', OR: 'OU' };
 
 interface PurgeSectionProps {
   members: readonly ClanMember[];
@@ -28,9 +34,19 @@ interface PurgeSectionProps {
 }
 
 export function PurgeSection({ members, attendance, ready }: PurgeSectionProps) {
-  const [minWarBattles, setMinWarBattles] = useState(DEFAULT_MIN_WAR_BATTLES);
-  const [combinator, setCombinator] = useState<PurgeCombinator>('AND');
+  // Reglage memorise (US-9, audit UX du 2026-08-02) : le seuil et le
+  // combinateur ne doivent pas se reinitialiser a chaque visite.
+  const [minWarBattles, setMinWarBattles] = useState(
+    () => readStoredPurgeSettings()?.minWarBattles ?? DEFAULT_MIN_WAR_BATTLES,
+  );
+  const [combinator, setCombinator] = useState<PurgeCombinator>(
+    () => readStoredPurgeSettings()?.combinator ?? 'AND',
+  );
   const [copyState, setCopyState] = useState<'idle' | 'copied' | 'error'>('idle');
+
+  useEffect(() => {
+    storePurgeSettings({ minWarBattles, combinator });
+  }, [minWarBattles, combinator]);
 
   const candidates = useMemo(
     () => findPurgeCandidates(members, attendance, { minWarBattles, combinator }),
@@ -68,6 +84,11 @@ export function PurgeSection({ members, attendance, ready }: PurgeSectionProps) 
       >
         A expulser
       </h2>
+
+      <p className="text-royale-parchment text-sm font-semibold">
+        Regle active : 0 don {COMBINATOR_LABELS[combinator]} moins de {minWarBattles}{' '}
+        combats de guerre.
+      </p>
 
       <p className="text-royale-parchment-dim text-sm">
         Joueurs cumulant zero don

@@ -6,6 +6,7 @@
 
 import { describe, expect, it } from 'vitest';
 import {
+  filterMembersByQuery,
   parseClanMembers,
   ROLE_LABELS,
   ROLE_RANK,
@@ -103,13 +104,23 @@ describe('parseClanMembers', () => {
 
   it('borne les valeurs numeriques manquantes ou aberrantes a 0', () => {
     const members = parseClanMembers({
-      memberList: [{ tag: '#P1', expLevel: '13', trophies: -5, donations: Number.NaN }],
+      memberList: [{ tag: '#P1', expLevel: 'oops', trophies: -5, donations: Number.NaN }],
     });
     expect(members[0]).toMatchObject({
       expLevel: 0,
       trophies: 0,
       donations: 0,
     });
+  });
+
+  it('coerce un niveau serialise en chaine (audit UX 2026-08-02, US-4)', () => {
+    // Reproduit le bug observe en production : la colonne "Niveau" affichait
+    // 0 pour tous les membres alors que la fiche joueur montrait la bonne
+    // valeur pour le meme champ `expLevel`.
+    const members = parseClanMembers({
+      memberList: [{ tag: '#P1', expLevel: '62' }],
+    });
+    expect(members[0]?.expLevel).toBe(62);
   });
 
   it('tronque les valeurs numeriques fractionnaires', () => {
@@ -240,5 +251,35 @@ describe('sortMembers', () => {
     const second = member({ tag: '#AA', name: 'Beta', trophies: 5000 });
     const sorted = sortMembers([second, first], 'trophies', 'asc');
     expect(sorted.map((m) => m.name)).toEqual(['Alpha', 'Beta']);
+  });
+});
+
+describe('filterMembersByQuery (audit UX 2026-08-02, US-8)', () => {
+  const alice = member({ tag: '#ALICE1', name: 'Alice' });
+  const bob = member({ tag: '#BOB2', name: 'Bob' });
+  const roster = [alice, bob];
+
+  it('retourne tous les membres pour une requete vide ou blanche', () => {
+    expect(filterMembersByQuery(roster, '')).toEqual(roster);
+    expect(filterMembersByQuery(roster, '   ')).toEqual(roster);
+  });
+
+  it('filtre par sous-chaine du pseudo, insensible a la casse', () => {
+    expect(filterMembersByQuery(roster, 'ali').map((m) => m.name)).toEqual(['Alice']);
+    expect(filterMembersByQuery(roster, 'ALI').map((m) => m.name)).toEqual(['Alice']);
+  });
+
+  it('filtre par sous-chaine du tag', () => {
+    expect(filterMembersByQuery(roster, 'bob2').map((m) => m.name)).toEqual(['Bob']);
+  });
+
+  it('retourne un tableau vide sans correspondance', () => {
+    expect(filterMembersByQuery(roster, 'zzz')).toEqual([]);
+  });
+
+  it('ne mute pas le tableau d entree', () => {
+    const input = [...roster];
+    filterMembersByQuery(input, 'alice');
+    expect(input).toEqual(roster);
   });
 });

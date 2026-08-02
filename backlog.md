@@ -448,6 +448,192 @@ Critères d'acceptation :
 
 ---
 
+### ÉPIQUE 8 — Guerre en cours et fiabilité des données (audit UX du 2026-08-02, clan `#20J20QG`)
+
+> Second audit UX du 2026-08-02, mené cette fois par **navigation live sur
+> le clan réel Chevreaux Team (#20J20QG)** en production, avec inspection
+> DOM (contrairement à l'audit de l'Épique 6, mené par relecture de code).
+> Constat déclencheur : le tableau **Guerre en cours** — le plus consulté —
+> affichait encore les joueurs ayant quitté le clan (21 lignes sur 68, soit
+> ~31 % de bruit), alors que l'Historique des guerres avait déjà été
+> corrigé sur ce point (commit `2491a72`). Priorités identiques à l'Épique 6 :
+> **P0** bloque la confiance, **P1** freine l'usage courant, **P2** finitions.
+> Les identifiants US-1 à US-11 reprennent la numérotation du rapport
+> d'audit original pour la traçabilité.
+
+#### US-1 (P0) — Ne montrer que les membres actuels dans Guerre en cours
+
+**En tant que** chef ou co-chef de clan, **je veux** que le tableau
+« Guerre en cours » n'affiche que les joueurs actuellement membres du clan
+**afin de** ne pas polluer ma lecture avec des joueurs partis que je ne
+peux plus évaluer ni sanctionner.
+
+Critères d'acceptation :
+
+- Aucune ligne d'ex-membre n'apparaît par défaut (masquage, pas simple
+  annotation comme c'était le cas jusqu'ici)
+- Un message distinct s'affiche si seuls des ex-membres ont participé à la
+  guerre en cours (plutôt que le message générique « pas en guerre »)
+
+---
+
+#### US-2 (P0) — Cohérence du filtrage sur tout le tableau de bord
+
+**En tant que** chef de clan, **je veux** que le même filtrage
+« membre actuel » s'applique à Guerre en cours, Historique et Assistant RH
+**afin d'**avoir une cohérence garantie sur toute l'application.
+
+Constat : Historique (`filterCurrentMembers`, commit `2491a72`) et
+Assistant RH / vue de renvoi (itèrent déjà sur `members`, donc sur les
+membres actuels uniquement) étaient déjà corrects. Seule Guerre en cours
+manquait — traité par US-1.
+
+---
+
+#### US-3 (P1) — Affichage ponctuel des anciens membres
+
+**En tant qu'**utilisateur, **je veux** pouvoir afficher ponctuellement les
+anciens membres dans Guerre en cours si besoin **afin de** ne pas perdre
+l'information sans qu'elle s'impose par défaut.
+
+Critères d'acceptation :
+
+- Contrôle « Afficher les anciens membres (N) » visible uniquement s'il y a
+  au moins un ex-membre, désactivé par défaut
+- Réinitialisé à chaque nouveau tag de clan soumis
+- Les lignes d'ex-membres réaffichées restent visuellement distinguées
+  (opacité réduite + badge « A quitté le clan » déjà existant)
+
+---
+
+#### US-4 (P0) — Fiabiliser la colonne Niveau (et tout compteur numérique)
+
+**En tant qu'**utilisateur, **je veux** que la colonne « Niveau » du
+tableau des membres affiche la vraie valeur **afin de** ne pas remettre en
+doute la fiabilité de tout le tableau de bord.
+
+Constat observé en production : `Niveau` à `0` pour les 47 membres alors
+que la fiche joueur (même champ `expLevel`) affichait la bonne valeur.
+Cause identifiée : le parsing (`typeof value !== 'number' → 0`) rejetait
+tout compteur reçu sous forme de chaîne (`"62"` au lieu de `62`), ce qu'un
+hébergement passant par le proxy communautaire `proxy.royaleapi.dev` (cf.
+`_lib/supercell.ts`, contournement de la restriction IP Vercel) peut
+produire de façon inconsistante entre deux endpoints.
+
+Critères d'acceptation :
+
+- Coercion numérique partagée (`domain/shared/numeric.ts`) acceptant les
+  chaînes numériques, réutilisée par `members.ts`, `player-profile.ts`,
+  `clan-summary.ts` et `clamp.ts` (decks/combats)
+- Pour 100 % des membres, le niveau affiché en table est identique à celui
+  de la fiche joueur pour la même donnée source
+- Non-régression : une chaîne non numérique (`"oops"`) retombe toujours à 0
+
+---
+
+#### US-5 (P1) — Lisibilité des colonnes Aujourd'hui / Semaine
+
+**En tant qu'**utilisateur, **je veux** un badge de couleur sur le cumul
+hebdomadaire de Guerre en cours, comme pour le nombre de decks du jour,
+**afin de** repérer un joueur en difficulté sans lire un chiffre isolé.
+
+Critères d'acceptation :
+
+- Colonne « Semaine » codée avec le même code couleur/symbole que
+  l'Historique (`classifyBattleCount`, ✓/!/✗)
+- Chiffres alignés numériquement (`tabular-nums`)
+
+---
+
+#### US-6 (P1) — Légende visible des symboles de l'historique
+
+**En tant qu'**utilisateur, **je veux** une légende visible pour les
+symboles ✓ / ! / ✗ de l'Historique des guerres **afin de** comprendre le
+codage sans essai-erreur.
+
+Critères d'acceptation :
+
+- Légende textuelle visible (pas seulement portée par un `aria-label`)
+  au-dessus du tableau, avec le libellé « Non membre cette semaine-là »
+
+---
+
+#### US-7 (P1) — Sommaire de navigation entre sections
+
+**En tant qu'**utilisateur, **je veux** un sommaire sticky
+(Membres / Guerre en cours / Historique / Assistant RH) **afin d'**accéder
+directement à la section qui m'intéresse sans défiler toute la page.
+
+Critères d'acceptation :
+
+- Barre sticky avec un lien par section, défilement fluide au clic
+- Section active mise en évidence (`aria-current`) via `IntersectionObserver`,
+  dégradation silencieuse si l'API est indisponible
+
+---
+
+#### US-8 (P2) — Recherche par pseudo dans le tableau des membres
+
+**En tant qu'**utilisateur, **je veux** rechercher un pseudo ou un tag
+**afin de** trouver rapidement un joueur dans une liste de 47+ lignes.
+
+Constat : le tri par toutes les colonnes (Rôle, Niveau, Trophées, Dons)
+était déjà fonctionnel (`MembersTable`) ; seule la recherche manquait.
+
+Critères d'acceptation :
+
+- Champ de recherche filtrant en temps réel par sous-chaîne, insensible à
+  la casse, sur le pseudo ou le tag (`filterMembersByQuery`)
+- Message distinct « Aucun membre ne correspond à ... » si le filtre ne
+  retourne rien
+- Réinitialisé à chaque nouveau tag de clan soumis
+
+---
+
+#### US-9 (P1) — Résumé et persistance du réglage « À expulser »
+
+**En tant que** chef de clan, **je veux** voir un résumé clair de la règle
+active et qu'elle soit mémorisée **afin de** ne pas la reconfigurer à
+chaque visite.
+
+Critères d'acceptation :
+
+- Phrase de résumé (« Règle active : 0 don ET moins de 8 combats de
+  guerre. ») au-dessus de la liste
+- Seuil et combinateur mémorisés en `localStorage`
+  (`purge-settings-storage.ts`), tolérant si le stockage est indisponible
+
+---
+
+#### US-10 (P2) — Copier l'ensemble des recommandations RH
+
+**En tant qu'**utilisateur, **je veux** copier en un clic les
+recommandations de l'Assistant RH, pas seulement la liste « À expulser »,
+**afin de** gagner le même temps sur toutes mes décisions.
+
+Critères d'acceptation :
+
+- Bouton « Copier les recommandations » pour Méritants et pour
+  Sur la sellette, visible seulement si la liste correspondante n'est pas
+  vide
+
+---
+
+#### US-11 (P2) — Colonne Joueur fixe et ombre de scroll (Historique)
+
+**En tant qu'**utilisateur, **je veux** que la colonne « Joueur » reste
+fixe pendant le défilement horizontal, avec une ombre de bord tant qu'il
+reste des semaines à voir, **afin de** ne jamais perdre le repère de la
+ligne consultée.
+
+Critères d'acceptation :
+
+- Première colonne (en-tête et lignes) en `position: sticky`
+- Ombre de bord droit recalculée au scroll et à chaque changement de
+  données, disparaît une fois arrivé au bout
+
+---
+
 ## 3. Ordre de réalisation et avancement
 
 1. ✅ **US 1.1** — socle du projet
@@ -470,6 +656,18 @@ Critères d'acceptation :
     touché à 95,6 % (mutants restants équivalents, documentés en commentaire)
 13. ⬜ **Épique 7** — gamification et assistant de gestion : US 7 (assistant
     RH), US 8 (Hall of Fame), US 9 (panneau joueur), en cours
+14. ✅ **Épique 8** — second audit UX du 2026-08-02 (navigation live, clan
+    `#20J20QG`) : US-1 à US-11 implémentées (masquage par défaut des
+    ex-membres dans Guerre en cours + reprise ponctuelle, coercion
+    numérique partagée corrigeant le bug « Niveau à 0 », badges couleur
+    Aujourd'hui/Semaine, légende visible de l'historique, sommaire de
+    navigation sticky, recherche de membre, résumé + persistance du
+    réglage « À expulser », copie groupée des recommandations RH, colonne
+    Joueur fixe + ombre de scroll sur l'historique). `domain/shared/numeric.ts`
+    et les modules déjà à 100 % restent à 100 % ; le périmètre domaine
+    touché (`members.ts`, `clamp.ts`, `player-profile.ts`, `clan-summary.ts`)
+    est à 95–99 % de mutation (mutants restants équivalents, documentés en
+    commentaire ou déjà présents avant cet audit)
 
 ### Finition produit (hors backlog initial)
 

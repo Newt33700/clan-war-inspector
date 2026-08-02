@@ -116,6 +116,13 @@ describe('parseCurrentWar', () => {
     expect(war.participants[1]).toMatchObject({ decksUsedToday: 0, decksUsed: 0 });
   });
 
+  it('coerce des decomptes serialises en chaine (audit UX 2026-08-02, US-4)', () => {
+    const war = parseCurrentWar({
+      clan: { participants: [{ tag: '#P1', decksUsedToday: '3', decksUsed: '12' }] },
+    });
+    expect(war.participants[0]).toMatchObject({ decksUsedToday: 3, decksUsed: 12 });
+  });
+
   it('fusionne les doublons de tag en gardant le decompte le plus eleve', () => {
     const war = parseCurrentWar({
       clan: {

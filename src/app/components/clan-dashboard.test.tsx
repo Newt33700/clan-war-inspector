@@ -418,6 +418,33 @@ describe('ClanDashboard', () => {
     });
   });
 
+  describe('US-8 (audit UX 2026-08-02) : recherche de membre', () => {
+    it('filtre les membres par pseudo en temps reel', async () => {
+      setMockResponse('clan', FIXTURE_FULL_CLAN);
+      render(<ClanDashboard />);
+      const user = await submitTag('#20PP');
+      await screen.findAllByTestId('member-row');
+
+      await user.type(screen.getByLabelText(/rechercher un membre/i), 'joueur 2');
+
+      const rows = screen.getAllByTestId('member-row');
+      expect(rows).toHaveLength(1);
+      expect(within(rows[0]!).getByText('Joueur 2')).toBeInTheDocument();
+    });
+
+    it('affiche un message distinct quand aucun membre ne correspond', async () => {
+      setMockResponse('clan', FIXTURE_FULL_CLAN);
+      render(<ClanDashboard />);
+      const user = await submitTag('#20PP');
+      await screen.findAllByTestId('member-row');
+
+      await user.type(screen.getByLabelText(/rechercher un membre/i), 'zzzzz');
+
+      expect(await screen.findByText(/aucun membre ne correspond/i)).toBeInTheDocument();
+      expect(screen.queryByTestId('member-row')).not.toBeInTheDocument();
+    });
+  });
+
   describe('US 6.3 : reprise apres erreur, section par section', () => {
     it('reessaie uniquement le clan sans re-soumettre le formulaire', async () => {
       // Pas de mock configure : le handler global repond 404.

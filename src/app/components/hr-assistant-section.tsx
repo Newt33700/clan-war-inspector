@@ -20,6 +20,10 @@ import {
 import { parseCurrentWar } from '@/domain/war/current-war';
 import type { PlayerAttendance } from '@/domain/war/war-history';
 import type { ApiResource } from '@/hooks/use-api-resource';
+import {
+  formatMeritoriousForClipboard,
+  formatWatchlistForClipboard,
+} from '@/lib/hr-recommendations-export';
 import { CopyButton } from './copy-button';
 import { EmptyState } from './empty-state';
 import { Skeleton } from './skeleton';
@@ -91,7 +95,11 @@ export function HrAssistantSection({
   }
 
   return (
-    <section aria-labelledby="hr-assistant-title" className="space-y-4">
+    <section
+      id="assistant-rh"
+      aria-labelledby="hr-assistant-title"
+      className="scroll-mt-16 space-y-4"
+    >
       <h2
         id="hr-assistant-title"
         className="text-royale-parchment font-display text-xl tracking-wide"
@@ -107,9 +115,17 @@ export function HrAssistantSection({
       ) : (
         <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
           <div className="space-y-3">
-            <h3 className="text-royale-parchment-dim text-sm font-semibold tracking-wide uppercase">
-              Meritants
-            </h3>
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <h3 className="text-royale-parchment-dim text-sm font-semibold tracking-wide uppercase">
+                Meritants
+              </h3>
+              {meritorious.length > 0 && (
+                <CopyButton
+                  text={formatMeritoriousForClipboard(meritorious)}
+                  label="Copier les recommandations"
+                />
+              )}
+            </div>
             {meritorious.length === 0 ? (
               <EmptyState
                 icon={<ShieldIcon className="h-10 w-10" />}
@@ -145,9 +161,17 @@ export function HrAssistantSection({
           </div>
 
           <div className="space-y-3">
-            <h3 className="text-royale-parchment-dim text-sm font-semibold tracking-wide uppercase">
-              Sur la sellette
-            </h3>
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <h3 className="text-royale-parchment-dim text-sm font-semibold tracking-wide uppercase">
+                Sur la sellette
+              </h3>
+              {onWatch.length > 0 && (
+                <CopyButton
+                  text={formatWatchlistForClipboard(onWatch)}
+                  label="Copier les recommandations"
+                />
+              )}
+            </div>
             {onWatch.length === 0 ? (
               <EmptyState
                 icon={<TriangleWarningIcon className="h-10 w-10" />}
