@@ -1,0 +1,45 @@
+@import 'tailwindcss';
+
+/*
+ * Design tokens - theme Clash Royale.
+ * Bleu profond pour le fond (l'ecran de clan du jeu), or pour la valeur et le
+ * titrage, rouge pour l'alerte, vert reserve au seul succes qui compte : 16/16.
+ */
+@theme {
+  --color-royale-navy-950: #071233;
+  --color-royale-navy-900: #0e1e4a;
+  --color-royale-blue-800: #17307a;
+  --color-royale-blue-600: #2b57c4;
+  --color-royale-blue-400: #4e86f0;
+
+  --color-royale-gold-400: #ffcb3d;
+  --color-royale-gold-600: #d2900b;
+
+  --color-royale-red-500: #e2432f;
+  --color-royale-red-700: #9e1f14;
+
+  --color-royale-green-500: #37c46a;
+
+  --color-royale-parchment: #f6ecd4;
+  --color-royale-parchment-dim: #b9b19c;
+
+  --font-sans: var(--font-body-family), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-display-family), ui-sans-serif, system-ui, sans-serif;
+}
+
+@layer base {
+  :focus-visible {
+    outline: 2px solid var(--color-royale-gold-400);
+    outline-offset: 3px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+}
