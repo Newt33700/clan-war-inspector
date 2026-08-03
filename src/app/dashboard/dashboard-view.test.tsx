@@ -41,7 +41,7 @@ describe('DashboardView', () => {
 
     await user.click(within(table).getByRole('button', { name: /trophees/i }));
     let rows = screen.getAllByTestId('member-row');
-    expect(rows.map((row) => within(row).getAllByRole('cell')[3]?.textContent)).toEqual([
+    expect(rows.map((row) => within(row).getAllByRole('cell')[2]?.textContent)).toEqual([
       '5000',
       '6500',
       '7000',
@@ -49,7 +49,7 @@ describe('DashboardView', () => {
 
     await user.click(within(table).getByRole('button', { name: /trophees/i }));
     rows = screen.getAllByTestId('member-row');
-    expect(rows.map((row) => within(row).getAllByRole('cell')[3]?.textContent)).toEqual([
+    expect(rows.map((row) => within(row).getAllByRole('cell')[2]?.textContent)).toEqual([
       '7000',
       '6500',
       '5000',

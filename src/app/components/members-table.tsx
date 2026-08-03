@@ -7,7 +7,6 @@
  */
 
 import {
-  isExpLevelAvailable,
   ROLE_LABELS,
   type ClanMember,
   type MemberSortKey,
@@ -17,7 +16,6 @@ import {
 const COLUMNS: { key: MemberSortKey; label: string; numeric: boolean }[] = [
   { key: 'name', label: 'Joueur', numeric: false },
   { key: 'role', label: 'Role', numeric: false },
-  { key: 'expLevel', label: 'Niveau', numeric: true },
   { key: 'trophies', label: 'Trophees', numeric: true },
   { key: 'donations', label: 'Dons', numeric: true },
 ];
@@ -32,12 +30,6 @@ const SORT_SELECT_OPTIONS: {
   { value: 'name-asc', key: 'name', direction: 'asc', label: 'Joueur (A-Z)' },
   { value: 'name-desc', key: 'name', direction: 'desc', label: 'Joueur (Z-A)' },
   { value: 'role-desc', key: 'role', direction: 'desc', label: 'Role (chef en premier)' },
-  {
-    value: 'expLevel-desc',
-    key: 'expLevel',
-    direction: 'desc',
-    label: 'Niveau (decroissant)',
-  },
   {
     value: 'trophies-desc',
     key: 'trophies',
@@ -83,16 +75,10 @@ function MemberCard({
           <p className="text-royale-parchment font-semibold">{member.name}</p>
           <p className="text-royale-parchment-dim text-xs">{member.tag}</p>
         </div>
-        <dl className="grid grid-cols-4 gap-2 text-center text-xs">
+        <dl className="grid grid-cols-3 gap-2 text-center text-xs">
           <div>
             <dt className="text-royale-parchment-dim uppercase">Role</dt>
             <dd className="text-royale-parchment">{ROLE_LABELS[member.role]}</dd>
-          </div>
-          <div>
-            <dt className="text-royale-parchment-dim uppercase">Niveau</dt>
-            <dd className="text-royale-parchment tabular-nums">
-              {isExpLevelAvailable(member.expLevel) ? member.expLevel : '—'}
-            </dd>
           </div>
           <div>
             <dt className="text-royale-parchment-dim uppercase">Trophees</dt>
@@ -221,13 +207,6 @@ export function MembersTable({
                   </button>
                 </td>
                 <td className="px-3 py-2">{ROLE_LABELS[memberEntry.role]}</td>
-                <td className="px-3 py-2 text-right">
-                  {isExpLevelAvailable(memberEntry.expLevel) ? (
-                    memberEntry.expLevel
-                  ) : (
-                    <span title="Niveau indisponible depuis l API clan">—</span>
-                  )}
-                </td>
                 <td className="px-3 py-2 text-right">{memberEntry.trophies}</td>
                 <td className="px-3 py-2 text-right">{memberEntry.donations}</td>
               </tr>

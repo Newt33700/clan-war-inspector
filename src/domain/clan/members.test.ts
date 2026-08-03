@@ -7,7 +7,6 @@
 import { describe, expect, it } from 'vitest';
 import {
   filterMembersByQuery,
-  isExpLevelAvailable,
   parseClanMembers,
   ROLE_LABELS,
   ROLE_RANK,
@@ -21,7 +20,6 @@ function member(overrides: Partial<ClanMember>): ClanMember {
     tag: '#TAG',
     name: 'Nom',
     role: 'member',
-    expLevel: 10,
     trophies: 5000,
     donations: 100,
     ...overrides,
@@ -52,7 +50,6 @@ describe('parseClanMembers', () => {
       tag: '#PLAYER1',
       name: 'Joueur 1',
       role: 'leader',
-      expLevel: 13,
       trophies: 7000,
       donations: 500,
     });
@@ -105,23 +102,12 @@ describe('parseClanMembers', () => {
 
   it('borne les valeurs numeriques manquantes ou aberrantes a 0', () => {
     const members = parseClanMembers({
-      memberList: [{ tag: '#P1', expLevel: 'oops', trophies: -5, donations: Number.NaN }],
+      memberList: [{ tag: '#P1', trophies: -5, donations: Number.NaN }],
     });
     expect(members[0]).toMatchObject({
-      expLevel: 0,
       trophies: 0,
       donations: 0,
     });
-  });
-
-  it('coerce un niveau serialise en chaine (audit UX 2026-08-02, US-4)', () => {
-    // Reproduit le bug observe en production : la colonne "Niveau" affichait
-    // 0 pour tous les membres alors que la fiche joueur montrait la bonne
-    // valeur pour le meme champ `expLevel`.
-    const members = parseClanMembers({
-      memberList: [{ tag: '#P1', expLevel: '62' }],
-    });
-    expect(members[0]?.expLevel).toBe(62);
   });
 
   it('tronque les valeurs numeriques fractionnaires', () => {
@@ -129,32 +115,6 @@ describe('parseClanMembers', () => {
       memberList: [{ tag: '#P1', trophies: 5000.9 }],
     });
     expect(members[0]?.trophies).toBe(5000);
-  });
-
-  it('conserve expLevel a 0 tel que recu (validation clan reel #20J20QG, 2026-08-02)', () => {
-    // Sur le clan reel, /clans/{tag} renvoie expLevel: 0 (un `number`, pas
-    // une chaine) pour tous les membres, alors que /players/{tag} renvoie
-    // la vraie valeur pour le meme joueur. Le parsing ne doit rien inventer
-    // ici : c'est `isExpLevelAvailable` qui porte la distinction "donnee
-    // indisponible" pour l'affichage.
-    const members = parseClanMembers({ memberList: [{ tag: '#P1', expLevel: 0 }] });
-    expect(members[0]?.expLevel).toBe(0);
-  });
-});
-
-describe('isExpLevelAvailable', () => {
-  // Validation sur le clan reel #20J20QG (2026-08-02) : /clans/{tag}
-  // renvoie expLevel: 0 pour les 47 membres, alors que /players/{tag}
-  // renvoie la vraie valeur (ex. 66) pour ces memes joueurs. Un niveau 0
-  // n'existe pas dans le jeu (minimum reel : 1), donc 0 signale ici une
-  // donnee non fiable de cet endpoint plutot qu'un vrai niveau.
-  it('signale un niveau indisponible quand expLevel vaut 0', () => {
-    expect(isExpLevelAvailable(0)).toBe(false);
-  });
-
-  it('signale un niveau disponible pour toute valeur strictement positive', () => {
-    expect(isExpLevelAvailable(1)).toBe(true);
-    expect(isExpLevelAvailable(66)).toBe(true);
   });
 });
 
@@ -164,7 +124,6 @@ describe('sortMembers', () => {
     name: 'Alice',
     trophies: 5000,
     donations: 10,
-    expLevel: 11,
     role: 'elder',
   });
   const bob = member({
@@ -172,7 +131,6 @@ describe('sortMembers', () => {
     name: 'Bob',
     trophies: 7000,
     donations: 0,
-    expLevel: 14,
     role: 'leader',
   });
   const carol = member({
@@ -180,7 +138,6 @@ describe('sortMembers', () => {
     name: 'Carol',
     trophies: 6000,
     donations: 300,
-    expLevel: 12,
     role: 'coLeader',
   });
   const dave = member({
@@ -188,7 +145,6 @@ describe('sortMembers', () => {
     name: 'Dave',
     trophies: 4000,
     donations: 50,
-    expLevel: 13,
     role: 'member',
   });
 
@@ -224,12 +180,6 @@ describe('sortMembers', () => {
   it('trie par trophees descendant', () => {
     expect(sortMembers(roster, 'trophies', 'desc').map((m) => m.trophies)).toEqual([
       7000, 6000, 5000, 4000,
-    ]);
-  });
-
-  it('trie par niveau ascendant', () => {
-    expect(sortMembers(roster, 'expLevel', 'asc').map((m) => m.expLevel)).toEqual([
-      11, 12, 13, 14,
     ]);
   });
 

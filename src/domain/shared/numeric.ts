@@ -4,13 +4,6 @@
  * pour tolerer les hebergements passant par un proxy tiers
  * (proxy.royaleapi.dev, cf. `_lib/supercell.ts`) qui peuvent produire ce
  * genre d'incoherence entre deux endpoints.
- *
- * Verifie contre le clan reel #20J20QG (validation du 2026-08-02) : ce
- * n'est PAS la cause du bug "Niveau a 0" observe en production sur la
- * colonne "Niveau" du tableau des membres — `expLevel` y arrive comme un
- * `number` valant deja `0` pour tous les membres, pas comme une chaine.
- * La vraie cause et le vrai correctif sont documentes dans
- * `domain/clan/members.ts` (`isExpLevelAvailable`).
  */
 
 /** Coerce une valeur en nombre fini, `null` si impossible. */
