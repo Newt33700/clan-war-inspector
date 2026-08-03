@@ -9,13 +9,14 @@ vi.mock('next/navigation', () => ({
 import { MobileTabBar } from './mobile-tab-bar';
 
 describe('MobileTabBar', () => {
-  it('affiche les 3 routes', () => {
+  it('affiche les 4 routes', () => {
     usePathnameMock.mockReturnValue('/dashboard');
     render(<MobileTabBar />);
 
     expect(screen.getByRole('link', { name: /dashboard/i })).toBeInTheDocument();
     expect(screen.getByRole('link', { name: /historique/i })).toBeInTheDocument();
     expect(screen.getByRole('link', { name: /^rh$/i })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /nouveaux/i })).toBeInTheDocument();
   });
 
   it('met en avant la route active en jaune, les autres en gris', () => {

@@ -85,6 +85,10 @@ export interface PlayerProfileInfo {
   clan?: { tag: string; name: string };
   currentDeck?: PlayerProfileCard[];
   currentFavouriteCard?: PlayerProfileCard;
+  /** Combats totaux, utilise par l'indice de fiabilite (US 11). */
+  battleCount?: number;
+  /** Contient le badge `ClanWarWins` (US 11, "le hack des badges"). */
+  badges?: { name: string; progress: number }[];
 }
 
 export interface RiverRace {

@@ -236,6 +236,151 @@ export const FIXTURE_PLAYER_PROFILE: PlayerProfileInfo = {
   })),
 };
 
+/**
+ * Clan pour le "Sas de Quarantaine" (US 11) : 3 anciens membres (avec
+ * historique de guerre, cf. FIXTURE_QUARANTINE_LOG) et 2 nouveaux membres
+ * (absents de tout l'historique).
+ */
+export const FIXTURE_QUARANTINE_CLAN: ClanInfo = {
+  tag: '#20QRV',
+  name: 'Clan Quarantaine',
+  type: 'open',
+  description: 'Fixture US 11 : 3 anciens + 2 nouveaux membres',
+  badgeUrls: {
+    small: 'https://example.com/badges/small.png',
+    large: 'https://example.com/badges/large.png',
+    medium: 'https://example.com/badges/medium.png',
+  },
+  clanScore: 30000,
+  clanWarTrophies: 8000,
+  location: { id: 1, name: 'France', isCountry: true, countryCode: 'FR' },
+  members: 5,
+  memberList: [
+    {
+      tag: '#OLD1',
+      name: 'Veteran 1',
+      expLevel: 12,
+      trophies: 6000,
+      donations: 100,
+      role: 'leader',
+    },
+    {
+      tag: '#OLD2',
+      name: 'Veteran 2',
+      expLevel: 11,
+      trophies: 5500,
+      donations: 50,
+      role: 'elder',
+    },
+    {
+      tag: '#OLD3',
+      name: 'Veteran 3',
+      expLevel: 10,
+      trophies: 5000,
+      donations: 0,
+      role: 'member',
+    },
+    {
+      tag: '#NEW1',
+      name: 'Recrue Risquee',
+      expLevel: 8,
+      trophies: 5200,
+      donations: 0,
+      role: 'member',
+    },
+    {
+      tag: '#NEW2',
+      name: 'Recrue Fiable',
+      expLevel: 9,
+      trophies: 4800,
+      donations: 0,
+      role: 'member',
+    },
+  ],
+};
+
+/**
+ * Historique de guerre pour FIXTURE_QUARANTINE_CLAN : ne contient que les
+ * 3 anciens membres, jamais #NEW1 ni #NEW2 (US 11).
+ */
+export const FIXTURE_QUARANTINE_LOG: RiverRaceLog = {
+  items: [
+    {
+      seasonId: 200,
+      sectionIndex: 5,
+      createdDate: '20260727T093602.000Z',
+      standings: [
+        {
+          rank: 1,
+          trophyChange: 150,
+          clan: {
+            tag: '#20QRV',
+            name: 'Clan Quarantaine',
+            participants: [
+              {
+                tag: '#OLD1',
+                name: 'Veteran 1',
+                fame: 3000,
+                repairPoints: 0,
+                boatAttacks: 3,
+                decksUsed: 16,
+                decksUsedToday: 0,
+              },
+              {
+                tag: '#OLD2',
+                name: 'Veteran 2',
+                fame: 2000,
+                repairPoints: 0,
+                boatAttacks: 1,
+                decksUsed: 10,
+                decksUsedToday: 0,
+              },
+              {
+                tag: '#OLD3',
+                name: 'Veteran 3',
+                fame: 500,
+                repairPoints: 0,
+                boatAttacks: 0,
+                decksUsed: 4,
+                decksUsedToday: 0,
+              },
+            ],
+          },
+        },
+      ],
+    },
+  ],
+};
+
+/**
+ * Profil du "nouveau membre risque" (US 11) : 0 victoire GDC a vie
+ * (badge `ClanWarWins`) et plus de 1000 combats -- doit produire un feu
+ * rouge ("A risque").
+ */
+export const FIXTURE_NEW_MEMBER_RISKY_PROFILE: PlayerProfileInfo = {
+  tag: '#NEW1',
+  name: 'Recrue Risquee',
+  expLevel: 8,
+  trophies: 5200,
+  donations: 0,
+  battleCount: 5000,
+  badges: [{ name: 'ClanWarWins', progress: 0 }],
+};
+
+/**
+ * Profil du "nouveau membre fiable" (US 11) : plus de 50 victoires GDC a
+ * vie -- doit produire un feu vert ("Bon profil").
+ */
+export const FIXTURE_NEW_MEMBER_GOOD_PROFILE: PlayerProfileInfo = {
+  tag: '#NEW2',
+  name: 'Recrue Fiable',
+  expLevel: 9,
+  trophies: 4800,
+  donations: 0,
+  battleCount: 2000,
+  badges: [{ name: 'ClanWarWins', progress: 80 }],
+};
+
 /** Profil sans deck : repli attendu sur currentFavouriteCard. */
 export const FIXTURE_PLAYER_PROFILE_NO_DECK: PlayerProfileInfo = {
   tag: '#PLAYER2',
