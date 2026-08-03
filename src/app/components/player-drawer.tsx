@@ -8,6 +8,7 @@
 
 import { ROLE_LABELS } from '@/domain/clan/members';
 import type { PlayerProfile } from '@/domain/player/player-profile';
+import { useFocusTrap } from '@/hooks/use-focus-trap';
 import { usePlayerProfile } from '@/hooks/use-player-profile';
 import { EmptyState } from './empty-state';
 import { Skeleton } from './skeleton';
@@ -114,6 +115,10 @@ function ProfileContent({ profile }: { profile: PlayerProfile }) {
 export function PlayerDrawer({ tag, onClose }: PlayerDrawerProps) {
   const isOpen = tag !== null;
   const resource = usePlayerProfile(tag);
+  // Boite de dialogue modale accessible (US 14.3) : focus initial dans le
+  // panneau, Tab/Shift+Tab cantonnes, Echap ferme, focus restaure sur le
+  // declencheur (ligne du tableau ou carte mobile) a la fermeture.
+  const containerRef = useFocusTrap<HTMLElement>(isOpen, onClose);
 
   return (
     <>
@@ -126,8 +131,12 @@ export function PlayerDrawer({ tag, onClose }: PlayerDrawerProps) {
         }`}
       />
       <aside
+        ref={containerRef}
+        role="dialog"
+        aria-modal={isOpen}
         aria-hidden={!isOpen}
         aria-labelledby="player-drawer-title"
+        tabIndex={-1}
         className={`bg-royale-navy-950 border-royale-blue-800 fixed inset-y-0 right-0 z-50 w-full overflow-y-auto border-l p-6 shadow-xl transition-transform duration-300 sm:w-[400px] ${
           isOpen ? 'translate-x-0' : 'pointer-events-none translate-x-full'
         }`}

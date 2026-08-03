@@ -49,8 +49,9 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         <p className="text-royale-gold-400 px-6 pt-8 pb-2 text-xs font-semibold tracking-[0.35em] uppercase md:hidden">
           Clan War Inspector
         </p>
-        {/* pb-24 : garde le contenu au-dessus de la MobileTabBar fixe (h-16) */}
-        <main className="mx-auto max-w-4xl px-6 pb-24 md:pb-12">{children}</main>
+        {/* pb-tab-bar (US 14.7) : garde le contenu au-dessus de la
+            MobileTabBar fixe, zone sure iOS comprise. */}
+        <main className="pb-tab-bar mx-auto max-w-4xl px-6 md:pb-12">{children}</main>
         <MobileTabBar />
       </body>
     </html>

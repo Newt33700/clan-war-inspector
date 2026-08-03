@@ -12,11 +12,11 @@ describe('ClanStatusMessage', () => {
     expect(screen.getByText('Saisissez un tag.')).toBeInTheDocument();
   });
 
-  it('affiche un etat de chargement', () => {
+  it('affiche un etat de chargement (squelette, US 14.5)', () => {
     const state: ApiResource<unknown> = { status: 'loading', refetch: vi.fn() };
     render(<ClanStatusMessage state={state} idleMessage="idle" />);
 
-    expect(screen.getByRole('status')).toHaveTextContent(/chargement/i);
+    expect(screen.getByRole('status')).toHaveAccessibleName(/chargement du clan/i);
   });
 
   it('affiche l erreur et permet de reessayer', async () => {

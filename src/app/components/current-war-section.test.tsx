@@ -5,7 +5,7 @@
  * lignes inactionnables (ex-membres) polluer la lecture par defaut.
  */
 
-import { fireEvent, render, screen } from '@testing-library/react';
+import { fireEvent, render, screen, within } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 import type { ApiResource } from '@/hooks/use-api-resource';
 import { CurrentWarSection } from './current-war-section';
@@ -20,10 +20,19 @@ function successState(participants: unknown[]): ApiResource<unknown> {
   };
 }
 
+const loading: ApiResource<unknown> = { status: 'loading', refetch: () => undefined };
+
 describe('CurrentWarSection', () => {
   it('n affiche rien avant toute soumission (idle)', () => {
     const { container } = render(<CurrentWarSection warState={idle} memberTags={[]} />);
     expect(container).toBeEmptyDOMElement();
+  });
+
+  it('affiche un squelette pendant le chargement (US 14.5)', () => {
+    render(<CurrentWarSection warState={loading} memberTags={[]} />);
+    expect(
+      screen.getByRole('status', { name: /chargement de la guerre en cours/i }),
+    ).toBeInTheDocument();
   });
 
   it('masque par defaut les participants ayant quitte le clan', () => {
@@ -36,9 +45,14 @@ describe('CurrentWarSection', () => {
         memberTags={['#P1']}
       />,
     );
-    expect(screen.getByText('Present')).toBeInTheDocument();
-    expect(screen.queryByText('Parti')).not.toBeInTheDocument();
+    // Le tableau desktop et les cartes mobiles (US 14.2) coexistent dans le
+    // DOM (bascule au CSS) : on scope au tableau pour les tests non
+    // specifiques a une vue.
+    const table = screen.getByRole('table');
+    expect(within(table).getByText('Present')).toBeInTheDocument();
+    expect(within(table).queryByText('Parti')).not.toBeInTheDocument();
     expect(screen.getAllByTestId('war-row')).toHaveLength(1);
+    expect(screen.getAllByTestId('war-card')).toHaveLength(1);
   });
 
   it('propose un controle pour reafficher les anciens membres, avec leur nombre', () => {
@@ -56,8 +70,9 @@ describe('CurrentWarSection', () => {
 
     fireEvent.click(toggle);
 
-    expect(screen.getByText('Parti')).toBeInTheDocument();
+    expect(within(screen.getByRole('table')).getByText('Parti')).toBeInTheDocument();
     expect(screen.getAllByTestId('war-row')).toHaveLength(2);
+    expect(screen.getAllByTestId('war-card')).toHaveLength(2);
   });
 
   it('n affiche pas le controle quand tous les participants sont membres actuels', () => {

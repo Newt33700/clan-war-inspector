@@ -19,17 +19,55 @@ import {
   DECKS_PER_DAY,
   parseCurrentWar,
   sortByUrgency,
+  type AnnotatedWarParticipant,
 } from '@/domain/war/current-war';
 import { BATTLES_PER_WAR_WEEK } from '@/domain/war/war-history';
 import type { ApiResource } from '@/hooks/use-api-resource';
 import { formatTimeOfDay } from '@/lib/format-time';
 import { PlayerProgressBar } from './player-progress-bar';
+import { Skeleton } from './skeleton';
 
 interface CurrentWarSectionProps {
   /** Etat du chargement de /currentriverrace, pilote par le dashboard. */
   warState: ApiResource<unknown>;
   /** Tags des membres actuels, pour reperer les partis en cours de guerre. */
   memberTags: readonly string[];
+}
+
+function WarParticipantCard({ participant }: { participant: AnnotatedWarParticipant }) {
+  const idleToday = participant.decksUsedToday === 0;
+  return (
+    <li
+      data-testid="war-card"
+      className={`border-royale-blue-800 bg-royale-navy-900 space-y-3 rounded-lg border p-4 ${
+        participant.stillInClan ? '' : 'opacity-50'
+      }`}
+    >
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <p className="text-royale-parchment font-semibold">{participant.name}</p>
+          <p className="text-royale-parchment-dim text-xs">{participant.tag}</p>
+          {!participant.stillInClan && (
+            <span className="bg-royale-red-700/60 text-royale-parchment mt-1 inline-block rounded px-2 py-0.5 text-xs">
+              A quitte le clan
+            </span>
+          )}
+        </div>
+        <p
+          className={`text-right text-sm font-semibold tabular-nums ${
+            idleToday ? 'text-royale-red-500' : 'text-royale-parchment'
+          }`}
+        >
+          {participant.decksUsedToday}/{DECKS_PER_DAY}
+          <span className="text-royale-parchment-dim block text-xs font-normal">
+            Aujourd hui
+          </span>
+          {idleToday && <span className="sr-only"> - aucun deck joue aujourd hui</span>}
+        </p>
+      </div>
+      <PlayerProgressBar score={participant.decksUsed} max={BATTLES_PER_WAR_WEEK} />
+    </li>
+  );
 }
 
 function periodBadge(isTrainingDay: boolean, periodType: string) {
@@ -124,9 +162,15 @@ export function CurrentWarSection({ warState, memberTags }: CurrentWarSectionPro
       </div>
 
       {warState.status === 'loading' && (
-        <p role="status" className="text-royale-parchment-dim">
-          Chargement de la guerre en cours...
-        </p>
+        <div
+          role="status"
+          aria-label="Chargement de la guerre en cours"
+          className="space-y-2"
+        >
+          <Skeleton className="h-10 w-full" />
+          <Skeleton className="h-10 w-5/6" />
+          <Skeleton className="h-10 w-full" />
+        </div>
       )}
 
       {warState.status === 'error' && (
@@ -145,11 +189,12 @@ export function CurrentWarSection({ warState, memberTags }: CurrentWarSectionPro
       )}
 
       {war !== null && formerMemberCount > 0 && (
-        <label className="text-royale-parchment-dim inline-flex items-center gap-2 text-xs">
+        <label className="text-royale-parchment-dim inline-flex min-h-11 items-center gap-2 text-xs">
           <input
             type="checkbox"
             checked={showFormerMembers}
             onChange={(event) => setShowFormerMembers(event.target.checked)}
+            className="h-5 w-5"
           />
           Afficher les anciens membres ({formerMemberCount})
         </label>
@@ -165,68 +210,81 @@ export function CurrentWarSection({ warState, memberTags }: CurrentWarSectionPro
             Aucun membre actuel n a participe a cette guerre pour l instant.
           </p>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full border-collapse text-sm">
-              <caption className="sr-only">
-                Decks joues aujourd hui et sur la semaine par participant
-              </caption>
-              <thead>
-                <tr className="border-royale-blue-800 text-royale-parchment-dim border-b uppercase">
-                  <th scope="col" className="px-3 py-2 text-left">
-                    Joueur
-                  </th>
-                  <th scope="col" className="px-3 py-2 text-right">
-                    Aujourd hui
-                  </th>
-                  <th scope="col" className="px-3 py-2 text-right">
-                    Semaine
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {participants.map((participant) => {
-                  const idleToday = participant.decksUsedToday === 0;
-                  return (
-                    <tr
-                      key={participant.tag}
-                      data-testid="war-row"
-                      className={`border-royale-blue-800/40 text-royale-parchment border-b ${
-                        participant.stillInClan ? '' : 'opacity-50'
-                      }`}
-                    >
-                      <th scope="row" className="px-3 py-2 text-left font-normal">
-                        {participant.name}
-                        <span className="text-royale-parchment-dim block text-xs">
-                          {participant.tag}
-                        </span>
-                        {!participant.stillInClan && (
-                          <span className="bg-royale-red-700/60 text-royale-parchment mt-1 inline-block rounded px-2 py-0.5 text-xs">
-                            A quitte le clan
-                          </span>
-                        )}
-                      </th>
-                      <td
-                        className={`px-3 py-2 text-right font-semibold tabular-nums ${
-                          idleToday ? 'text-royale-red-500' : 'text-royale-parchment'
+          <>
+            {/* Vue carte mobile (US 14.2) : le tableau reste reserve a
+                partir de `md` (souris/trackpad). */}
+            <ul className="space-y-3 md:hidden">
+              {participants.map((participant) => (
+                <WarParticipantCard key={participant.tag} participant={participant} />
+              ))}
+            </ul>
+
+            <div className="hidden overflow-x-auto md:block">
+              <table className="w-full border-collapse text-sm">
+                <caption className="sr-only">
+                  Decks joues aujourd hui et sur la semaine par participant
+                </caption>
+                <thead>
+                  <tr className="border-royale-blue-800 text-royale-parchment-dim border-b uppercase">
+                    <th scope="col" className="px-3 py-2 text-left">
+                      Joueur
+                    </th>
+                    <th scope="col" className="px-3 py-2 text-right">
+                      Aujourd hui
+                    </th>
+                    <th scope="col" className="px-3 py-2 text-right">
+                      Semaine
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {participants.map((participant) => {
+                    const idleToday = participant.decksUsedToday === 0;
+                    return (
+                      <tr
+                        key={participant.tag}
+                        data-testid="war-row"
+                        className={`border-royale-blue-800/40 text-royale-parchment border-b ${
+                          participant.stillInClan ? '' : 'opacity-50'
                         }`}
                       >
-                        {participant.decksUsedToday}/{DECKS_PER_DAY}
-                        {idleToday && (
-                          <span className="sr-only"> - aucun deck joue aujourd hui</span>
-                        )}
-                      </td>
-                      <td className="px-3 py-2">
-                        <PlayerProgressBar
-                          score={participant.decksUsed}
-                          max={BATTLES_PER_WAR_WEEK}
-                        />
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
+                        <th scope="row" className="px-3 py-2 text-left font-normal">
+                          {participant.name}
+                          <span className="text-royale-parchment-dim block text-xs">
+                            {participant.tag}
+                          </span>
+                          {!participant.stillInClan && (
+                            <span className="bg-royale-red-700/60 text-royale-parchment mt-1 inline-block rounded px-2 py-0.5 text-xs">
+                              A quitte le clan
+                            </span>
+                          )}
+                        </th>
+                        <td
+                          className={`px-3 py-2 text-right font-semibold tabular-nums ${
+                            idleToday ? 'text-royale-red-500' : 'text-royale-parchment'
+                          }`}
+                        >
+                          {participant.decksUsedToday}/{DECKS_PER_DAY}
+                          {idleToday && (
+                            <span className="sr-only">
+                              {' '}
+                              - aucun deck joue aujourd hui
+                            </span>
+                          )}
+                        </td>
+                        <td className="px-3 py-2">
+                          <PlayerProgressBar
+                            score={participant.decksUsed}
+                            max={BATTLES_PER_WAR_WEEK}
+                          />
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </>
         ))}
     </section>
   );

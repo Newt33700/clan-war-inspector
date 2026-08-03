@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { http, HttpResponse } from 'msw';
@@ -118,5 +119,63 @@ describe('PlayerDrawer', () => {
     await user.click(screen.getByRole('button', { name: /fermer le panneau/i }));
 
     expect(onClose).toHaveBeenCalledTimes(1);
+  });
+
+  describe('US 14.3 : accessibilite de la boite de dialogue', () => {
+    it('porte role="dialog" et aria-modal quand ouvert', async () => {
+      mockServer.use(
+        http.get('*/api/players/:playerTag', () =>
+          HttpResponse.json(FIXTURE_PLAYER_PROFILE),
+        ),
+      );
+      render(<PlayerDrawer tag="#PLAYER1" onClose={vi.fn()} />);
+
+      const dialog = await screen.findByRole('dialog');
+      expect(dialog).toHaveAttribute('aria-modal', 'true');
+    });
+
+    it('deplace le focus sur le bouton fermer a l ouverture', async () => {
+      mockServer.use(
+        http.get('*/api/players/:playerTag', () =>
+          HttpResponse.json(FIXTURE_PLAYER_PROFILE),
+        ),
+      );
+      render(<PlayerDrawer tag="#PLAYER1" onClose={vi.fn()} />);
+
+      expect(screen.getByRole('button', { name: /fermer le panneau/i })).toHaveFocus();
+    });
+
+    it('ferme sur Echap et restaure le focus sur le declencheur', async () => {
+      mockServer.use(
+        http.get('*/api/players/:playerTag', () =>
+          HttpResponse.json(FIXTURE_PLAYER_PROFILE),
+        ),
+      );
+      // Composant controle par le parent, comme en production
+      // (DashboardView pilote `selectedPlayerTag`) : necessaire pour que
+      // Echap referme reellement le panneau (isOpen passe a false) et
+      // declenche la restauration de focus, pas juste l'appel a onClose.
+      function Harness() {
+        const [tag, setTag] = useState<string | null>(null);
+        return (
+          <div>
+            <button type="button" onClick={() => setTag('#PLAYER1')}>
+              Ligne membre
+            </button>
+            <PlayerDrawer tag={tag} onClose={() => setTag(null)} />
+          </div>
+        );
+      }
+      const user = userEvent.setup();
+      render(<Harness />);
+      const trigger = screen.getByRole('button', { name: /ligne membre/i });
+
+      await user.click(trigger);
+      expect(screen.getByRole('button', { name: /fermer le panneau/i })).toHaveFocus();
+
+      await user.keyboard('{Escape}');
+
+      expect(trigger).toHaveFocus();
+    });
   });
 });

@@ -84,6 +84,14 @@ export function DashboardView({ tag, clanSeed, warSeed, logSeed }: DashboardView
     setDirection('asc');
   }
 
+  // Tri absolu depuis le selecteur mobile (US 14.2) : contrairement a
+  // `handleSortChange` (bascule au clic sur un en-tete de colonne), le
+  // <select> choisit directement la colonne et le sens.
+  function handleSortSelect(key: MemberSortKey, sortDirection: SortDirection) {
+    setSortKey(key);
+    setDirection(sortDirection);
+  }
+
   return (
     <div className="space-y-10">
       <ClanStatusMessage
@@ -137,6 +145,7 @@ export function DashboardView({ tag, clanSeed, warSeed, logSeed }: DashboardView
                 sortKey={sortKey}
                 direction={direction}
                 onSortChange={handleSortChange}
+                onSortSelect={handleSortSelect}
                 onSelectMember={setSelectedPlayerTag}
               />
             )}

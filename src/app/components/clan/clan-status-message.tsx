@@ -9,6 +9,7 @@
  */
 
 import type { ApiResource } from '@/hooks/use-api-resource';
+import { Skeleton } from '../skeleton';
 
 interface ClanStatusMessageProps {
   state: ApiResource<unknown>;
@@ -26,10 +27,21 @@ export function ClanStatusMessage({ state, idleMessage }: ClanStatusMessageProps
   }
 
   if (state.status === 'loading') {
+    // Silhouette de l'en-tete de clan (US 14.5) plutot qu'un texte brut :
+    // annonce visuellement ce qui va apparaitre, cohérent avec le reste
+    // de l'app (ParticipationSummarySection, HrAssistantSection...).
     return (
-      <p role="status" className="text-royale-parchment-dim">
-        Chargement du clan...
-      </p>
+      <div
+        role="status"
+        aria-label="Chargement du clan"
+        className="flex items-center gap-4"
+      >
+        <Skeleton className="h-12 w-12 rounded-full" />
+        <div className="flex-1 space-y-2">
+          <Skeleton className="h-4 w-1/3" />
+          <Skeleton className="h-3 w-1/2" />
+        </div>
+      </div>
     );
   }
 

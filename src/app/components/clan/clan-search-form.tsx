@@ -114,7 +114,8 @@ export function ClanSearchForm() {
         >
           Inspecter
         </button>
-        <p className="text-royale-parchment-dim w-full text-xs">
+        {/* text-sm (14px), pas text-xs (US 14.4) : lisibilite mobile minimale. */}
+        <p className="text-royale-parchment-dim w-full text-sm">
           Saisissez le tag de votre clan (visible dans Clash Royale, sous son nom, sur l
           ecran du clan) ou directement son nom.
         </p>

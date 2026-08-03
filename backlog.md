@@ -1141,7 +1141,7 @@ vérifié (routes `/dashboard`, `/historique`, `/rh` en `ƒ` dynamique,
 > confirmation de copie « Copié ! ✅ », le panneau joueur en tant que
 > concept (SPA fluide sans changer de page).
 
-#### US 14.1 (P0) — Vue « carte » mobile pour l'Historique des guerres
+#### US 14.1 (P0) — Vue « carte » mobile pour l'Historique des guerres ✅
 
 **En tant qu'**utilisateur sur mobile, **je veux** lire l'historique
 d'assiduité sans faire défiler horizontalement un tableau de N semaines
@@ -1175,7 +1175,7 @@ Critères d'acceptation :
 
 ---
 
-#### US 14.2 (P1) — Vue « carte » mobile pour Membres et Guerre en cours
+#### US 14.2 (P1) — Vue « carte » mobile pour Membres et Guerre en cours ✅
 
 **En tant qu'**utilisateur sur mobile, **je veux** le même traitement
 carte pour les tableaux Membres et Guerre en cours **afin d'**avoir une
@@ -1197,7 +1197,7 @@ Critères d'acceptation :
 
 ---
 
-#### US 14.3 (P0) — Accessibilité du panneau joueur (`PlayerDrawer`)
+#### US 14.3 (P0) — Accessibilité du panneau joueur (`PlayerDrawer`) ✅
 
 **En tant qu'**utilisateur clavier ou lecteur d'écran, **je veux** que le
 panneau joueur se comporte comme une vraie boîte de dialogue modale
@@ -1230,7 +1230,7 @@ Critères d'acceptation :
 
 ---
 
-#### US 14.4 (P1) — Formulaire de recherche de clan optimisé mobile
+#### US 14.4 (P1) — Formulaire de recherche de clan optimisé mobile ✅
 
 **En tant qu'**utilisateur sur mobile, **je veux** un formulaire de
 recherche qui s'empile proprement **afin de** ne pas lutter avec un
@@ -1255,7 +1255,7 @@ Critères d'acceptation :
 
 ---
 
-#### US 14.5 (P1) — Squelettes de chargement cohérents sur toutes les sections
+#### US 14.5 (P1) — Squelettes de chargement cohérents sur toutes les sections ✅
 
 **En tant qu'**utilisateur, **je veux** un indicateur de chargement
 visuellement cohérent partout **afin de** ne pas avoir un à-coup de mise
@@ -1282,7 +1282,7 @@ Critères d'acceptation :
 
 ---
 
-#### US 14.6 (P2) — Zones de toucher ≥ 44×44px
+#### US 14.6 (P2) — Zones de toucher ≥ 44×44px ✅
 
 **En tant qu'**utilisateur sur mobile, **je veux** que chaque contrôle
 interactif soit facilement touchable **afin de** ne pas déclencher la
@@ -1312,7 +1312,7 @@ Critères d'acceptation :
 
 ---
 
-#### US 14.7 (P1) — Cohabitation contenu / barre d'onglets mobile fixe
+#### US 14.7 (P1) — Cohabitation contenu / barre d'onglets mobile fixe ✅
 
 **En tant qu'**utilisateur sur mobile, **je veux** que le dernier élément
 de chaque page reste entièrement visible et cliquable **afin qu'**il ne
@@ -1331,6 +1331,47 @@ Critères d'acceptation :
   le plus petit couramment ciblé)
 - Non-régression desktop : ce padding ne s'applique qu'en dessous du
   breakpoint où `MobileTabBar` est visible
+
+---
+
+#### Notes d'implémentation (livrées le 2026-08-03)
+
+Épique 14 implémenté en totalité (US 14.1 à 14.7). `npm run verify` vert
+hors Stryker (dette de test assumée, comme pour l'Épique 13) ; `next
+build` réel vérifié (le nouveau token `--spacing-tab-bar` compile bien en
+CSS). Le tableau desktop et la vue carte mobile **coexistent tous deux
+dans le DOM** (bascule au CSS `md:hidden`/`hidden md:block`, pas de
+rendu conditionnel côté React) : plusieurs tests pré-existants qui
+cherchaient un texte ou un bouton sans le scoper au tableau (`getByText`,
+`getByRole('button', { name: ... })`) trouvaient désormais deux
+correspondances (table + carte) et ont dû être adaptés avec
+`within(screen.getByRole('table'))` — comportement runtime inchangé, seul
+le scope des assertions a bougé.
+
+- **US 14.1/14.2** : tri mobile via `<select>` plutôt qu'un clic
+  d'en-tête de colonne (`WarHistorySection`, `MembersTable` — un nouveau
+  prop `onSortSelect` distinct de `onSortChange`, ce dernier restant la
+  bascule utilisée par les en-têtes desktop). `CurrentWarSection` n'a pas
+  de contrôle de tri (déjà trié par urgence), donc pas de sélecteur côté
+  carte.
+- **US 14.3** : nouveau hook générique `hooks/use-focus-trap.ts`
+  (piège de focus + Échap + restauration), pas spécifique au panneau
+  joueur. Point d'attention corrigé en cours de route : `onClose` est
+  souvent une fermeture recréée à chaque rendu du parent
+  (`() => setTag(null)`) — la suivre en dépendance d'effet aurait rouvert
+  le piège (et volé le focus) à chaque rendu du composant parent, pas
+  seulement à l'ouverture/fermeture réelle. Le hook la lit via une ref
+  plutôt qu'en dépendance ; un test dédié couvre spécifiquement cette
+  régression potentielle.
+- **US 14.4** : la majeure partie (empilement mobile, `min-h-11`,
+  boutons pleine largeur) était déjà livrée avec `ClanSearchForm` lors de
+  l'Épique 13 sans étiquette US dédiée à l'époque ; seul le texte d'aide
+  restait sous 14px (`text-xs` → `text-sm`), corrigé ici.
+- **US 14.6** : le critère « boutons de tri d'en-tête ≥ 44px sur mobile »
+  est devenu sans objet — ces boutons ne sont désormais plus rendus du
+  tout en dessous de `md` (remplacés par le sélecteur des US 14.1/14.2),
+  donc rien à agrandir. Case à cocher et champ de seuil numérique
+  agrandis comme prévu.
 
 ---
 
@@ -1399,10 +1440,13 @@ Critères d'acceptation :
     pattern de seed plutôt qu'un passage en Server Components purs), US
     13.1 à 13.7. `npm run verify` vert hors Stryker (dette de test
     assumée) ; `next build` réel vérifié
-19. ⬜ **Épique 14** — audit UX mobile-first du 2026-08-03 : vues carte pour
-    les 3 tableaux denses, accessibilité du panneau joueur (piège de
-    focus, Escape), formulaire de recherche et zones de toucher adaptés
-    au tactile, cohabitation avec la tab bar mobile fixe, US 14.1 à 14.7
+19. ✅ **Épique 14** — audit UX mobile-first du 2026-08-03 : vues carte pour
+    les 3 tableaux denses (tri via `<select>` mobile), accessibilité du
+    panneau joueur (`useFocusTrap` : piège de focus, Échap, restauration),
+    formulaire de recherche et zones de toucher adaptées au tactile,
+    squelettes de chargement harmonisés, cohabitation avec la tab bar
+    mobile fixe (`--spacing-tab-bar`), US 14.1 à 14.7. `npm run verify`
+    vert hors Stryker (dette de test assumée) ; `next build` réel vérifié
 
 ### Finition produit (hors backlog initial)
 

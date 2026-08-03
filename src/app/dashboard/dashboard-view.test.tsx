@@ -34,8 +34,12 @@ describe('DashboardView', () => {
   it('change de colonne de tri au clic et inverse en recliquant', async () => {
     render(<DashboardView tag="#20PP" clanSeed={success(FIXTURE_FULL_CLAN)} />);
     const user = userEvent.setup();
+    // Le tableau desktop et les cartes mobiles (US 14.2) coexistent dans le
+    // DOM (bascule au CSS) : le bouton de tri par en-tete n'existe que dans
+    // le tableau.
+    const table = screen.getByRole('table');
 
-    await user.click(screen.getByRole('button', { name: /trophees/i }));
+    await user.click(within(table).getByRole('button', { name: /trophees/i }));
     let rows = screen.getAllByTestId('member-row');
     expect(rows.map((row) => within(row).getAllByRole('cell')[3]?.textContent)).toEqual([
       '5000',
@@ -43,7 +47,7 @@ describe('DashboardView', () => {
       '7000',
     ]);
 
-    await user.click(screen.getByRole('button', { name: /trophees/i }));
+    await user.click(within(table).getByRole('button', { name: /trophees/i }));
     rows = screen.getAllByTestId('member-row');
     expect(rows.map((row) => within(row).getAllByRole('cell')[3]?.textContent)).toEqual([
       '7000',
