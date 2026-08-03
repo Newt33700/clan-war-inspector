@@ -4,11 +4,13 @@ import { describe, expect, it } from 'vitest';
 import { Footer } from './footer';
 
 describe('Footer', () => {
-  it("affiche la mention legale de non-affiliation a Supercell", () => {
+  it('affiche la mention legale de non-affiliation a Supercell', () => {
     render(<Footer />);
 
     expect(
-      screen.getByText(/n'est pas affilié, soutenu, sponsorisé ou spécifiquement approuvé/i),
+      screen.getByText(
+        /n'est pas affilié, soutenu, sponsorisé ou spécifiquement approuvé/i,
+      ),
     ).toBeInTheDocument();
   });
 
