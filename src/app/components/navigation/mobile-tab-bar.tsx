@@ -19,7 +19,7 @@ export function MobileTabBar() {
   return (
     <nav
       aria-label="Navigation principale"
-      className="fixed bottom-0 z-50 flex h-16 w-full flex-row items-center justify-around border-t border-slate-800 bg-slate-900 pb-[env(safe-area-inset-bottom)] md:hidden"
+      className="fixed bottom-0 z-50 flex h-16 w-full flex-row items-center justify-around border-t border-slate-600 bg-slate-700 pb-[env(safe-area-inset-bottom)] md:hidden"
     >
       {NAV_ITEMS.map((item) => {
         const Icon = NAV_ICONS[item.href];
@@ -29,8 +29,10 @@ export function MobileTabBar() {
             key={item.href}
             href={item.href}
             aria-current={active ? 'page' : undefined}
-            className={`flex h-11 min-w-11 flex-col items-center justify-center gap-1 rounded-lg px-3 text-xs font-semibold transition-colors ${
-              active ? 'bg-royale-purple-700/40 text-yellow-400' : 'text-slate-400'
+            className={`flex h-11 min-w-11 flex-col items-center justify-center gap-1 rounded-lg px-3 text-xs font-semibold transition-transform ${
+              active
+                ? 'border-cr-gold bg-royale-purple-700/40 -translate-y-1 border-2 text-yellow-400 shadow-[0_2px_0_rgba(0,0,0,0.4)]'
+                : 'text-slate-400'
             }`}
           >
             {Icon !== undefined && <Icon className="h-6 w-6" />}
