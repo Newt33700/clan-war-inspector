@@ -180,6 +180,80 @@ describe('useApiResource', () => {
     expect(result.current.status).toBe('idle');
   });
 
+  describe('seed (US 13.2, hydratation depuis un Server Component)', () => {
+    it('affiche directement la donnee du seed sans passer par loading', () => {
+      const { result } = renderHook(() =>
+        useApiResource('/api/clans/%2320PP', {
+          status: 'success',
+          data: { tag: '#20PP', name: 'Test Clan' },
+        }),
+      );
+
+      expect(result.current).toMatchObject({
+        status: 'success',
+        data: { tag: '#20PP', name: 'Test Clan' },
+      });
+    });
+
+    it('ne refait pas d appel reseau au montage quand un seed est fourni', async () => {
+      let calls = 0;
+      mockServer.use(
+        http.get('*/api/clans/:clanTag', () => {
+          calls += 1;
+          return HttpResponse.json(FIXTURE_FULL_CLAN);
+        }),
+      );
+
+      renderHook(() =>
+        useApiResource('/api/clans/%2320PP', {
+          status: 'success',
+          data: { tag: '#20PP', name: 'Test Clan' },
+        }),
+      );
+
+      // Laisse le temps a un eventuel effet de fetch de se declencher.
+      await new Promise((resolve) => setTimeout(resolve, 20));
+      expect(calls).toBe(0);
+    });
+
+    it('refetch effectue un vrai appel reseau apres un seed', async () => {
+      setMockResponse('clan', FIXTURE_FULL_CLAN);
+      const { result } = renderHook(() =>
+        useApiResource('/api/clans/%2320PP', {
+          status: 'error',
+          message: 'Erreur precedente (rendue par le serveur).',
+        }),
+      );
+      expect(result.current.status).toBe('error');
+
+      act(() => {
+        result.current.refetch();
+      });
+
+      expect(result.current.status).toBe('loading');
+      await waitFor(() => {
+        expect(result.current.status).toBe('success');
+      });
+    });
+
+    it('recharge normalement si le chemin change apres un seed', async () => {
+      setMockResponse('clan', FIXTURE_FULL_CLAN);
+      const { result, rerender } = renderHook(
+        ({ path }: { path: string | null }) =>
+          useApiResource(path, { status: 'success', data: { tag: '#OLD' } }),
+        { initialProps: { path: '/api/clans/%2320PP' as string | null } },
+      );
+      expect(result.current).toMatchObject({ data: { tag: '#OLD' } });
+
+      rerender({ path: '/api/clans/%232PP' });
+
+      expect(result.current.status).toBe('loading');
+      await waitFor(() => {
+        expect(result.current.status).toBe('success');
+      });
+    });
+  });
+
   it('ne plante pas quand le composant est demonte en plein vol', async () => {
     mockServer.use(
       http.get('*/api/clans/:clanTag', async () => {
@@ -191,5 +265,37 @@ describe('useApiResource', () => {
     unmount();
     // L'abort ne doit produire ni erreur non geree ni setState tardif.
     await new Promise((resolve) => setTimeout(resolve, 80));
+  });
+
+  it('n ecrase pas l etat avec le resultat d une requete perimee, abortee au changement de chemin', async () => {
+    // La requete du premier chemin ne repond jamais toute seule : c'est
+    // nous qui la faisons aboutir tardivement, une fois le chemin deja
+    // repasse a `null`, pour verifier qu'elle n'a plus voix au chapitre.
+    let resolveStaleRequest!: (response: Response) => void;
+    mockServer.use(
+      http.get(
+        '*/api/clans/:clanTag',
+        () => new Promise<Response>((resolve) => (resolveStaleRequest = resolve)),
+      ),
+    );
+    const { result, rerender } = renderHook(
+      ({ path }: { path: string | null }) => useApiResource(path),
+      { initialProps: { path: '/api/clans/%2320PP' as string | null } },
+    );
+    expect(result.current.status).toBe('loading');
+    // Attend que la requete atteigne reellement MSW (interception
+    // asynchrone) avant d'abandonner le chemin : sinon l'abort survient
+    // avant meme que la requete soit "en vol", ce qui ne testerait rien.
+    await waitFor(() => expect(resolveStaleRequest).toBeDefined());
+
+    rerender({ path: null });
+    expect(result.current.status).toBe('idle');
+
+    resolveStaleRequest(HttpResponse.json({ tag: '#20PP-perime' }));
+    await new Promise((resolve) => setTimeout(resolve, 20));
+
+    // Ni le succes ni l'erreur perimes ne doivent avoir ecrase l'etat
+    // "idle" : la requete du chemin abandonne devait etre abortee.
+    expect(result.current.status).toBe('idle');
   });
 });

@@ -844,6 +844,579 @@ Critères d'acceptation :
 
 ---
 
+### ÉPIQUE 13 — Refonte Architecture & Routing (Next.js App Router)
+
+> Audit d'architecture et UX du 2026-08-03, sur la base d'une première
+> version de spec technique transmise par le produit. Aujourd'hui,
+> l'application est **une seule route** (`app/page.tsx`) qui rend **un
+> seul composant client** (`ClanDashboard`, `'use client'`, ~400 lignes)
+> possédant tout l'état (tag saisi, recherche, tri, membre sélectionné,
+> seuil de purge) et orchestrant 4 appels réseau via `useApiResource`. Les
+> « sections » (Membres, Guerre en cours, Historique, Assistant RH) ne sont
+> pas des pages : ce sont des ancres dans un unique scroll, sommaire sticky
+> à l'appui (`SectionNav`, US-7 de l'Épique 8). Découper en vraies routes
+> avec layout persistant est une bonne direction UX (navigation directe,
+> pages plus légères à charger, tab bar mobile), mais **contredit
+> frontalement l'arbitrage B de l'Épique 12** ("cohérent avec le reste de
+> l'app entièrement pilotée côté client", tranché le jour même). Cette
+> contradiction doit être résolue avant la première ligne de code — voir
+> arbitrages ci-dessous.
+
+#### Arbitrages à trancher avant implémentation (bloquants)
+
+- **C — Où vit le tag de clan une fois qu'on a plusieurs routes ?**
+  Aujourd'hui il vit en `localStorage` (`clan-tag-storage.ts`) + querystring
+  `?clan=` sur l'unique page (`clan-tag-url.ts`), relu au montage du
+  composant client. Un Server Component qui fetch au premier rendu
+  **ne peut pas lire `localStorage`** (pas de DOM côté serveur) : sans
+  changement, `/dashboard`, `/historique` et `/rh` afficheraient un état
+  vide au premier chargement puis « sauteraient » vers les données une
+  fois l'hydratation client faite — un flash inutile que l'app n'a
+  jamais eu jusqu'ici. **Recommandation** : faire de `clan-tag-storage.ts`
+  un double-écrivain `localStorage` (pour le lien partageable existant) +
+  **cookie** (`Set-Cookie` non-HttpOnly, lu par `cookies()` côté serveur),
+  afin que le Server Component de chaque route résolve le tag actif sans
+  aller-retour client. Le paramètre d'URL `?clan=` reste prioritaire sur
+  le cookie, comme aujourd'hui il l'est sur le `localStorage`
+  (`clan-dashboard.tsx` L97-105).
+- **D — Compatibilité avec l'arbitrage B de l'Épique 12** : à retrancher
+  explicitement. Le donut de participation (US 12.4) et tout composant
+  similaire ajouté depuis doivent soit (a) devenir des enfants de Server
+  Components et recevoir leurs données déjà résolues en props, soit (b)
+  rester des îlots client mais nourris par les données déjà fetchées par
+  la page — jamais un second fetch client redondant avec celui du Server
+  Component parent.
+- **E — Emplacement du formulaire de recherche/sélection de clan** : la
+  spec ne le mentionne pas explicitement. Il ne peut pas rester dans
+  `app/dashboard/page.tsx` seul (US 13.3 le rend disponible sur les 3
+  pages, cf. besoin de changer de clan depuis Historique ou RH sans
+  repasser par Dashboard).
+
+#### US 13.1 (P0, Tech) — Cookie de persistance du tag de clan, compatible SSR ✅
+
+**En tant que** développeur, **je veux** que le tag de clan actif soit
+lisible côté serveur dès la première requête **afin de** permettre aux
+pages `/dashboard`, `/historique` et `/rh` de fetcher leurs données sans
+flash de contenu vide.
+
+Critères d'acceptation :
+
+- `clan-tag-storage.ts` écrit un cookie (`SameSite=Lax`, pas `HttpOnly`
+  puisque relu aussi côté client) en plus du `localStorage` existant,
+  sans régression sur le comportement actuel (lien `?clan=` toujours
+  prioritaire, cf. `clan-tag-url.ts`)
+- Un helper serveur (`lib/clan-tag-cookie.ts` ou équivalent, testé) lit ce
+  cookie via `cookies()` (Next.js) pour les Server Components
+- Testé : cookie absent (première visite), cookie présent mais tag
+  invalide (ne doit jamais faire planter le rendu serveur), `?clan=`
+  prioritaire sur le cookie
+
+---
+
+#### US 13.2 (P0) — Squelette de routing : layout persistant + redirection par défaut ✅
+
+**En tant qu'**utilisateur, **je veux** atterrir automatiquement sur un
+tableau de bord **afin de** ne jamais voir de page blanche à la racine du
+site.
+
+Critères d'acceptation :
+
+- `app/layout.tsx` conserve les polices et `<html lang="fr">` existants,
+  ajoute la navigation globale (US 13.4/13.5) comme frère de `children`,
+  pas comme wrapper qui forcerait un remount des pages à chaque
+  navigation
+- `app/page.tsx` : `redirect('/dashboard')` **serveur** (fonction
+  `redirect` de `next/navigation`), inconditionnel, comme demandé par la
+  spec — remplace l'actuel rendu direct de `ClanDashboard`
+- `app/dashboard/page.tsx`, `app/historique/page.tsx`, `app/rh/page.tsx` :
+  async Server Components qui résolvent le tag actif (US 13.1) puis
+  fetchent les données nécessaires **via les route handlers existants**
+  (`/api/clans/[clanTag]`, `.../currentriverrace`, `.../riverracelog`) en
+  `fetch` serveur-à-serveur — pas de duplication de la logique de
+  `_lib/supercell.ts`, seule la couche HTTP change
+- Aucun tag actif (ni URL, ni cookie) → les 3 pages affichent l'état
+  "aucun clan sélectionné" avec le formulaire de recherche (US 13.3), pas
+  une redirection en boucle ni une erreur
+
+---
+
+#### US 13.3 (P0) — Formulaire de recherche/sélection de clan, composant client isolé ✅
+
+**En tant qu'**utilisateur, **je veux** pouvoir chercher ou changer de
+clan depuis n'importe laquelle des 3 pages **afin de** ne pas devoir
+revenir sur Dashboard pour ça.
+
+Constat : la recherche par tag/nom (détection transparente, résolution à
+1 résultat, liste de candidats — Épique 10) est actuellement mêlée à
+`ClanDashboard` (L212-312). Elle doit devenir un composant client
+autonome, réutilisable, qui ne connaît que la mise à jour du tag actif
+(cookie + `localStorage` + URL), pas les autres sections.
+
+Critères d'acceptation :
+
+- Nouveau composant `components/clan/ClanSearchForm.tsx` (`'use client'`),
+  reprenant tel quel le comportement actuel (détection tag/nom, debounce
+  400 ms, résolution auto à 1 résultat, liste de candidats, message sous
+  3 caractères, erreur de format) — non-régression vérifiée par les tests
+  existants de `clan-dashboard.test.tsx` déplacés/adaptés
+  vers ce composant
+  - Après soumission ou clic sur un candidat : navigation via
+    `useRouter().push` vers la page courante avec `?clan=<tag>` **et**
+    écriture du cookie + `localStorage` (US 13.1), pour que les 2 autres
+    pages en bénéficient aussi sans ressaisie
+  - Affiché en tête de chaque page (`dashboard`, `historique`, `rh`) —
+    factorisé une seule fois pour éviter la triplication, ex. dans un
+    composant partagé rendu par les 3 `page.tsx` plutôt que par le layout
+    (le layout étant un Server Component sans accès à l'état "aucun clan
+    sélectionné" par route)
+
+---
+
+#### US 13.4 (P1) — Navigation mobile : `MobileTabBar` ✅
+
+**En tant qu'**utilisateur sur mobile, **je veux** une barre d'onglets
+fixe en bas de l'écran **afin de** changer de page sans remonter en haut
+du contenu pour trouver une navigation.
+
+Critères d'acceptation :
+
+- `components/navigation/MobileTabBar.tsx` (`'use client'`, seul composant
+  du layout à utiliser `usePathname`) : `fixed bottom-0 w-full z-50`,
+  `bg-slate-900`, `border-t border-slate-800`, 4 icônes
+  (`flex flex-row justify-around items-center h-16`) — Dashboard,
+  Historique, RH, et une 4e entrée à trancher avec le produit (ex.
+  "Membres" si cette vue reste distincte de Dashboard, ou "Réglages")
+- Route active détectée par correspondance de préfixe sur `usePathname()`
+  (`/historique` reste actif sur `/historique` et ses éventuelles
+  sous-routes) : icône `text-yellow-400`, sinon `text-slate-400`
+- Chaque icône est un `<Link>` (pas un `<button onClick={router.push}>`)
+  pour préserver la navigation clavier/SEO/prefetch Next.js
+- Chaque cible tactile fait **au moins 44×44px** (zone cliquable, pas
+  seulement l'icône visuelle) — voir US 14.6 pour la règle générale
+- `<html>`/`body` ou le conteneur de chaque page réserve un
+  `padding-bottom` (ou `env(safe-area-inset-bottom)` sur iOS, absent de
+  `globals.css` aujourd'hui) au moins égal à `h-16` de la tab bar, pour
+  qu'aucun contenu de bas de page (ex. dernière carte "Sur la sellette",
+  bouton "Copier la liste" de `PurgeSection`) ne soit masqué
+- Visible seulement en dessous du breakpoint où le header desktop (US
+  13.5) prend le relais (`md:hidden`)
+
+---
+
+#### US 13.5 (P1) — Navigation desktop : header ✅
+
+**En tant qu'**utilisateur sur desktop, **je veux** une navigation
+horizontale dans l'en-tête **afin de** ne pas avoir une barre d'onglets
+mobile plaquée en bas d'un grand écran.
+
+Critères d'acceptation :
+
+- `components/navigation/DesktopHeader.tsx` (ou intégré directement à
+  `layout.tsx` s'il reste simple) : visible `hidden md:flex`, liens vers
+  les 3 routes + logo/titre du produit, même logique de route active que
+  la tab bar (couleur or vs. atténuée) mais sans dupliquer le hook —
+  factoriser la détection de route active (`useActiveRoute()` ou
+  équivalent) entre les deux composants
+- `MobileTabBar` et `DesktopHeader` ne sont **jamais visibles
+  simultanément** (test de non-régression au niveau du breakpoint `md`)
+
+---
+
+#### US 13.6 (P1) — Migration des sections existantes sans régression fonctionnelle ✅
+
+**En tant qu'**utilisateur, **je veux** retrouver exactement les mêmes
+fonctionnalités qu'avant la refonte, réparties sur les nouvelles pages
+**afin de** ne rien perdre au passage.
+
+Répartition proposée (à valider avec le produit avant de coder) :
+
+- `app/dashboard/page.tsx` : `ClanHeader`, `ParticipationSummarySection`
+  (donut), `HallOfFameSection`, tableau `MembersTable` (recherche +
+  tri) — la vue d'ensemble décrite par la spec
+- `app/historique/page.tsx` : `WarHistorySection` (et sa légende) —
+  éventuellement `CurrentWarSection` (guerre en cours) si elle est
+  considérée comme de l'« historique du jour » plutôt que du
+  « tableau de bord » ; à trancher, car la spec ne classe pas
+  explicitement Guerre en cours
+- `app/rh/page.tsx` : `HrAssistantSection` (Méritants / Sur la sellette)
+  et `PurgeSection` (« À expulser »), qui partagent déjà `minWeeklyBattles`
+  aujourd'hui — ce partage d'état doit rester possible une fois les deux
+  sur la même page mais dans des composants distincts
+- Chaque section garde son propre état de chargement/erreur
+  (`ApiResource`), aucune n'attend plus les autres pour s'afficher que ce
+  qu'elle attend déjà aujourd'hui
+- Tous les tests existants des sections (`*.test.tsx`) continuent de
+  passer inchangés ou avec adaptation minimale des props (les sections
+  elles-mêmes ne doivent pas être réécrites, seulement redistribuées)
+
+---
+
+#### US 13.7 (P2) — Suppression du sommaire de navigation devenu redondant ✅
+
+**En tant que** développeur, **je veux** retirer `SectionNav` (scroll-spy
+vers des ancres `#membres`, `#guerre-en-cours`, etc.) **afin de** ne pas
+garder deux systèmes de navigation qui se chevauchent une fois les pages
+réelles en place.
+
+Critères d'acceptation :
+
+- `section-nav.tsx` et son test supprimés, plus aucune ancre
+  `#membres`/`#guerre-en-cours`/`#historique`/`#assistant-rh` ni
+  `scroll-mt-16` orpheline dans les sections migrées
+- Vérifier qu'aucun lien externe (README, aide en jeu, favoris
+  utilisateurs) ne pointait vers ces ancres avant de les retirer
+
+---
+
+#### US 13.8 (Tech) — Passe Stryker sur `hooks/` (dette de test résorbée) ✅
+
+**En tant que** développeur, **je veux** que `useApiResource` (modifié par
+l'US 13.2, seed) et `usePlayerProfile` passent le seuil de mutation
+**afin de** ne pas laisser la dette de test des Épiques 13/14 s'accumuler.
+
+Constat : `npm run test:mutation` (Stryker) n'avait pas été relancé lors
+de la livraison initiale des Épiques 13 et 14 — seul `hooks/` (dans le
+périmètre `stryker.config.json`) était concerné par du code neuf ou
+modifié. Premier passage : score global 94,22 %, mais `hooks/` à 83,83 %
+(`use-api-resource.ts` 88,57 %, `use-focus-trap.ts` 74,51 %,
+`use-player-profile.ts` 85,37 %) — sous le seuil habituel de ce
+périmètre, même si le seuil de rupture global (90 %) restait franchi.
+
+Critères d'acceptation :
+
+- Requêtes périmées (chemin/tag changé avant qu'une requête en vol
+  n'aboutisse) n'écrasent plus l'état ni le cache une fois résolues
+  tardivement — testé pour `useApiResource` et `usePlayerProfile` en
+  résolvant délibérément la requête abandonnée après le changement de
+  chemin/tag
+- `useFocusTrap` : conteneur jamais attaché au DOM (défense), aucun
+  élément focusable à l'intérieur, Tab/Shift+Tab depuis un élément du
+  milieu (ordre naturel, non intercepté), écouteur clavier retiré à la
+  fermeture (pas de fuite) — chacun testé explicitement
+- Mutants restants documentés en commentaire comme équivalents plutôt
+  que forcés par un test artificiel, quand le comportement réel ne peut
+  pas différer (ex. tableau de dépendances `useCallback` constant, état
+  initial immédiatement écrasé par l'effet au montage,
+  `document.activeElement` qui ne vaut jamais `null` en pratique)
+- Score final : global 95,93 % (contre 94,22 %), `hooks/` 95,68 % (contre
+  83,83 %) — `use-api-resource.ts` 94,29 %, `use-focus-trap.ts` 97,83 %,
+  `use-player-profile.ts` 95,12 %, tous les survivants restants
+  documentés comme équivalents
+
+Hors périmètre de cette US (dette pré-existante, non introduite par les
+Épiques 13/14, jamais touchée par leur code) : les survivants déjà
+présents dans `domain/**` (34) et `app/api/_lib/supercell.ts` (6),
+inchangés par ce passage.
+
+---
+
+#### Notes d'implémentation (livrées le 2026-08-03)
+
+Épique 13 implémenté en totalité (US 13.1 à 13.7), `npm run verify` vert
+Stryker compris (voir US 13.8 ci-dessous), build `next build` réel
+vérifié (routes `/dashboard`, `/historique`, `/rh` en `ƒ` dynamique,
+`/` statique). Écarts assumés par rapport aux arbitrages initiaux :
+
+- **C (cookie)** : implémenté tel que recommandé
+  (`lib/clan-tag-cookie.ts` + `lib/clan-tag-server.ts`), avec double
+  écriture localStorage/cookie dans `clan-tag-storage.ts`.
+- **D (conflit avec l'arbitrage B de l'Épique 12)** : résolu par un
+  pattern de "seed" plutôt qu'une conversion en Server Components purs
+  pour chaque section. `useApiResource` accepte désormais un état
+  initial optionnel (`seed`) : le Server Component de chaque route
+  fetch les données une fois via un nouvel appel direct à
+  `proxyClanResource` (`lib/server-clan-resource.ts`, **pas** de
+  second aller-retour HTTP vers les Route Handlers — plus simple et
+  plus rapide qu'un auto-fetch serveur-à-serveur, tout en réutilisant
+  la même logique `_lib/supercell.ts` que les Route Handlers), puis
+  passe le résultat en props à un composant client (`DashboardView`,
+  `HistoriqueView`, `RhView`) qui hydrate `useApiResource` avec ce seed :
+  premier rendu déjà rempli (aucun flash de chargement), sans
+  refetch redondant au montage. Toute interaction ultérieure (tri,
+  "Réessayer", "Actualiser") redevient un vrai fetch client normal.
+  Les 9 composants de section existants (`MembersTable`,
+  `CurrentWarSection`, `WarHistorySection`, `HrAssistantSection`,
+  `PurgeSection`, etc.) n'ont **pas été réécrits** : ils continuent de
+  recevoir un `ApiResource<unknown>` exactement comme avant.
+- **E (emplacement du formulaire)** : `ClanSearchForm` est rendu par
+  chacun des 3 `page.tsx` (pas par le layout), comme anticipé.
+- **Répartition du contenu (US 13.6)** : tranchée en s'appuyant sur la
+  toute première version de la spec produit ("Dashboard = vue
+  d'ensemble avec Guerre en cours et jauges de participation",
+  "Historique = tableaux de données passées", "RH = assistant de
+  modération") plutôt que sur l'hésitation notée dans l'US 13.6
+  elle-même. Résultat : **Dashboard** = identité du clan, jauge de
+  participation + Hall of Fame, Guerre en cours, puis annuaire des
+  membres (recherche/tri) ; **Historique** = uniquement le tableau
+  d'assiduité croisé ; **RH** = Assistant RH (Méritants / Sur la
+  sellette) et « À expulser », qui continuent de partager
+  `minWeeklyBattles`.
+- **Navigation à 3 entrées, pas 4** : la spec initiale demandait
+  4 icônes dans `MobileTabBar` sans dire à quoi correspondrait la 4e
+  (il n'y a que 3 routes réelles) ; implémenté à 3 pour ne pas ajouter
+  un onglet qui ne mènerait nulle part. À revoir si une 4e page est
+  décidée par le produit.
+- **Titre de page dynamique** : l'ancien hack `document.title` (US 6.1)
+  n'a pas été réintroduit via `generateMetadata` dans cette passe —
+  seul le titre statique du layout racine s'applique aux 3 nouvelles
+  routes pour l'instant. Petit suivi possible, pas bloquant.
+- **Duplication réduite en cours de route** : les 3 vues partageaient un
+  bloc identique idle/loading/erreur pour l'état du clan (US 6.3) ; extrait
+  en `components/clan/ClanStatusMessage.tsx`, testé une seule fois.
+
+---
+
+### ÉPIQUE 14 — Audit UX Mobile-First (2026-08-03)
+
+> Audit mené par relecture de code (pas de session mobile live) en
+> complément de l'Épique 13, dans l'esprit des audits UX précédents
+> (Épiques 6 et 8) : priorités **P0** bloque la confiance/l'usage mobile,
+> **P1** freine l'usage courant, **P2** finitions. Constat déclencheur :
+> aucune des 3 tables denses de l'app (Membres, Guerre en cours,
+> Historique) n'a de variante adaptée à un viewport 375px — elles
+> reposent toutes sur `overflow-x-auto`, un pattern qui fonctionne mais
+> dégrade fortement la lisibilité et le confort tactile sur mobile, la
+> plateforme visée en priorité par la refonte de l'Épique 13. Ce qui
+> fonctionne déjà bien et **ne doit pas être retouché** : les messages
+> d'état vide (`EmptyState`), le contraste AA (Épique 6 US 6.8), la
+> confirmation de copie « Copié ! ✅ », le panneau joueur en tant que
+> concept (SPA fluide sans changer de page).
+
+#### US 14.1 (P0) — Vue « carte » mobile pour l'Historique des guerres ✅
+
+**En tant qu'**utilisateur sur mobile, **je veux** lire l'historique
+d'assiduité sans faire défiler horizontalement un tableau de N semaines
+**afin de** comprendre l'assiduité d'un joueur d'un coup d'œil.
+
+Constat : `war-history-section.tsx` est la table la plus dense de l'app
+(une colonne par semaine + Total + Moyenne, colonne Joueur fixe en
+`sticky left-0`, indice « Faites glisser pour voir plus de semaines → »
+au-delà de 4 semaines, L184-191). Le défilement horizontal fonctionne
+mais demande un geste peu naturel au pouce sur un tableau déjà en
+lecture verticale (une ligne par joueur).
+
+Critères d'acceptation :
+
+- En dessous de `md` : une carte par joueur (nom, `Total`, `Moyenne`,
+  et les _N_ dernières semaines sous forme de mini-jauges verticales ou
+  de puces ✓/!/✗ compactes réutilisant `LEVEL_SYMBOLS`/`LEVEL_LABELS` et
+  `PlayerProgressBar` existants) remplace le tableau ; un bouton
+  « Voir toutes les semaines » développe la carte vers la liste complète
+  sans navigation ni fetch supplémentaire (donnée déjà en mémoire)
+- À partir de `md` : le tableau actuel (scroll horizontal, colonne fixe,
+  ombre de bord) reste inchangé — c'est un pattern acceptable sur un
+  écran large avec souris/trackpad
+- Le tri (`sortPlayerAttendance`, boutons Total/Moyenne) reste disponible
+  dans la vue carte (ex. un sélecteur `<select>` au-dessus de la liste,
+  plus adapté au tactile qu'un clic sur en-tête de colonne)
+- La légende (✓/!/✗ + « Non membre cette semaine-là ») reste visible dans
+  les deux vues
+- Testé : rendu carte sous 767px (jsdom + `matchMedia` mocké ou test par
+  classes Tailwind présentes), non-régression du tableau ≥ 768px
+
+---
+
+#### US 14.2 (P1) — Vue « carte » mobile pour Membres et Guerre en cours ✅
+
+**En tant qu'**utilisateur sur mobile, **je veux** le même traitement
+carte pour les tableaux Membres et Guerre en cours **afin d'**avoir une
+expérience mobile cohérente sur toute l'app.
+
+Critères d'acceptation :
+
+- `MembersTable` : en dessous de `md`, cartes cliquables (nom, tag, rôle,
+  niveau, trophées, dons) ouvrant le panneau joueur au tap — même cible
+  que la ligne de tableau actuelle (`onSelectMember`) ; le tri reste
+  accessible via un `<select>` mobile comme en US 14.1
+- `CurrentWarSection` : en dessous de `md`, cartes (nom, badge « A quitté
+  le clan » le cas échéant, `decksUsedToday/4` avec la même mise en
+  couleur rouge si `idleToday`, jauge hebdomadaire `PlayerProgressBar`)
+- Les deux tableaux desktop existants restent inchangés ≥ `md`
+- Aucune duplication de logique de tri/filtre entre les deux vues : la
+  vue carte consomme les mêmes données déjà triées/filtrées par le
+  composant parent, elle ne fait que changer le rendu
+
+---
+
+#### US 14.3 (P0) — Accessibilité du panneau joueur (`PlayerDrawer`) ✅
+
+**En tant qu'**utilisateur clavier ou lecteur d'écran, **je veux** que le
+panneau joueur se comporte comme une vraie boîte de dialogue modale
+**afin de** pouvoir le fermer et y naviguer sans être piégé.
+
+Constat : `player-drawer.tsx` (L114-162) anime déjà correctement
+l'ouverture/fermeture et masque le contenu au lecteur d'écran quand fermé
+(`aria-hidden={!isOpen}`), mais il manque : `role="dialog"` +
+`aria-modal="true"` sur l'`<aside>`, un piège de focus (tab ne doit pas
+sortir du panneau tant qu'il est ouvert), le déplacement automatique du
+focus vers le panneau (ou son titre) à l'ouverture, la fermeture au
+`Escape`, et la restauration du focus sur l'élément déclencheur (ligne du
+tableau ou carte mobile de l'US 14.2) à la fermeture.
+
+Critères d'acceptation :
+
+- `role="dialog"` + `aria-modal="true"` ajoutés à l'`<aside>` existant
+- À l'ouverture : focus déplacé sur le bouton de fermeture ou le titre du
+  panneau ; à la fermeture (bouton `×`, `Escape`, ou clic sur l'overlay
+  déjà géré par `onClick={onClose}` L123) : focus restauré sur l'élément
+  qui a ouvert le panneau
+- `Escape` ferme le panneau depuis n'importe quel élément focusable à
+  l'intérieur
+- `Tab`/`Shift+Tab` reste cantonné aux éléments focusables du panneau
+  tant qu'il est ouvert (piège de focus standard, ex. via un petit hook
+  `useFocusTrap` testé isolément)
+- Testé avec `@testing-library/user-event` : ouverture → focus initial,
+  `Tab` répété ne quitte jamais le panneau, `Escape` ferme et restaure le
+  focus
+
+---
+
+#### US 14.4 (P1) — Formulaire de recherche de clan optimisé mobile ✅
+
+**En tant qu'**utilisateur sur mobile, **je veux** un formulaire de
+recherche qui s'empile proprement **afin de** ne pas lutter avec un
+bouton et un champ qui se chevauchent ou s'écrasent.
+
+Constat : `ClanSearchForm` (issu de l'US 13.3, actuellement
+`clan-dashboard.tsx` L212-243) utilise `flex flex-wrap items-end gap-3` —
+sur 375px, le label+champ passe en pleine largeur mais le bouton
+« Inspecter » reste à sa largeur intrinsèque à côté ou sous le champ,
+créant une zone de tap étroite pour l'action principale de la page.
+
+Critères d'acceptation :
+
+- En dessous de `sm` : champ pleine largeur, bouton « Inspecter » pleine
+  largeur en dessous (empilement vertical `flex-col`), hauteur de
+  contrôle ≥ 44px
+- Le texte d'aide et les messages d'erreur de format restent visibles
+  sans réduire la taille de police en dessous de 14px (accessibilité
+  lisibilité mobile)
+- Non-régression du comportement desktop existant (`sm:flex-row` ou
+  équivalent)
+
+---
+
+#### US 14.5 (P1) — Squelettes de chargement cohérents sur toutes les sections ✅
+
+**En tant qu'**utilisateur, **je veux** un indicateur de chargement
+visuellement cohérent partout **afin de** ne pas avoir un à-coup de mise
+en page différent selon la section qui charge.
+
+Constat : `ParticipationSummarySection` et `HrAssistantSection` utilisent
+déjà `Skeleton` (donut rond, blocs `h-32`). `ClanDashboard` (recherche de
+clan L252-256, chargement du clan L320-324), `CurrentWarSection`
+(L130-134) et `WarHistorySection` (L137-141) affichent en revanche un
+simple `<p role="status">Chargement...</p>` en texte — écart de
+polish entre les sections les plus anciennes et les plus récentes
+(Épique 12).
+
+Critères d'acceptation :
+
+- Les 3 sections identifiées adoptent `Skeleton` à la place du texte brut
+  (silhouette de tableau : quelques lignes `Skeleton` de largeurs
+  variables plutôt qu'un simple rectangle, pour annoncer visuellement
+  « ceci va devenir un tableau »)
+- Le texte accessible du chargement (`aria-label`/`role="status"`) reste
+  équivalent à l'existant, pour ne pas régresser côté lecteur d'écran
+- Le composant `Skeleton` lui-même n'est pas modifié (déjà générique et
+  testé) — uniquement son usage est étendu
+
+---
+
+#### US 14.6 (P2) — Zones de toucher ≥ 44×44px ✅
+
+**En tant qu'**utilisateur sur mobile, **je veux** que chaque contrôle
+interactif soit facilement touchable **afin de** ne pas déclencher la
+mauvaise action par erreur.
+
+Constat : plusieurs contrôles sont actuellement plus petits que la cible
+recommandée (WCAG 2.5.5, Apple HIG 44pt, Material 48dp) : la case à
+cocher « Afficher les anciens membres » (`current-war-section.tsx`
+L152-159, `<input type="checkbox">` sans style de taille), le champ
+numérique de seuil (`purge-section.tsx` L93-104, `w-16 px-2 py-1`), et
+les boutons d'en-tête de colonne triables (`members-table.tsx` L58-69,
+`war-history-section.tsx` L243-257, `px-3 py-2` sans `min-height`
+garanti).
+
+Critères d'acceptation :
+
+- Case à cocher stylée (ex. `h-5 w-5` minimum plus zone de tap étendue
+  via le `<label>` englobant déjà présent) sans changer son comportement
+  ni son état accessible
+- Champ numérique de seuil : hauteur de contrôle ≥ 44px sur mobile
+  (`py-2` minimum ou variante mobile dédiée), boutons +/- optionnels pour
+  éviter le clavier numérique sur les petits ajustements
+- Boutons de tri d'en-tête : `min-h-11` (44px) sur mobile, taille actuelle
+  conservée ≥ `md` si l'audit visuel desktop ne montre pas de problème
+- Aucune régression de contraste ni de focus visible (`:focus-visible`
+  existant dans `globals.css` doit continuer de s'appliquer)
+
+---
+
+#### US 14.7 (P1) — Cohabitation contenu / barre d'onglets mobile fixe ✅
+
+**En tant qu'**utilisateur sur mobile, **je veux** que le dernier élément
+de chaque page reste entièrement visible et cliquable **afin qu'**il ne
+soit pas caché sous la barre d'onglets fixe de l'US 13.4.
+
+Critères d'acceptation :
+
+- `globals.css` définit une variable ou utilitaire pour
+  `env(safe-area-inset-bottom)` (absent aujourd'hui), utilisée par
+  `MobileTabBar` (US 13.4) et par le conteneur principal de chaque page
+  (`padding-bottom: calc(4rem + env(safe-area-inset-bottom))` ou
+  équivalent Tailwind)
+- Vérifié spécifiquement sur `app/rh/page.tsx` : le bouton « Copier la
+  liste » de `PurgeSection` (dernier élément interactif de la page) reste
+  entièrement au-dessus de la tab bar sur un viewport 375×667 (iPhone SE,
+  le plus petit couramment ciblé)
+- Non-régression desktop : ce padding ne s'applique qu'en dessous du
+  breakpoint où `MobileTabBar` est visible
+
+---
+
+#### Notes d'implémentation (livrées le 2026-08-03)
+
+Épique 14 implémenté en totalité (US 14.1 à 14.7). `npm run verify` vert
+Stryker compris (`useFocusTrap`, seul fichier de ce périmètre introduit
+par cet épique, couvert par l'US 13.8) ; `next build` réel vérifié (le
+nouveau token `--spacing-tab-bar` compile bien en CSS). Le tableau
+desktop et la vue carte mobile **coexistent tous deux dans le DOM**
+(bascule au CSS `md:hidden`/`hidden md:block`, pas de
+rendu conditionnel côté React) : plusieurs tests pré-existants qui
+cherchaient un texte ou un bouton sans le scoper au tableau (`getByText`,
+`getByRole('button', { name: ... })`) trouvaient désormais deux
+correspondances (table + carte) et ont dû être adaptés avec
+`within(screen.getByRole('table'))` — comportement runtime inchangé, seul
+le scope des assertions a bougé.
+
+- **US 14.1/14.2** : tri mobile via `<select>` plutôt qu'un clic
+  d'en-tête de colonne (`WarHistorySection`, `MembersTable` — un nouveau
+  prop `onSortSelect` distinct de `onSortChange`, ce dernier restant la
+  bascule utilisée par les en-têtes desktop). `CurrentWarSection` n'a pas
+  de contrôle de tri (déjà trié par urgence), donc pas de sélecteur côté
+  carte.
+- **US 14.3** : nouveau hook générique `hooks/use-focus-trap.ts`
+  (piège de focus + Échap + restauration), pas spécifique au panneau
+  joueur. Point d'attention corrigé en cours de route : `onClose` est
+  souvent une fermeture recréée à chaque rendu du parent
+  (`() => setTag(null)`) — la suivre en dépendance d'effet aurait rouvert
+  le piège (et volé le focus) à chaque rendu du composant parent, pas
+  seulement à l'ouverture/fermeture réelle. Le hook la lit via une ref
+  plutôt qu'en dépendance ; un test dédié couvre spécifiquement cette
+  régression potentielle.
+- **US 14.4** : la majeure partie (empilement mobile, `min-h-11`,
+  boutons pleine largeur) était déjà livrée avec `ClanSearchForm` lors de
+  l'Épique 13 sans étiquette US dédiée à l'époque ; seul le texte d'aide
+  restait sous 14px (`text-xs` → `text-sm`), corrigé ici.
+- **US 14.6** : le critère « boutons de tri d'en-tête ≥ 44px sur mobile »
+  est devenu sans objet — ces boutons ne sont désormais plus rendus du
+  tout en dessous de `md` (remplacés par le sélecteur des US 14.1/14.2),
+  donc rien à agrandir. Case à cocher et champ de seuil numérique
+  agrandis comme prévu.
+
+---
+
 ## 3. Ordre de réalisation et avancement
 
 1. ✅ **US 1.1** — socle du projet
@@ -902,6 +1475,20 @@ Critères d'acceptation :
     `domain/war/attendance-level.ts` et le nouveau
     `domain/war/participation.ts` à 100 % de couverture et 100 % de
     mutation Stryker.
+18. ✅ **Épique 13** — refonte architecture & routing (App Router,
+    layout persistant, `/dashboard` `/historique` `/rh`) : arbitrages C/D/E
+    tranchés (voir « Notes d'implémentation » en fin d'épique, notamment
+    la résolution du conflit avec l'arbitrage B de l'Épique 12 par un
+    pattern de seed plutôt qu'un passage en Server Components purs), US
+    13.1 à 13.8. `npm run verify` vert Stryker compris (`hooks/` 83,83 %
+    → 95,68 %, cf. US 13.8) ; `next build` réel vérifié
+19. ✅ **Épique 14** — audit UX mobile-first du 2026-08-03 : vues carte pour
+    les 3 tableaux denses (tri via `<select>` mobile), accessibilité du
+    panneau joueur (`useFocusTrap` : piège de focus, Échap, restauration),
+    formulaire de recherche et zones de toucher adaptées au tactile,
+    squelettes de chargement harmonisés, cohabitation avec la tab bar
+    mobile fixe (`--spacing-tab-bar`), US 14.1 à 14.7. `npm run verify`
+    vert Stryker compris (US 13.8) ; `next build` réel vérifié
 
 ### Finition produit (hors backlog initial)
 

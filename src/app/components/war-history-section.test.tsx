@@ -4,7 +4,8 @@
  * premiere colonne fixee au defilement horizontal (US-11).
  */
 
-import { fireEvent, render, screen } from '@testing-library/react';
+import { fireEvent, render, screen, within } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { describe, expect, it } from 'vitest';
 import type { ApiResource } from '@/hooks/use-api-resource';
 import { FIXTURE_RIVER_RACE_LOG } from '@/mocks/fixtures';
@@ -17,12 +18,23 @@ const success: ApiResource<unknown> = {
   refetch: () => undefined,
 };
 
+const loading: ApiResource<unknown> = { status: 'loading', refetch: () => undefined };
+
 describe('WarHistorySection', () => {
   it('n affiche rien avant toute soumission (idle)', () => {
     const { container } = render(
       <WarHistorySection logState={idle} clanTag="#20PP" currentMemberTags={[]} />,
     );
     expect(container).toBeEmptyDOMElement();
+  });
+
+  it('affiche un squelette pendant le chargement (US 14.5)', () => {
+    render(
+      <WarHistorySection logState={loading} clanTag="#20PP" currentMemberTags={[]} />,
+    );
+    expect(
+      screen.getByRole('status', { name: /chargement de l historique/i }),
+    ).toBeInTheDocument();
   });
 
   it('affiche une legende visible des symboles complet/incomplet/critique', () => {
@@ -85,5 +97,97 @@ describe('WarHistorySection', () => {
       'aria-sort',
       'descending',
     );
+  });
+
+  describe('US 14.1 : vue carte mobile', () => {
+    it('affiche une carte par joueur avec nom, tag et total', () => {
+      render(
+        <WarHistorySection
+          logState={success}
+          clanTag="#20PP"
+          currentMemberTags={['#PLAYER1', '#PLAYER2', '#PLAYER3', '#PLAYER4']}
+        />,
+      );
+
+      const cards = screen.getAllByTestId('history-card');
+      expect(cards).toHaveLength(4);
+      expect(within(cards[0]!).getByText('Joueur 1')).toBeInTheDocument();
+      expect(within(cards[0]!).getByText('#PLAYER1')).toBeInTheDocument();
+      expect(within(cards[0]!).getByText(/32 total/)).toBeInTheDocument();
+    });
+
+    it('trie les cartes via le selecteur mobile', async () => {
+      const user = userEvent.setup();
+      render(
+        <WarHistorySection
+          logState={success}
+          clanTag="#20PP"
+          currentMemberTags={['#PLAYER1', '#PLAYER2', '#PLAYER3', '#PLAYER4']}
+        />,
+      );
+
+      await user.selectOptions(
+        screen.getByRole('combobox', { name: /trier par/i }),
+        'total-asc',
+      );
+
+      const cards = screen.getAllByTestId('history-card');
+      expect(within(cards[0]!).getByText('Joueur 4')).toBeInTheDocument();
+    });
+
+    it('n affiche pas de bouton "voir toutes les semaines" avec peu de semaines', () => {
+      render(
+        <WarHistorySection
+          logState={success}
+          clanTag="#20PP"
+          currentMemberTags={['#PLAYER1']}
+        />,
+      );
+
+      expect(
+        screen.queryByRole('button', { name: /voir toutes les semaines/i }),
+      ).not.toBeInTheDocument();
+    });
+
+    it('deplie une carte au-dela de 4 semaines', async () => {
+      const manyWeeksLog = {
+        items: FIXTURE_RIVER_RACE_LOG.items.concat(
+          FIXTURE_RIVER_RACE_LOG.items.map((item) => ({
+            ...item,
+            sectionIndex: item.sectionIndex + 10,
+          })),
+          FIXTURE_RIVER_RACE_LOG.items.map((item) => ({
+            ...item,
+            sectionIndex: item.sectionIndex + 20,
+          })),
+          FIXTURE_RIVER_RACE_LOG.items.map((item) => ({
+            ...item,
+            sectionIndex: item.sectionIndex + 30,
+          })),
+          FIXTURE_RIVER_RACE_LOG.items.map((item) => ({
+            ...item,
+            sectionIndex: item.sectionIndex + 40,
+          })),
+        ),
+      };
+      const user = userEvent.setup();
+      render(
+        <WarHistorySection
+          logState={{ status: 'success', data: manyWeeksLog, refetch: () => undefined }}
+          clanTag="#20PP"
+          currentMemberTags={['#PLAYER1']}
+        />,
+      );
+      const card = screen.getAllByTestId('history-card')[0]!;
+      const expandButton = within(card).getByRole('button', {
+        name: /voir toutes les semaines/i,
+      });
+
+      await user.click(expandButton);
+
+      expect(
+        within(card).getByRole('button', { name: /voir moins de semaines/i }),
+      ).toBeInTheDocument();
+    });
   });
 });

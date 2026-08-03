@@ -36,6 +36,10 @@ const NETWORK_ERROR_STATE: PlayerProfileResource = {
 /** `tag === null` met le hook au repos, sans jamais appeler l'API. */
 export function usePlayerProfile(tag: string | null): PlayerProfileResource {
   const cache = useRef(new Map<string, PlayerProfileResource>());
+  // Valeur initiale sans consequence observable : l'effet ci-dessous la
+  // recalcule et l'ecrase au premier rendu, que `tag` soit null ou non
+  // (mutant Stryker "equivalent" sur ce litteral, meme raisonnement que
+  // `use-api-resource.ts`).
   const [state, setState] = useState<PlayerProfileResource>({ status: 'idle' });
 
   useEffect(() => {

@@ -156,4 +156,42 @@ describe('usePlayerProfile', () => {
     unmount();
     await new Promise((resolve) => setTimeout(resolve, 80));
   });
+
+  it('n ecrase ni l etat ni le cache avec une reponse perimee, abortee au changement de tag', async () => {
+    // #P1 ne repond jamais tout seul : resolu tardivement, une fois deja
+    // passe a #P2, pour verifier qu'il n'a plus voix au chapitre.
+    let resolveStaleP1!: (response: Response) => void;
+    mockServer.use(
+      http.get('*/api/players/:playerTag', ({ params }) => {
+        if (params.playerTag === '#P1') {
+          return new Promise<Response>((resolve) => (resolveStaleP1 = resolve));
+        }
+        return HttpResponse.json({ ...PLAYER_PAYLOAD, tag: '#P2', name: 'Joueur 2' });
+      }),
+    );
+    const { result, rerender } = renderHook(
+      ({ tag }: { tag: string | null }) => usePlayerProfile(tag),
+      { initialProps: { tag: '#P1' as string | null } },
+    );
+    expect(result.current.status).toBe('loading');
+    // Attend que la requete #P1 atteigne reellement MSW (interception
+    // asynchrone) avant de changer de tag : sinon l'abort survient avant
+    // meme que la requete soit "en vol", ce qui ne testerait rien.
+    await waitFor(() => expect(resolveStaleP1).toBeDefined());
+
+    rerender({ tag: '#P2' });
+    await waitFor(() => expect(result.current.status).toBe('success'));
+    expect(result.current).toMatchObject({ profile: { tag: '#P2' } });
+
+    resolveStaleP1(
+      HttpResponse.json({ ...PLAYER_PAYLOAD, tag: '#P1-perime', name: 'Perime' }),
+    );
+    await new Promise((resolve) => setTimeout(resolve, 20));
+    expect(result.current).toMatchObject({ profile: { tag: '#P2' } });
+
+    // #P1 n'a jamais ete mis en cache (requete abandonnee) : le rouvrir
+    // doit redemarrer un vrai chargement, pas servir un resultat perime.
+    rerender({ tag: '#P1' });
+    expect(result.current.status).toBe('loading');
+  });
 });
