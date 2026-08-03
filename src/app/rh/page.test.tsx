@@ -9,6 +9,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { SUPERCELL_API_BASE_URL } from '@/app/api/_lib/supercell';
 import { FIXTURE_FULL_CLAN, FIXTURE_RIVER_RACE_IN_PROGRESS } from '@/mocks/fixtures';
 import { mockServer } from '@/mocks/server';
+import { clearClanResourceCache } from '@/lib/server-clan-resource';
 
 vi.mock('next/navigation', () => ({
   useRouter: () => ({ replace: vi.fn() }),
@@ -34,6 +35,8 @@ describe('RhPage', () => {
 
   afterEach(() => {
     vi.unstubAllEnvs();
+    // Cache en memoire de fetchClanResource (US 15.1), partage entre tests.
+    clearClanResourceCache();
   });
 
   it('affiche le formulaire de recherche quand aucun clan n est actif', async () => {

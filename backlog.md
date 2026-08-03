@@ -1417,6 +1417,45 @@ le scope des assertions a bougé.
 
 ---
 
+### ÉPIQUE 15 — Cache serveur des données clan (perf navigation, 2026-08-03)
+
+> Suite directe de l'Épique 13 : `/dashboard`, `/historique` et `/rh`
+> étant des pages indépendantes, chacune refetch ses propres données au
+> lieu de partager celles déjà chargées par une autre — un aller-retour
+> Supercell complet à chaque clic entre les 3 pages, alors qu'elles
+> portent souvent sur le même clan (`clan` demandé par les 3,
+> `currentriverrace`/`riverracelog` par 2 sur 3 chacun).
+
+#### US 15.1 (P1) — Cache mémoire 10 min, clé tag + sous-ressource ✅
+
+**En tant qu'**utilisateur, **je veux** que naviguer entre Dashboard, RH
+et Historique pour le même clan soit rapide **afin de** ne pas attendre
+un nouvel aller-retour Supercell à chaque clic.
+
+Constat : un cookie a été envisagé puis écarté (taille limitée à ~4 Ko,
+envoyé sur chaque requête y compris les assets statiques — la liste des
+membres d'un clan de 50 joueurs le dépasserait largement). Retenu à la
+place : un cache en mémoire, côté serveur, dans `fetchClanResource`
+(`lib/server-clan-resource.ts`), seul point d'entrée commun aux 3 pages.
+
+Critères d'acceptation :
+
+- Cache par instance serveur (`Map`), clé `tag + sous-ressource`
+  (`''`/`/currentriverrace`/`/riverracelog`), durée de vie 10 minutes
+- Seuls les **succès** sont mis en cache : une erreur (rate limit,
+  timeout Supercell...) n'est jamais servie depuis le cache, un
+  rechargement de page relance immédiatement un vrai appel
+- Les rafraîchissements explicites côté client (« Réessayer »,
+  « Actualiser ») ne sont pas concernés : ils passent par le Route
+  Handler (`/api/clans/...`), pas par ce cache — un clic dessus reste
+  toujours une donnée fraîche
+- Testé : deuxième appel servi depuis le cache (pas de second appel
+  réseau), cache distinct par sous-ressource et par tag, erreur jamais
+  mise en cache, expiration après 10 minutes (horloge simulée), entrée
+  encore valide juste avant expiration
+
+---
+
 ## 3. Ordre de réalisation et avancement
 
 1. ✅ **US 1.1** — socle du projet
@@ -1489,6 +1528,10 @@ le scope des assertions a bougé.
     squelettes de chargement harmonisés, cohabitation avec la tab bar
     mobile fixe (`--spacing-tab-bar`), US 14.1 à 14.7. `npm run verify`
     vert Stryker compris (US 13.8) ; `next build` réel vérifié
+20. ✅ **Épique 15** — cache serveur des données clan (2026-08-03) :
+    `fetchClanResource` met en cache 10 min par tag + sous-ressource,
+    évite de refetch Supercell à chaque clic entre Dashboard/RH/Historique
+    pour le même clan, US 15.1
 
 ### Finition produit (hors backlog initial)
 
