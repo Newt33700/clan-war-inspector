@@ -31,8 +31,12 @@
   --color-royale-purple-500: #7c3aed;
   --color-royale-purple-300: #c4b5fd;
 
-  --color-royale-parchment: #f6ecd4;
-  --color-royale-parchment-dim: #b9b19c;
+  /* Textes remplaces (2026-08-03, retour "fond bleu nuit illisible / date") :
+     l'ancien ton "parchemin" beige/sepia lisait daté sur le nouveau fond en
+     degrade. Blanc casse + gris-bleu froid, plus contemporains, contraste
+     encore renforce (verifie par theme-contrast.test.ts). */
+  --color-royale-parchment: #f8fafc;
+  --color-royale-parchment-dim: #cbd5e1;
 
   --font-sans: var(--font-body-family), ui-sans-serif, system-ui, sans-serif;
   --font-display: var(--font-display-family), ui-sans-serif, system-ui, sans-serif;
@@ -87,6 +91,21 @@
 }
 
 @layer base {
+  /* Fond du site (retour 2026-08-03 : "fond bleu nuit moche") : un
+     aplat uni lisait plat et date. Degrade + halo subtil en haut (comme
+     l'eclairage de stade des ecrans de guerre de clan du jeu), fixe pour
+     ne pas se re-generer au scroll. */
+  body {
+    background:
+      radial-gradient(
+        ellipse 120% 50% at 50% -10%,
+        rgba(54, 138, 250, 0.28),
+        transparent 60%
+      ),
+      linear-gradient(180deg, #1b2c56 0%, var(--color-cr-bg-blue) 40%, #0a1428 100%);
+    background-attachment: fixed;
+  }
+
   :focus-visible {
     outline: 2px solid var(--color-royale-gold-400);
     outline-offset: 3px;
@@ -174,5 +193,12 @@
      degrade gris vers blanc, fine bordure noire, coins tres arrondis. */
   .cr-pill-row {
     @apply rounded-xl border border-black bg-gradient-to-b from-white to-slate-100 text-slate-900;
+  }
+
+  /* Verre depoli (retour 2026-08-03) : pour les elements restes sur le
+     fond sombre (champs de saisie, badges) plutot qu'un aplat navy plein,
+     plus dans l'air du temps et coherent avec le nouveau fond en degrade. */
+  .cr-glass {
+    @apply rounded-md border border-white/15 bg-white/10 backdrop-blur-sm;
   }
 }
