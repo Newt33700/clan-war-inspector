@@ -40,8 +40,15 @@ export function PurgeSection({
     [warState],
   );
   const currentWeekParticipants = war?.participants ?? [];
+  // Un jour d'entrainement, `decksUsed` vaut 0 pour tout le monde (la
+  // semaine de guerre n'a pas encore commence) : evaluer la regle sur
+  // cette donnee produirait une alerte massive et trompeuse (verifie sur
+  // le clan reel #20J20QG, 2026-08-03).
   const warIsActive =
-    war !== null && war.state !== 'notInWar' && currentWeekParticipants.length > 0;
+    war !== null &&
+    war.state !== 'notInWar' &&
+    !war.isTrainingDay &&
+    currentWeekParticipants.length > 0;
 
   const candidates = useMemo(
     () => findPurgeCandidates(members, currentWeekParticipants, minWeeklyBattles),
@@ -109,8 +116,9 @@ export function PurgeSection({
 
       {!warIsActive ? (
         <p className="text-royale-parchment-dim">
-          Le clan n est pas en guerre actuellement : rien a evaluer sur la semaine en
-          cours.
+          {war?.isTrainingDay
+            ? 'Jour d entrainement : la semaine de guerre n a pas encore commence, rien a evaluer.'
+            : 'Le clan n est pas en guerre actuellement : rien a evaluer sur la semaine en cours.'}
         </p>
       ) : (
         <>
