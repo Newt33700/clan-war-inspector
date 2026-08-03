@@ -403,9 +403,10 @@ describe('ClanDashboard', () => {
       );
 
       expect(writeText).toHaveBeenCalledWith(
-        'Joueur 3 (#PLAYER3) - 5 combats cette semaine',
+        "⚠️ Mise au point du Clan : Les joueurs suivants n'ont pas respecté le " +
+          'quota de combats cette semaine sur 8 : Joueur 3. Merci de corriger le tir rapidement !',
       );
-      expect(await within(purgeSection).findByText(/liste copiee/i)).toBeInTheDocument();
+      expect(await within(purgeSection).findByText(/copié/i)).toBeInTheDocument();
     });
   });
 

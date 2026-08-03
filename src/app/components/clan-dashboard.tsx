@@ -38,6 +38,7 @@ import { CurrentWarSection } from './current-war-section';
 import { HallOfFameSection } from './hall-of-fame-section';
 import { HrAssistantSection } from './hr-assistant-section';
 import { MembersTable } from './members-table';
+import { ParticipationSummarySection } from './participation-summary-section';
 import { PlayerDrawer } from './player-drawer';
 import { PurgeSection } from './purge-section';
 import { SectionNav } from './section-nav';
@@ -191,7 +192,10 @@ export function ClanDashboard() {
     <div className="space-y-12">
       {clanState.status === 'success' && <SectionNav />}
 
-      <HallOfFameSection logState={logState} clanTag={submittedTag} />
+      <div className="grid grid-cols-1 gap-8 md:grid-cols-[minmax(0,1fr)_2fr]">
+        <ParticipationSummarySection warState={warState} memberTags={memberTags} />
+        <HallOfFameSection logState={logState} clanTag={submittedTag} />
+      </div>
 
       <section
         id="membres"

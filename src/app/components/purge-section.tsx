@@ -12,7 +12,7 @@ import { useEffect, useMemo, useState } from 'react';
 import type { ClanMember } from '@/domain/clan/members';
 import { findPurgeCandidates } from '@/domain/clan/purge';
 import { parseCurrentWar } from '@/domain/war/current-war';
-import { formatPurgeCandidatesForClipboard } from '@/lib/purge-export';
+import { formatModerationReportForClipboard } from '@/lib/purge-export';
 import type { ApiResource } from '@/hooks/use-api-resource';
 
 const COPY_CONFIRMATION_MS = 2000;
@@ -60,7 +60,9 @@ export function PurgeSection({
 
   async function handleCopy() {
     try {
-      await navigator.clipboard.writeText(formatPurgeCandidatesForClipboard(candidates));
+      await navigator.clipboard.writeText(
+        formatModerationReportForClipboard(candidates, minWeeklyBattles),
+      );
       setCopyState('copied');
     } catch {
       setCopyState('error');
@@ -112,27 +114,26 @@ export function PurgeSection({
         </p>
       ) : (
         <>
-          {candidates.length > 0 && (
-            <div className="flex items-center gap-3">
-              <button
-                type="button"
-                onClick={handleCopy}
-                className="border-royale-gold-400 text-royale-gold-400 rounded-md border px-3 py-1 text-sm font-semibold"
-              >
-                Copier la liste
-              </button>
-              {copyState === 'copied' && (
-                <span role="status" className="text-royale-green-500 text-sm">
-                  Liste copiee !
-                </span>
-              )}
-              {copyState === 'error' && (
-                <span role="alert" className="text-royale-red-500 text-sm">
-                  Impossible de copier.
-                </span>
-              )}
-            </div>
-          )}
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              onClick={handleCopy}
+              disabled={candidates.length === 0}
+              className="border-royale-gold-400 text-royale-gold-400 rounded-md border px-3 py-1 text-sm font-semibold disabled:cursor-not-allowed disabled:opacity-40"
+            >
+              Copier la liste
+            </button>
+            {copyState === 'copied' && (
+              <span role="status" className="text-royale-green-500 text-sm">
+                Copié ! ✅
+              </span>
+            )}
+            {copyState === 'error' && (
+              <span role="alert" className="text-royale-red-500 text-sm">
+                Impossible de copier.
+              </span>
+            )}
+          </div>
 
           {candidates.length === 0 ? (
             <p className="text-royale-green-500">

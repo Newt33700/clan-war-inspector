@@ -1,6 +1,6 @@
 /**
- * Tests de la classification d'assiduite (US 4.4).
- * Les bornes exactes 11/12/15/16 sont exigees par le backlog.
+ * Tests de la classification d'assiduite (US 4.4, seuil Epique 12).
+ * Les bornes exactes 7/8/15/16 sont exigees par le backlog.
  */
 
 import { describe, expect, it } from 'vitest';
@@ -20,12 +20,12 @@ describe('classifyBattleCount', () => {
     expect(classifyBattleCount(15)).toBe('warning');
   });
 
-  it('classe 12 comme avertissement (borne basse)', () => {
-    expect(classifyBattleCount(12)).toBe('warning');
+  it('classe 8 comme avertissement (borne basse)', () => {
+    expect(classifyBattleCount(8)).toBe('warning');
   });
 
-  it('classe 11 comme critique (borne exacte)', () => {
-    expect(classifyBattleCount(11)).toBe('critical');
+  it('classe 7 comme critique (borne exacte)', () => {
+    expect(classifyBattleCount(7)).toBe('critical');
   });
 
   it('classe 0 comme critique', () => {
@@ -34,8 +34,8 @@ describe('classifyBattleCount', () => {
 });
 
 describe('WARNING_THRESHOLD', () => {
-  it('vaut 12 conformement au backlog', () => {
-    expect(WARNING_THRESHOLD).toBe(12);
+  it('vaut 8 (50% de 16), aligne sur minWeeklyBattles', () => {
+    expect(WARNING_THRESHOLD).toBe(8);
   });
 });
 
