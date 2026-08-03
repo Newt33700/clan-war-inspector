@@ -13,6 +13,7 @@ export const NAV_ITEMS: readonly NavItem[] = [
   { href: '/dashboard', label: 'Dashboard' },
   { href: '/historique', label: 'Historique' },
   { href: '/rh', label: 'RH' },
+  { href: '/nouveaux-membres', label: 'Nouveaux' },
 ];
 
 /**

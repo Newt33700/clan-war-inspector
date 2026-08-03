@@ -43,8 +43,17 @@ export function HrIcon({ className = 'h-6 w-6' }: NavIconProps) {
   );
 }
 
+export function QuarantineIcon({ className = 'h-6 w-6' }: NavIconProps) {
+  return (
+    <svg viewBox="0 0 24 24" className={`fill-current ${className}`} aria-hidden="true">
+      <path d="M12 2 3 5v6c0 5 3.8 9.4 9 11 5.2-1.6 9-6 9-11V5l-9-3Zm0 4a3 3 0 1 1 0 6 3 3 0 0 1 0-6Zm0 14c-2.5-1-4.5-3-5.4-6 .3-1.8 2.8-3 5.4-3s5.1 1.2 5.4 3c-.9 3-2.9 5-5.4 6Z" />
+    </svg>
+  );
+}
+
 export const NAV_ICONS: Record<string, (props: NavIconProps) => React.JSX.Element> = {
   '/dashboard': DashboardIcon,
   '/historique': HistoryIcon,
   '/rh': HrIcon,
+  '/nouveaux-membres': QuarantineIcon,
 };
