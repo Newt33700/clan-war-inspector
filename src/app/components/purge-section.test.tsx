@@ -96,6 +96,32 @@ describe('PurgeSection', () => {
     expect(screen.getByText(/n est pas en guerre actuellement/i)).toBeInTheDocument();
   });
 
+  it('n evalue pas les candidats un jour d entrainement (verifie sur le clan reel #20J20QG)', () => {
+    // Un jour d'entrainement, `decksUsed` vaut 0 pour tout le clan (la
+    // semaine de guerre n'a pas encore commence) : evaluer la regle sur
+    // cette donnee produirait une alerte massive et trompeuse.
+    const candidate = member({ tag: '#A', name: 'Alice', role: 'member' });
+    render(
+      <PurgeSection
+        members={[candidate]}
+        warState={{
+          status: 'success',
+          data: {
+            state: 'full',
+            periodType: 'training',
+            clan: { participants: [{ tag: '#A', decksUsed: 0 }] },
+          },
+          refetch: () => undefined,
+        }}
+        minWeeklyBattles={4}
+        onMinWeeklyBattlesChange={noop}
+        ready
+      />,
+    );
+    expect(screen.queryByTestId('purge-row')).not.toBeInTheDocument();
+    expect(screen.getByText(/jour d entrainement/i)).toBeInTheDocument();
+  });
+
   it('liste un membre sous le seuil, mais pas un role elder', () => {
     const candidate = member({ tag: '#A', name: 'Alice', role: 'member' });
     const elder = member({ tag: '#B', name: 'Bob', role: 'elder' });

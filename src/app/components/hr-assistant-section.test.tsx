@@ -166,6 +166,31 @@ describe('HrAssistantSection', () => {
     expect(screen.queryByTestId('watch-card')).not.toBeInTheDocument();
   });
 
+  it('n evalue pas Sur la sellette un jour d entrainement (verifie sur le clan reel #20J20QG)', () => {
+    // Un jour d'entrainement, `decksUsed` vaut 0 pour tout le clan (la
+    // semaine de guerre n'a pas encore commence) : sans ce garde, tout
+    // aine se retrouve marque "a retrograder" alors que rien n a ete joue.
+    const candidate = member({ tag: '#B', name: 'Bob', role: 'elder' });
+    render(
+      <HrAssistantSection
+        members={[candidate]}
+        attendance={[]}
+        logState={success}
+        warState={{
+          status: 'success',
+          data: {
+            periodType: 'training',
+            clan: { participants: [{ tag: '#B', decksUsed: 0 }] },
+          },
+          refetch: () => undefined,
+        }}
+        minWeeklyBattles={MIN_WEEKLY_BATTLES}
+      />,
+    );
+    expect(screen.queryByTestId('watch-card')).not.toBeInTheDocument();
+    expect(screen.getByText(/jour d entrainement/i)).toBeInTheDocument();
+  });
+
   it('n evalue pas la semaine en cours tant que la guerre n est pas chargee', () => {
     const candidate = member({ tag: '#D', name: 'Dave', role: 'elder' });
     render(

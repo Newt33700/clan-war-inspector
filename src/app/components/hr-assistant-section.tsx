@@ -66,10 +66,17 @@ export function HrAssistantSection({
   const ready = logState.status === 'success';
   const loading = logState.status === 'loading';
 
-  const currentWeekParticipants = useMemo(
-    () =>
-      warState.status === 'success' ? parseCurrentWar(warState.data).participants : [],
+  const war = useMemo(
+    () => (warState.status === 'success' ? parseCurrentWar(warState.data) : null),
     [warState],
+  );
+  // Un jour d'entrainement, `decksUsed` vaut 0 pour tout le monde (la
+  // semaine de guerre n'a pas encore commence) : evaluer "Sur la
+  // sellette" sur cette donnee marquerait tout aine comme a retrograder
+  // (verifie sur le clan reel #20J20QG, 2026-08-03).
+  const currentWeekParticipants = useMemo(
+    () => (war !== null && !war.isTrainingDay ? war.participants : []),
+    [war],
   );
 
   const meritorious = useMemo(
@@ -168,7 +175,11 @@ export function HrAssistantSection({
               <EmptyState
                 icon={<TriangleWarningIcon className="h-10 w-10" />}
                 title="Personne sur la sellette"
-                description={`Aucun aine sous ${minWeeklyBattles}/16 combats sur la semaine de guerre en cours.`}
+                description={
+                  war?.isTrainingDay
+                    ? 'Jour d entrainement : la semaine de guerre n a pas encore commence, rien a evaluer.'
+                    : `Aucun aine sous ${minWeeklyBattles}/16 combats sur la semaine de guerre en cours.`
+                }
               />
             ) : (
               <ul className="space-y-3">
