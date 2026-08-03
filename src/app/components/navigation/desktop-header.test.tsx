@@ -9,7 +9,7 @@ vi.mock('next/navigation', () => ({
 import { DesktopHeader } from './desktop-header';
 
 describe('DesktopHeader', () => {
-  it('affiche le nom du produit et les 4 routes', () => {
+  it('affiche le nom du produit et les 5 routes', () => {
     usePathnameMock.mockReturnValue('/rh');
     render(<DesktopHeader />);
 
@@ -22,5 +22,6 @@ describe('DesktopHeader', () => {
       'aria-current',
     );
     expect(screen.getByRole('link', { name: /nouveaux/i })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /meteo/i })).toBeInTheDocument();
   });
 });

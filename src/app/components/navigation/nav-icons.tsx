@@ -51,9 +51,18 @@ export function QuarantineIcon({ className = 'h-6 w-6' }: NavIconProps) {
   );
 }
 
+export function WeatherIcon({ className = 'h-6 w-6' }: NavIconProps) {
+  return (
+    <svg viewBox="0 0 24 24" className={`fill-current ${className}`} aria-hidden="true">
+      <path d="M7 19a4.5 4.5 0 0 1-.4-8.98A5.5 5.5 0 0 1 17 8.5a4.5 4.5 0 0 1 2 8.5H7Z" />
+    </svg>
+  );
+}
+
 export const NAV_ICONS: Record<string, (props: NavIconProps) => React.JSX.Element> = {
   '/dashboard': DashboardIcon,
   '/historique': HistoryIcon,
   '/rh': HrIcon,
   '/nouveaux-membres': QuarantineIcon,
+  '/meteo': WeatherIcon,
 };

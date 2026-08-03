@@ -14,6 +14,7 @@ export const NAV_ITEMS: readonly NavItem[] = [
   { href: '/historique', label: 'Historique' },
   { href: '/rh', label: 'RH' },
   { href: '/nouveaux-membres', label: 'Nouveaux' },
+  { href: '/meteo', label: 'Meteo' },
 ];
 
 /**
