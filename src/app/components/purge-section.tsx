@@ -107,7 +107,7 @@ export function PurgeSection({
               onMinWeeklyBattlesChange(Number.isNaN(parsed) ? 0 : Math.max(0, parsed));
             }}
             aria-label="Seuil de combats sur la semaine en cours"
-            className="border-royale-blue-800 bg-royale-navy-900 text-royale-parchment min-h-11 w-16 rounded-md border px-2 py-2 text-right"
+            className="cr-glass text-royale-parchment min-h-11 w-16 px-2 py-2 text-right"
           />
         </label>
         combats sur la semaine de guerre en cours (16 attendus). Ce seuil est aussi

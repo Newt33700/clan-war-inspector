@@ -1591,6 +1591,16 @@ Critères d'acceptation :
   existants). `EmptyState` gagne une prop `tone` (`dark`/`light`) pour
   s'adapter au panneau clair du profil joueur sans régresser son usage par
   défaut ailleurs.
+- ✅ **Fond bleu nuit modernisé** (2026-08-03, retour utilisateur : « c'est
+  moche, rends ça plus lisible et plus dans l'air du temps ») : l'aplat
+  `cr-bg-blue` uni est remplacé par un dégradé avec un halo bleu subtil en
+  haut de page (`body` en `@layer base`, fixe au scroll). Tokens de texte
+  `parchment`/`parchment-dim` modernisés (blanc cassé + gris-bleu froid au
+  lieu du ton parchemin sépia d'origine, contraste encore renforcé,
+  reverifié par `theme-contrast.test.ts`). Nouvel utilitaire `.cr-glass`
+  (verre dépoli : fond translucide + flou) appliqué aux derniers champs de
+  saisie et à la barre d'onglets mobile restés en aplat plein sur le
+  canevas sombre, pour rester cohérent avec le reste de la refonte.
 
 ### Dette de test assumée (à reprendre par la passe testing)
 

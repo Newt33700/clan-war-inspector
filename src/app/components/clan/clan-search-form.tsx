@@ -104,7 +104,7 @@ export function ClanSearchForm() {
             value={draftTag}
             onChange={(event) => setDraftTag(event.target.value)}
             placeholder="#20J20QG ou Chevreaux Team"
-            className="border-royale-blue-800 bg-royale-navy-900 text-royale-parchment min-h-11 rounded-md border px-3 py-2"
+            className="cr-glass text-royale-parchment min-h-11 px-3 py-2 placeholder:text-slate-400"
           />
         </label>
         <button

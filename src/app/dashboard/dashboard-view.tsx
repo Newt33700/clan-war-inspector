@@ -130,7 +130,7 @@ export function DashboardView({ tag, clanSeed, warSeed, logSeed }: DashboardView
                   value={memberQuery}
                   onChange={(event) => setMemberQuery(event.target.value)}
                   placeholder="Pseudo ou tag..."
-                  className="border-royale-blue-800 bg-royale-navy-900 text-royale-parchment w-full max-w-xs rounded-md border px-3 py-2"
+                  className="cr-glass text-royale-parchment w-full max-w-xs px-3 py-2 placeholder:text-slate-400"
                 />
               </label>
             )}
