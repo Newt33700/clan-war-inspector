@@ -16,6 +16,7 @@ import { SUPERCELL_API_BASE_URL } from '@/app/api/_lib/supercell';
 import { setMockResponse } from '@/mocks/handlers';
 import { FIXTURE_FULL_CLAN, FIXTURE_RIVER_RACE_IDLE } from '@/mocks/fixtures';
 import { mockServer } from '@/mocks/server';
+import { clearClanResourceCache } from '@/lib/server-clan-resource';
 
 vi.mock('next/navigation', () => ({
   useRouter: () => ({ replace: vi.fn() }),
@@ -42,6 +43,10 @@ describe('DashboardPage', () => {
   afterEach(() => {
     vi.unstubAllEnvs();
     cookieGetMock.mockReturnValue(undefined);
+    // Le cache de fetchClanResource (US 15.1) est en memoire, partage entre
+    // tous les tests du fichier : sans ce reset, un succes mis en cache par
+    // un test fuirait vers le suivant, meme avec un mock MSW different.
+    clearClanResourceCache();
   });
 
   it('affiche le formulaire de recherche quand aucun clan n est actif', async () => {
