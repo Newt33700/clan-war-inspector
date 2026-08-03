@@ -84,7 +84,7 @@ export function PurgeSection({
     <section aria-labelledby="purge-title" className="space-y-4">
       <h2
         id="purge-title"
-        className="text-royale-parchment font-display text-xl tracking-wide"
+        className="cr-wood-header text-cr-title font-display rounded-lg text-xl tracking-wide"
       >
         A expulser
       </h2>
@@ -127,7 +127,7 @@ export function PurgeSection({
               type="button"
               onClick={handleCopy}
               disabled={candidates.length === 0}
-              className="border-royale-gold-400 text-royale-gold-400 rounded-md border px-3 py-1 text-sm font-semibold disabled:cursor-not-allowed disabled:opacity-40"
+              className="btn-cr-gold px-3 py-1 text-sm disabled:cursor-not-allowed disabled:opacity-40"
             >
               Copier la liste
             </button>
@@ -148,30 +148,32 @@ export function PurgeSection({
               Aucun membre problematique avec ce seuil.
             </p>
           ) : (
-            <ul className="space-y-2">
-              {candidates.map((candidate) => (
-                <li
-                  key={candidate.member.tag}
-                  data-testid="purge-row"
-                  className="border-royale-red-700/60 bg-royale-navy-900 flex flex-wrap items-center justify-between gap-2 rounded-md border px-4 py-3"
-                >
-                  <div>
-                    <p className="text-royale-parchment font-semibold">
-                      {candidate.member.name}
-                      <span className="text-royale-parchment-dim ml-2 text-xs">
-                        {candidate.member.tag}
-                      </span>
-                    </p>
-                    <p className="text-royale-parchment-dim text-xs">
-                      {candidate.currentWeekBattles}/16 combats cette semaine
-                    </p>
-                  </div>
-                  <span className="bg-royale-red-700 text-royale-parchment rounded-full px-3 py-1 text-xs font-semibold">
-                    Combats insuffisants cette semaine
-                  </span>
-                </li>
-              ))}
-            </ul>
+            <div className="bg-cr-panel-light rounded-lg border-2 border-black p-3">
+              <ul className="space-y-2">
+                {candidates.map((candidate) => (
+                  <li
+                    key={candidate.member.tag}
+                    data-testid="purge-row"
+                    className="cr-pill-row border-l-cr-red flex flex-wrap items-center justify-between gap-2 border-l-4 px-4 py-3"
+                  >
+                    <div>
+                      <p className="font-display font-semibold text-slate-900">
+                        {candidate.member.name}
+                        <span className="ml-2 text-xs font-normal text-slate-500">
+                          {candidate.member.tag}
+                        </span>
+                      </p>
+                      <p className="text-xs text-slate-500">
+                        {candidate.currentWeekBattles}/16 combats cette semaine
+                      </p>
+                    </div>
+                    <span className="bg-cr-red rounded-full px-3 py-1 text-xs font-semibold text-white">
+                      Combats insuffisants cette semaine
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </div>
           )}
         </>
       )}

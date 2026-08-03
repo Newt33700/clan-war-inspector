@@ -97,9 +97,9 @@ export function HallOfFameSection({ logState, clanTag }: HallOfFameSectionProps)
     <section aria-labelledby="hall-of-fame-title" className="space-y-4">
       <h2
         id="hall-of-fame-title"
-        className="text-royale-parchment font-display flex items-center gap-2 text-xl tracking-wide"
+        className="cr-wood-header text-cr-title font-display rounded-lg text-xl tracking-wide"
       >
-        <TrophyIcon className="text-royale-gold-400 h-5 w-5" />
+        <TrophyIcon className="h-5 w-5" />
         Hall of Fame
       </h2>
 

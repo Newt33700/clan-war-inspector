@@ -40,10 +40,8 @@ export function CopyButton({ text, label = 'Copier le tag' }: CopyButtonProps) {
     <button
       type="button"
       onClick={handleClick}
-      className={`rounded-md border px-3 py-1 text-xs font-semibold transition-colors duration-300 ${
-        copied
-          ? 'border-royale-green-500 bg-royale-green-500 text-royale-navy-950'
-          : 'border-royale-gold-400 text-royale-gold-400'
+      className={`px-3 py-1 text-xs transition-colors duration-300 ${
+        copied ? 'btn-cr-green' : 'btn-cr-gold'
       }`}
     >
       {copied ? '✓ Copie !' : label}

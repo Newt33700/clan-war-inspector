@@ -40,7 +40,7 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="fr" className={`${displayFont.variable} ${bodyFont.variable}`}>
-      <body className="bg-royale-navy-950 text-royale-parchment min-h-screen font-sans antialiased">
+      <body className="bg-cr-bg-blue text-royale-parchment min-h-screen font-sans antialiased">
         <DesktopHeader />
         {/* Bandeau de marque mobile (pas un <h1> : chaque page porte le
             sien, propre a son contenu -- "Dashboard", "Historique des

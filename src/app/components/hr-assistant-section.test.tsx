@@ -126,7 +126,7 @@ describe('HrAssistantSection', () => {
     expect(within(card).getByText(/3\/16 combats cette semaine/i)).toBeInTheDocument();
   });
 
-  it('utilise un fond uni et une bordure gauche epaisse pour le contraste (US 12.2)', () => {
+  it('utilise une bordure gauche rouge epaisse, distincte du vert des meritants (US 12.2)', () => {
     const candidate = member({ tag: '#B', name: 'Bob', role: 'elder' });
     render(
       <HrAssistantSection
@@ -142,10 +142,9 @@ describe('HrAssistantSection', () => {
       />,
     );
     const card = screen.getByTestId('watch-card');
-    expect(card.className).toContain('bg-royale-navy-900');
     expect(card.className).toContain('border-l-4');
-    expect(card.className).toContain('border-royale-red-700');
-    expect(card.className).not.toContain('bg-gradient-to-r');
+    expect(card.className).toContain('border-l-cr-red');
+    expect(card.className).not.toContain('border-l-cr-green');
   });
 
   it('exclut un role coLeader (seuls les elder sont evalues)', () => {

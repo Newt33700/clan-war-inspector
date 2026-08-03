@@ -30,6 +30,7 @@ function CardsGrid({ deck }: { deck: PlayerProfile['deck'] }) {
         }
         title="Deck indisponible"
         description="Ni deck actuel ni carte favorite dans ce profil."
+        tone="light"
       />
     );
   }
@@ -39,7 +40,7 @@ function CardsGrid({ deck }: { deck: PlayerProfile['deck'] }) {
         <div
           key={`${card.name}-${index}`}
           data-testid="deck-card"
-          className="bg-royale-navy-900 flex flex-col items-center gap-1 rounded p-1"
+          className="cr-pill-row flex flex-col items-center gap-1 p-1"
         >
           {card.iconUrl.length > 0 ? (
             <img
@@ -48,9 +49,9 @@ function CardsGrid({ deck }: { deck: PlayerProfile['deck'] }) {
               className="h-10 w-10 object-contain"
             />
           ) : (
-            <div className="bg-royale-blue-800 h-10 w-10 rounded" aria-hidden="true" />
+            <div className="h-10 w-10 rounded bg-slate-300" aria-hidden="true" />
           )}
-          <span className="text-royale-parchment-dim w-full truncate text-center text-[10px]">
+          <span className="w-full truncate text-center text-[10px] text-slate-500">
             {card.name}
           </span>
         </div>
@@ -83,29 +84,29 @@ function ProfileContent({ profile }: { profile: PlayerProfile }) {
   return (
     <div className="mt-6 space-y-5">
       <div>
-        <p className="text-royale-parchment font-display text-lg">{profile.name}</p>
-        <p className="text-royale-parchment-dim text-xs">{profile.tag}</p>
+        <p className="font-display text-lg text-slate-900">{profile.name}</p>
+        <p className="text-xs text-slate-500">{profile.tag}</p>
       </div>
 
       <dl className="grid grid-cols-2 gap-3 text-sm">
         <div>
-          <dt className="text-royale-parchment-dim text-xs uppercase">Role</dt>
-          <dd className="text-royale-parchment font-semibold">
+          <dt className="text-xs text-slate-500 uppercase">Role</dt>
+          <dd className="font-semibold text-slate-900">
             {profile.role !== null ? ROLE_LABELS[profile.role] : 'Hors clan'}
           </dd>
         </div>
         <div>
-          <dt className="text-royale-parchment-dim text-xs uppercase">Niveau</dt>
-          <dd className="text-royale-parchment font-semibold">{profile.expLevel}</dd>
+          <dt className="text-xs text-slate-500 uppercase">Niveau</dt>
+          <dd className="font-semibold text-slate-900">{profile.expLevel}</dd>
         </div>
         <div className="col-span-2">
-          <dt className="text-royale-parchment-dim text-xs uppercase">Total de dons</dt>
-          <dd className="text-royale-parchment font-semibold">{profile.donations}</dd>
+          <dt className="text-xs text-slate-500 uppercase">Total de dons</dt>
+          <dd className="font-semibold text-slate-900">{profile.donations}</dd>
         </div>
       </dl>
 
       <div>
-        <h3 className="text-royale-parchment-dim mb-2 text-xs uppercase">Deck</h3>
+        <h3 className="mb-2 text-xs text-slate-500 uppercase">Deck</h3>
         <CardsGrid deck={profile.deck} />
       </div>
     </div>
@@ -137,14 +138,14 @@ export function PlayerDrawer({ tag, onClose }: PlayerDrawerProps) {
         aria-hidden={!isOpen}
         aria-labelledby="player-drawer-title"
         tabIndex={-1}
-        className={`bg-royale-navy-950 border-royale-blue-800 fixed inset-y-0 right-0 z-50 w-full overflow-y-auto border-l p-6 shadow-xl transition-transform duration-300 sm:w-[400px] ${
+        className={`bg-cr-panel-light fixed inset-y-0 right-0 z-50 w-full overflow-y-auto border-l-2 border-black p-6 shadow-xl transition-transform duration-300 sm:w-[400px] ${
           isOpen ? 'translate-x-0' : 'pointer-events-none translate-x-full'
         }`}
       >
         <div className="flex items-center justify-between">
           <h2
             id="player-drawer-title"
-            className="text-royale-parchment font-display text-lg tracking-wide"
+            className="font-display text-lg tracking-wide text-slate-900"
           >
             Profil joueur
           </h2>
@@ -152,7 +153,7 @@ export function PlayerDrawer({ tag, onClose }: PlayerDrawerProps) {
             type="button"
             onClick={onClose}
             aria-label="Fermer le panneau"
-            className="text-royale-parchment-dim hover:text-royale-parchment text-xl leading-none"
+            className="text-xl leading-none text-slate-500 hover:text-slate-900"
           >
             &times;
           </button>
@@ -160,7 +161,7 @@ export function PlayerDrawer({ tag, onClose }: PlayerDrawerProps) {
 
         {resource.status === 'loading' && <DrawerSkeleton />}
         {resource.status === 'error' && (
-          <p role="alert" className="text-royale-red-500 mt-6">
+          <p role="alert" className="text-cr-red mt-6">
             {resource.message}
           </p>
         )}

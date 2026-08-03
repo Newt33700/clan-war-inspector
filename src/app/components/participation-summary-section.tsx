@@ -49,7 +49,7 @@ export function ParticipationSummarySection({
     <section aria-labelledby="participation-summary-title" className="space-y-4">
       <h2
         id="participation-summary-title"
-        className="text-royale-parchment font-display text-xl tracking-wide"
+        className="cr-wood-header text-cr-title font-display rounded-lg text-xl tracking-wide"
       >
         Participation de la semaine
       </h2>

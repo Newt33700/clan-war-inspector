@@ -40,29 +40,25 @@ function WarParticipantCard({ participant }: { participant: AnnotatedWarParticip
   return (
     <li
       data-testid="war-card"
-      className={`border-royale-blue-800 bg-royale-navy-900 space-y-3 rounded-lg border p-4 ${
-        participant.stillInClan ? '' : 'opacity-50'
-      }`}
+      className={`cr-pill-row space-y-3 p-4 ${participant.stillInClan ? '' : 'opacity-50'}`}
     >
       <div className="flex items-start justify-between gap-3">
         <div>
-          <p className="text-royale-parchment font-semibold">{participant.name}</p>
-          <p className="text-royale-parchment-dim text-xs">{participant.tag}</p>
+          <p className="font-display font-semibold text-slate-900">{participant.name}</p>
+          <p className="text-xs text-slate-500">{participant.tag}</p>
           {!participant.stillInClan && (
-            <span className="bg-royale-red-700/60 text-royale-parchment mt-1 inline-block rounded px-2 py-0.5 text-xs">
+            <span className="bg-cr-red mt-1 inline-block rounded px-2 py-0.5 text-xs text-white">
               A quitte le clan
             </span>
           )}
         </div>
         <p
           className={`text-right text-sm font-semibold tabular-nums ${
-            idleToday ? 'text-royale-red-500' : 'text-royale-parchment'
+            idleToday ? 'text-cr-red' : 'text-slate-900'
           }`}
         >
           {participant.decksUsedToday}/{DECKS_PER_DAY}
-          <span className="text-royale-parchment-dim block text-xs font-normal">
-            Aujourd hui
-          </span>
+          <span className="block text-xs font-normal text-slate-500">Aujourd hui</span>
           {idleToday && <span className="sr-only"> - aucun deck joue aujourd hui</span>}
         </p>
       </div>
@@ -137,14 +133,15 @@ export function CurrentWarSection({ warState, memberTags }: CurrentWarSectionPro
 
   return (
     <section aria-labelledby="current-war-title" className="space-y-4">
+      <h2
+        id="current-war-title"
+        className="cr-wood-header text-cr-title font-display rounded-lg text-xl tracking-wide"
+      >
+        <SwordsIcon className="h-5 w-5" />
+        Guerre en cours
+      </h2>
+
       <div className="flex flex-wrap items-center gap-3">
-        <h2
-          id="current-war-title"
-          className="text-royale-parchment font-display flex items-center gap-2 text-xl tracking-wide"
-        >
-          <SwordsIcon className="text-royale-red-500 h-5 w-5" />
-          Guerre en cours
-        </h2>
         {war !== null && periodBadge(war.isTrainingDay, war.periodType)}
         {updatedAt !== null && (
           <div className="ml-auto flex items-center gap-3">
@@ -155,7 +152,7 @@ export function CurrentWarSection({ warState, memberTags }: CurrentWarSectionPro
               type="button"
               onClick={warState.refetch}
               disabled={warState.status === 'loading'}
-              className="border-royale-blue-800 text-royale-parchment-dim rounded-md border px-3 py-1 text-xs font-semibold disabled:opacity-40"
+              className="btn-cr-blue px-3 py-1 text-xs disabled:opacity-40"
             >
               Actualiser
             </button>
@@ -183,7 +180,7 @@ export function CurrentWarSection({ warState, memberTags }: CurrentWarSectionPro
           <button
             type="button"
             onClick={warState.refetch}
-            className="border-royale-gold-400 text-royale-gold-400 rounded-md border px-3 py-1 text-sm font-semibold"
+            className="btn-cr-red px-3 py-1 text-sm"
           >
             Reessayer
           </button>
@@ -212,7 +209,7 @@ export function CurrentWarSection({ warState, memberTags }: CurrentWarSectionPro
             Aucun membre actuel n a participe a cette guerre pour l instant.
           </p>
         ) : (
-          <>
+          <div className="bg-cr-panel-light space-y-3 rounded-lg border-2 border-black p-3">
             {/* Vue carte mobile (US 14.2) : le tableau reste reserve a
                 partir de `md` (souris/trackpad). */}
             <ul className="space-y-3 md:hidden">
@@ -222,19 +219,19 @@ export function CurrentWarSection({ warState, memberTags }: CurrentWarSectionPro
             </ul>
 
             <div className="hidden overflow-x-auto md:block">
-              <table className="w-full border-collapse text-sm">
+              <table className="w-full border-separate border-spacing-y-2 text-sm">
                 <caption className="sr-only">
                   Decks joues aujourd hui et sur la semaine par participant
                 </caption>
                 <thead>
-                  <tr className="border-royale-blue-800 text-royale-parchment-dim border-b uppercase">
-                    <th scope="col" className="px-3 py-2 text-left">
+                  <tr className="uppercase">
+                    <th scope="col" className="px-3 py-2 text-left text-slate-600">
                       Joueur
                     </th>
-                    <th scope="col" className="px-3 py-2 text-right">
+                    <th scope="col" className="px-3 py-2 text-right text-slate-600">
                       Aujourd hui
                     </th>
-                    <th scope="col" className="px-3 py-2 text-right">
+                    <th scope="col" className="px-3 py-2 text-right text-slate-600">
                       Semaine
                     </th>
                   </tr>
@@ -246,24 +243,27 @@ export function CurrentWarSection({ warState, memberTags }: CurrentWarSectionPro
                       <tr
                         key={participant.tag}
                         data-testid="war-row"
-                        className={`border-royale-blue-800/40 text-royale-parchment border-b ${
+                        className={`bg-gradient-to-b from-white to-slate-100 text-slate-900 ${
                           participant.stillInClan ? '' : 'opacity-50'
                         }`}
                       >
-                        <th scope="row" className="px-3 py-2 text-left font-normal">
+                        <th
+                          scope="row"
+                          className="rounded-l-xl border-y-2 border-l-2 border-black px-3 py-2 text-left font-normal"
+                        >
                           {participant.name}
-                          <span className="text-royale-parchment-dim block text-xs">
+                          <span className="block text-xs text-slate-500">
                             {participant.tag}
                           </span>
                           {!participant.stillInClan && (
-                            <span className="bg-royale-red-700/60 text-royale-parchment mt-1 inline-block rounded px-2 py-0.5 text-xs">
+                            <span className="bg-cr-red mt-1 inline-block rounded px-2 py-0.5 text-xs text-white">
                               A quitte le clan
                             </span>
                           )}
                         </th>
                         <td
-                          className={`px-3 py-2 text-right font-semibold tabular-nums ${
-                            idleToday ? 'text-royale-red-500' : 'text-royale-parchment'
+                          className={`border-y-2 border-black px-3 py-2 text-right font-semibold tabular-nums ${
+                            idleToday ? 'text-cr-red' : 'text-slate-900'
                           }`}
                         >
                           {participant.decksUsedToday}/{DECKS_PER_DAY}
@@ -274,7 +274,7 @@ export function CurrentWarSection({ warState, memberTags }: CurrentWarSectionPro
                             </span>
                           )}
                         </td>
-                        <td className="px-3 py-2">
+                        <td className="rounded-r-xl border-y-2 border-r-2 border-black px-3 py-2">
                           <PlayerProgressBar
                             score={participant.decksUsed}
                             max={BATTLES_PER_WAR_WEEK}
@@ -286,7 +286,7 @@ export function CurrentWarSection({ warState, memberTags }: CurrentWarSectionPro
                 </tbody>
               </table>
             </div>
-          </>
+          </div>
         ))}
     </section>
   );

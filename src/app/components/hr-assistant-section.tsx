@@ -101,7 +101,7 @@ export function HrAssistantSection({
     <section aria-labelledby="hr-assistant-title" className="space-y-4">
       <h2
         id="hr-assistant-title"
-        className="text-royale-parchment font-display text-xl tracking-wide"
+        className="cr-wood-header text-cr-title font-display rounded-lg text-xl tracking-wide"
       >
         Assistant Ressources Humaines
       </h2>
@@ -132,30 +132,34 @@ export function HrAssistantSection({
                 description="16/16 sur 3 semaines et au moins un don cette semaine, pour un membre."
               />
             ) : (
-              <ul className="space-y-3">
-                {meritorious.map((member, index) => (
-                  <li
-                    key={member.tag}
-                    data-testid="merit-card"
-                    style={{ animationDelay: `${index * 60}ms` }}
-                    className="animate-fade-in rounded-lg border border-emerald-700/50 bg-gradient-to-r from-emerald-900 to-slate-900 p-4"
-                  >
-                    <div className="flex items-center gap-3">
-                      <ShieldIcon className="h-8 w-8 text-emerald-400" />
-                      <div>
-                        <p className="text-royale-parchment font-bold">{member.name}</p>
-                        <p className="text-royale-parchment-dim text-xs">{member.tag}</p>
+              <div className="bg-cr-panel-light rounded-lg border-2 border-black p-3">
+                <ul className="space-y-3">
+                  {meritorious.map((member, index) => (
+                    <li
+                      key={member.tag}
+                      data-testid="merit-card"
+                      style={{ animationDelay: `${index * 60}ms` }}
+                      className="animate-fade-in cr-pill-row border-l-cr-green border-l-4 p-4"
+                    >
+                      <div className="flex items-center gap-3">
+                        <ShieldIcon className="text-cr-green h-8 w-8" />
+                        <div>
+                          <p className="font-display font-bold text-slate-900">
+                            {member.name}
+                          </p>
+                          <p className="text-xs text-slate-500">{member.tag}</p>
+                        </div>
                       </div>
-                    </div>
-                    <span className="mt-3 inline-block rounded-full bg-emerald-600 px-3 py-1 text-xs font-semibold text-white">
-                      Promotion suggeree : Aine
-                    </span>
-                    <div className="mt-3">
-                      <CopyButton text={member.tag} />
-                    </div>
-                  </li>
-                ))}
-              </ul>
+                      <span className="bg-cr-green mt-3 inline-block rounded-full px-3 py-1 text-xs font-semibold text-white">
+                        Promotion suggeree : Aine
+                      </span>
+                      <div className="mt-3">
+                        <CopyButton text={member.tag} />
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              </div>
             )}
           </div>
 
@@ -182,37 +186,37 @@ export function HrAssistantSection({
                 }
               />
             ) : (
-              <ul className="space-y-3">
-                {onWatch.map((candidate, index) => (
-                  <li
-                    key={candidate.member.tag}
-                    data-testid="watch-card"
-                    style={{ animationDelay: `${index * 60}ms` }}
-                    className="animate-fade-in bg-royale-navy-900 border-royale-red-700 rounded-lg border-l-4 p-4"
-                  >
-                    <div className="flex items-center gap-3">
-                      <TriangleWarningIcon className="h-8 w-8 text-red-500" />
-                      <div>
-                        <p className="text-royale-parchment font-bold">
-                          {candidate.member.name}
-                        </p>
-                        <p className="text-royale-parchment-dim text-xs">
-                          {candidate.member.tag}
-                        </p>
+              <div className="bg-cr-panel-light rounded-lg border-2 border-black p-3">
+                <ul className="space-y-3">
+                  {onWatch.map((candidate, index) => (
+                    <li
+                      key={candidate.member.tag}
+                      data-testid="watch-card"
+                      style={{ animationDelay: `${index * 60}ms` }}
+                      className="animate-fade-in cr-pill-row border-l-cr-red border-l-4 p-4"
+                    >
+                      <div className="flex items-center gap-3">
+                        <TriangleWarningIcon className="text-cr-red h-8 w-8" />
+                        <div>
+                          <p className="font-display font-bold text-slate-900">
+                            {candidate.member.name}
+                          </p>
+                          <p className="text-xs text-slate-500">{candidate.member.tag}</p>
+                        </div>
                       </div>
-                    </div>
-                    <p className="text-royale-red-500 mt-3 text-sm font-semibold">
-                      Retrogradation conseillee
-                    </p>
-                    <p className="text-royale-parchment-dim mt-1 text-xs">
-                      {candidate.currentWeekBattles}/16 combats cette semaine
-                    </p>
-                    <div className="mt-3">
-                      <CopyButton text={candidate.member.tag} />
-                    </div>
-                  </li>
-                ))}
-              </ul>
+                      <p className="text-cr-red mt-3 text-sm font-semibold">
+                        Retrogradation conseillee
+                      </p>
+                      <p className="mt-1 text-xs text-slate-500">
+                        {candidate.currentWeekBattles}/16 combats cette semaine
+                      </p>
+                      <div className="mt-3">
+                        <CopyButton text={candidate.member.tag} />
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              </div>
             )}
           </div>
         </div>

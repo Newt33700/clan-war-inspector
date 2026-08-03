@@ -17,7 +17,7 @@ export function ClanHeader({ summary }: ClanHeaderProps) {
   return (
     <div
       data-testid="clan-header"
-      className="border-royale-gold-400/60 from-royale-purple-700/40 to-royale-navy-900 flex flex-wrap items-center gap-4 rounded-xl border-2 bg-gradient-to-r px-4 py-3 shadow-lg"
+      className="border-royale-gold-400/60 from-cr-bg-purple to-royale-navy-900 flex flex-wrap items-center gap-4 rounded-xl border-2 bg-gradient-to-r px-4 py-3 shadow-lg"
     >
       {summary.badgeUrl.length > 0 && (
         <Image
@@ -30,11 +30,9 @@ export function ClanHeader({ summary }: ClanHeaderProps) {
         />
       )}
       <div>
-        <p className="text-royale-parchment font-display text-lg tracking-wide">
+        <p className="text-cr-title font-display text-lg tracking-wide">
           {summary.name}
-          <span className="text-royale-parchment-dim ml-2 text-sm font-normal">
-            {summary.tag}
-          </span>
+          <span className="ml-2 text-sm font-normal text-slate-200">{summary.tag}</span>
         </p>
         <p className="text-royale-parchment-dim text-sm">
           {summary.memberCount}/{CLAN_MAX_MEMBERS} membres · Score {summary.clanScore} ·
