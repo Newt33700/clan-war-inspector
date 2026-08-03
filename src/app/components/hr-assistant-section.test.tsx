@@ -127,6 +127,28 @@ describe('HrAssistantSection', () => {
     expect(within(card).getByText(/3\/16 combats cette semaine/i)).toBeInTheDocument();
   });
 
+  it('utilise un fond uni et une bordure gauche epaisse pour le contraste (US 12.2)', () => {
+    const candidate = member({ tag: '#B', name: 'Bob', role: 'elder' });
+    render(
+      <HrAssistantSection
+        members={[candidate]}
+        attendance={[]}
+        logState={success}
+        warState={{
+          status: 'success',
+          data: { clan: { participants: [{ tag: '#B', decksUsed: 3 }] } },
+          refetch: () => undefined,
+        }}
+        minWeeklyBattles={MIN_WEEKLY_BATTLES}
+      />,
+    );
+    const card = screen.getByTestId('watch-card');
+    expect(card.className).toContain('bg-royale-navy-900');
+    expect(card.className).toContain('border-l-4');
+    expect(card.className).toContain('border-royale-red-700');
+    expect(card.className).not.toContain('bg-gradient-to-r');
+  });
+
   it('exclut un role coLeader (seuls les elder sont evalues)', () => {
     const candidate = member({ tag: '#C', name: 'Carol', role: 'coLeader' });
     render(

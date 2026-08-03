@@ -1,10 +1,10 @@
 /**
  * Tests de la serialisation de la liste "A expulser" pour le presse-papiers
- * (US 6.6, regle produit du 2026-08-02).
+ * (US 12.3, message unique de moderation).
  */
 
 import { describe, expect, it } from 'vitest';
-import { formatPurgeCandidatesForClipboard } from './purge-export';
+import { formatModerationReportForClipboard } from './purge-export';
 import type { PurgeCandidate } from '@/domain/clan/purge';
 
 function candidate(overrides: Partial<PurgeCandidate>): PurgeCandidate {
@@ -22,27 +22,32 @@ function candidate(overrides: Partial<PurgeCandidate>): PurgeCandidate {
   };
 }
 
-describe('formatPurgeCandidatesForClipboard', () => {
+describe('formatModerationReportForClipboard', () => {
   it('retourne une chaine vide pour une liste vide', () => {
-    expect(formatPurgeCandidatesForClipboard([])).toBe('');
+    expect(formatModerationReportForClipboard([], 8)).toBe('');
   });
 
-  it('formate un candidat avec son nombre de combats cette semaine', () => {
-    const text = formatPurgeCandidatesForClipboard([candidate({})]);
-    expect(text).toBe('Alice (#A) - 3 combats cette semaine');
+  it('formate un message unique avec un candidat et le seuil actif', () => {
+    const text = formatModerationReportForClipboard([candidate({})], 8);
+    expect(text).toBe(
+      "⚠️ Mise au point du Clan : Les joueurs suivants n'ont pas respecté le " +
+        'quota de combats cette semaine sur 8 : Alice. Merci de corriger le tir rapidement !',
+    );
   });
 
-  it('produit une ligne par candidat, dans l ordre fourni', () => {
-    const text = formatPurgeCandidatesForClipboard([
-      candidate({ member: { ...candidate({}).member, tag: '#A', name: 'Alice' } }),
-      candidate({
-        member: { ...candidate({}).member, tag: '#B', name: 'Bob' },
-        currentWeekBattles: 5,
-      }),
-    ]);
-    expect(text.split('\n')).toEqual([
-      'Alice (#A) - 3 combats cette semaine',
-      'Bob (#B) - 5 combats cette semaine',
-    ]);
+  it('separe les noms de plusieurs candidats par une virgule', () => {
+    const text = formatModerationReportForClipboard(
+      [
+        candidate({ member: { ...candidate({}).member, name: 'Alice' } }),
+        candidate({ member: { ...candidate({}).member, name: 'Bob' } }),
+      ],
+      8,
+    );
+    expect(text).toContain('Alice, Bob');
+  });
+
+  it('affiche le seuil actif transmis, pas une valeur en dur', () => {
+    const text = formatModerationReportForClipboard([candidate({})], 10);
+    expect(text).toContain('cette semaine sur 10');
   });
 });

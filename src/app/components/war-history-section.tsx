@@ -8,12 +8,7 @@
  */
 
 import { useEffect, useMemo, useRef, useState } from 'react';
-import {
-  classifyBattleCount,
-  LEVEL_LABELS,
-  LEVEL_SYMBOLS,
-  type AttendanceLevel,
-} from '@/domain/war/attendance-level';
+import { LEVEL_LABELS, LEVEL_SYMBOLS } from '@/domain/war/attendance-level';
 import {
   BATTLES_PER_WAR_WEEK,
   buildClanWarHistory,
@@ -25,6 +20,7 @@ import {
 } from '@/domain/war/war-history';
 import type { SortDirection } from '@/domain/clan/members';
 import type { ApiResource } from '@/hooks/use-api-resource';
+import { LEVEL_TEXT_CLASSES, PlayerProgressBar } from './player-progress-bar';
 
 // Au-dela de ce nombre de semaines, le tableau depasse la largeur visible
 // sur la plupart des ecrans : un indice de scroll horizontal est ajoute.
@@ -32,18 +28,6 @@ const SCROLL_HINT_MIN_WEEKS = 4;
 
 /** Classe de la premiere colonne fixee (US-11, audit UX du 2026-08-02). */
 const STICKY_FIRST_COLUMN = 'sticky left-0 z-10 bg-royale-navy-950';
-
-const LEVEL_TEXT_CLASSES: Record<AttendanceLevel, string> = {
-  complete: 'text-royale-gold-400',
-  warning: 'text-orange-400',
-  critical: 'text-royale-red-500',
-};
-
-const LEVEL_BAR_CLASSES: Record<AttendanceLevel, string> = {
-  complete: 'bg-royale-gold-400',
-  warning: 'bg-orange-400',
-  critical: 'bg-royale-red-500',
-};
 
 function weekLabel(week: WarWeek): string {
   if (week.seasonId !== null && week.sectionIndex !== null) {
@@ -63,28 +47,9 @@ function BattleCell({ battles }: { battles: number | null }) {
     );
   }
 
-  const level = classifyBattleCount(battles);
   return (
     <td className="px-3 py-2">
-      <div
-        aria-label={`${battles} combats sur ${BATTLES_PER_WAR_WEEK}, ${LEVEL_LABELS[level]}`}
-        className="flex flex-col items-center gap-1"
-      >
-        <span className={`text-sm font-semibold ${LEVEL_TEXT_CLASSES[level]}`}>
-          {battles}/{BATTLES_PER_WAR_WEEK}
-          <span aria-hidden="true"> {LEVEL_SYMBOLS[level]}</span>
-        </span>
-        <span
-          aria-hidden="true"
-          className="bg-royale-navy-950 block h-1.5 w-16 overflow-hidden rounded-full"
-        >
-          <span
-            data-testid="battle-gauge"
-            className={`block h-full ${LEVEL_BAR_CLASSES[level]}`}
-            style={{ width: `${(battles / BATTLES_PER_WAR_WEEK) * 100}%` }}
-          />
-        </span>
-      </div>
+      <PlayerProgressBar score={battles} max={BATTLES_PER_WAR_WEEK} />
     </td>
   );
 }

@@ -722,6 +722,128 @@ Critères d'acceptation :
 
 ---
 
+### ÉPIQUE 12 — Polish UI et rapport de modération
+
+> 4 US soumises le 2026-08-02. Plusieurs recoupent des fonctionnalités déjà
+> livrées (jauges de l'historique US 4.4, contraste AA US 6.8, grille
+> mobile-first de l'Assistant RH, confirmation de copie US 6.6/US-10) : les
+> critères ci-dessous sont reformulés pour tenir compte de l'existant plutôt
+> que de dupliquer. Deux points restent en arbitrage avant implémentation,
+> notés en fin de section.
+
+#### US 12.1 — Jauge de progression pour l'assiduité (au lieu d'un texte brut)
+
+**En tant qu'**utilisateur, **je veux** visualiser l'assiduité via une barre
+de progression colorée plutôt qu'un texte `8/16` **afin de** repérer
+instantanément les joueurs sous le quota.
+
+Constat : une jauge colorée existe déjà dans `WarHistorySection`
+(`BattleCell`, `data-testid="battle-gauge"`), pilotée par
+`classifyBattleCount` (`domain/war/attendance-level.ts`). Ce qui manque : la
+appliquer aussi à la colonne « Semaine » de Guerre en cours (actuellement
+texte coloré sans barre, depuis l'Épique 8 US-5), et trancher l'écart de
+seuils avec la demande (voir arbitrage A ci-dessous).
+
+Critères d'acceptation :
+
+- Jauge horizontale sur 100 % de la largeur disponible dans la cellule,
+  responsive sans breakpoint dédié (déjà le comportement des tableaux
+  scrollables existants)
+- Couleur + label + symbole (jamais la couleur seule, contrainte
+  accessibilité déjà en place)
+- Réutilise les tokens `royale-*` déjà audités WCAG AA (US 6.8), pas les
+  couleurs Tailwind par défaut (voir arbitrage A)
+
+---
+
+#### US 12.2 — Cartes « Sur la sellette » à contraste renforcé
+
+**En tant que** chef ou adjoint, **je veux** un contraste optimal sur les
+cartes de la liste **afin de** lire sans forcer sur les yeux, notamment sur
+mobile en faible luminosité.
+
+Constat : le contraste AA (`royale-red-500` sur `royale-navy-950`, ≥ 4.5:1)
+est déjà vérifié automatiquement (US 6.8, `theme-contrast.test.ts`) et la
+grille est déjà mobile-first (`grid-cols-1 md:grid-cols-2`). Ce qui reste
+net nouveau : le habillage visuel (fond uni foncé + bordure gauche épaisse,
+au lieu du dégradé bordeaux actuel).
+
+Critères d'acceptation :
+
+- Fond `royale-navy-900` (déjà utilisé ailleurs dans l'app, cohérent avec le
+  thème) avec bordure gauche épaisse `border-l-4 border-royale-red-700`
+- Texte du motif de rétrogradation en `royale-parchment` (contraste déjà
+  validé), icône d'alerte conservée
+- Non-régression du test de contraste automatisé existant
+
+---
+
+#### US 12.3 — Rapport de modération formaté pour Discord/jeu
+
+**En tant que** gestionnaire, **je veux** que « Copier la liste » génère un
+message de modération prêt à coller **afin de** ne pas avoir à le
+retaper.
+
+Constat : le bouton et le retour visuel (confirmation transitoire 2s)
+existent déjà (`purge-section.tsx`, `PurgeSection`, US 6.6/US-9). Ce qui
+change : le format du texte copié (actuellement une ligne par candidat avec
+tag et combats, US 11.1) devient un message unique formaté.
+
+Critères d'acceptation :
+
+- Nouveau formateur (`domain/` ou `lib/`, testé) : `"⚠️ Mise au point du
+Clan : Les joueurs suivants n'ont pas respecté le quota de combats cette
+semaine sur {N} : {noms séparés par virgule}. Merci de corriger le tir
+rapidement !"` — le nombre de combats requis affiché est le seuil actif
+  (`minWeeklyBattles`), pas une valeur en dur
+- Bouton désactivé (`disabled`, pas juste masqué) quand la liste est vide
+- Confirmation « Copié ! ✅ » pendant 2s au clic (aligne le libellé existant
+  avec l'emoji demandé)
+- Testé : 0/1/N joueurs, régénération du texte si la liste change entre deux
+  clics
+
+---
+
+#### US 12.4 — Résumé synthétique en tête de dashboard (donut + podium compact)
+
+**En tant que** membre du clan, **je veux** un résumé immédiat (participation
+globale + top 3) en haut de l'écran **afin de** connaître la situation du
+clan sans défiler.
+
+Constat : le Hall of Fame (US 8, podium 3 blocs à tailles graduées) existe
+déjà en tête de page. Ce qui est net nouveau : le graphique donut de
+participation globale. Le podium compact en « 3 petites cartes horizontales »
+demandé diffère du podium actuel (tailles graduées 1er/2e/3e) — à confirmer
+si on remplace ou si les deux coexistent.
+
+Critères d'acceptation :
+
+- Donut (SVG, pas de librairie de charts) : ratio combats joués / combats
+  possibles de la semaine en cours (`currentriverrace`), pourcentage au
+  centre
+- Squelette affiché pendant le chargement (réutilise `Skeleton`, pattern
+  déjà en place partout ailleurs dans l'app)
+- Mis à jour avec les vraies données à chaque rafraîchissement de la guerre
+  en cours (US 6.4)
+- Voir arbitrage B (architecture Suspense/Server Component) avant
+  implémentation
+
+---
+
+#### Arbitrages (tranchés le 2026-08-03)
+
+- **A — Seuils et couleurs de l'US 12.1** : tranché **partout**. Le nouveau
+  barème (< 8/16 critique, 8-15 avertissement, 16/16 complet, aligné sur
+  `minWeeklyBattles`) remplace l'ancien seuil 12/16 dans
+  `WARNING_THRESHOLD` (`domain/war/attendance-level.ts`), et s'applique donc
+  identiquement à l'historique et à Guerre en cours via le composant
+  partagé `PlayerProgressBar`.
+- **B — US 12.4** : tranché **composant client + `Skeleton`** (pas de vrai
+  Server Component / `Suspense`), cohérent avec le reste de l'app
+  entièrement pilotée côté client.
+
+---
+
 ## 3. Ordre de réalisation et avancement
 
 1. ✅ **US 1.1** — socle du projet
@@ -768,6 +890,17 @@ Critères d'acceptation :
     règle unique (rôle + combats de la semaine en cours), seuil partagé
     et mémorisé, combinateur ET/OU et critère de dons retirés. Domaine
     (`purge.ts`, `hr-assistant.ts`) à 100 % de couverture et 100 % de
+    mutation Stryker.
+17. ✅ **Épique 12** — polish UI et rapport de modération (US 12.1 à
+    12.4) : jauge `PlayerProgressBar` partagée entre Historique et Guerre
+    en cours (nouveau seuil 8/16 partout, arbitrage A), cartes « Sur la
+    sellette » à fond uni + bordure gauche épaisse (arbitrage contraste),
+    message de modération unique formaté pour « Copier la liste » (seuil
+    actif, bouton `disabled` plutôt que masqué, confirmation « Copié !
+    ✅ »), résumé de participation en donut SVG en tête de dashboard aux
+    côtés du Hall of Fame (composant client + `Skeleton`, arbitrage B).
+    `domain/war/attendance-level.ts` et le nouveau
+    `domain/war/participation.ts` à 100 % de couverture et 100 % de
     mutation Stryker.
 
 ### Finition produit (hors backlog initial)

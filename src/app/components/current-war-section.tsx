@@ -20,21 +20,10 @@ import {
   parseCurrentWar,
   sortByUrgency,
 } from '@/domain/war/current-war';
-import {
-  classifyBattleCount,
-  LEVEL_LABELS,
-  LEVEL_SYMBOLS,
-  type AttendanceLevel,
-} from '@/domain/war/attendance-level';
 import { BATTLES_PER_WAR_WEEK } from '@/domain/war/war-history';
 import type { ApiResource } from '@/hooks/use-api-resource';
 import { formatTimeOfDay } from '@/lib/format-time';
-
-const WEEK_TEXT_CLASSES: Record<AttendanceLevel, string> = {
-  complete: 'text-royale-gold-400',
-  warning: 'text-orange-400',
-  critical: 'text-royale-red-500',
-};
+import { PlayerProgressBar } from './player-progress-bar';
 
 interface CurrentWarSectionProps {
   /** Etat du chargement de /currentriverrace, pilote par le dashboard. */
@@ -201,7 +190,6 @@ export function CurrentWarSection({ warState, memberTags }: CurrentWarSectionPro
               <tbody>
                 {participants.map((participant) => {
                   const idleToday = participant.decksUsedToday === 0;
-                  const weekLevel = classifyBattleCount(participant.decksUsed);
                   return (
                     <tr
                       key={participant.tag}
@@ -231,12 +219,11 @@ export function CurrentWarSection({ warState, memberTags }: CurrentWarSectionPro
                           <span className="sr-only"> - aucun deck joue aujourd hui</span>
                         )}
                       </td>
-                      <td
-                        className={`px-3 py-2 text-right font-semibold tabular-nums ${WEEK_TEXT_CLASSES[weekLevel]}`}
-                      >
-                        {participant.decksUsed}/{BATTLES_PER_WAR_WEEK}
-                        <span aria-hidden="true"> {LEVEL_SYMBOLS[weekLevel]}</span>
-                        <span className="sr-only"> - {LEVEL_LABELS[weekLevel]}</span>
+                      <td className="px-3 py-2">
+                        <PlayerProgressBar
+                          score={participant.decksUsed}
+                          max={BATTLES_PER_WAR_WEEK}
+                        />
                       </td>
                     </tr>
                   );

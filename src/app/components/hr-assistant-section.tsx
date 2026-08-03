@@ -181,7 +181,7 @@ export function HrAssistantSection({
                     key={candidate.member.tag}
                     data-testid="watch-card"
                     style={{ animationDelay: `${index * 60}ms` }}
-                    className="animate-fade-in rounded-lg border border-red-900/60 bg-gradient-to-r from-red-950 to-slate-900 p-4"
+                    className="animate-fade-in bg-royale-navy-900 border-royale-red-700 rounded-lg border-l-4 p-4"
                   >
                     <div className="flex items-center gap-3">
                       <TriangleWarningIcon className="h-8 w-8 text-red-500" />

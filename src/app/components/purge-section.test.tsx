@@ -150,4 +150,52 @@ describe('PurgeSection', () => {
     expect(await screen.findByText(/impossible de copier/i)).toBeInTheDocument();
     await waitFor(() => expect(writeText).toHaveBeenCalled());
   });
+
+  it('desactive le bouton de copie quand la liste est vide, plutot que de le masquer (US 12.3)', () => {
+    const candidate = member({ tag: '#A', name: 'Alice' });
+    render(
+      <PurgeSection
+        members={[candidate]}
+        warState={warSuccess([{ tag: '#A', decksUsed: 16 }])}
+        minWeeklyBattles={8}
+        onMinWeeklyBattlesChange={noop}
+        ready
+      />,
+    );
+    const button = screen.getByRole('button', { name: /copier la liste/i });
+    expect(button).toBeInTheDocument();
+    expect(button).toBeDisabled();
+  });
+
+  it('copie un message de moderation unique avec le seuil actif et confirme "Copié ! ✅" (US 12.3)', async () => {
+    const writeText = vi.fn().mockResolvedValue(undefined);
+    Object.assign(navigator, { clipboard: { writeText } });
+    const alice = member({ tag: '#A', name: 'Alice' });
+    const bob = member({ tag: '#B', name: 'Bob' });
+    render(
+      <PurgeSection
+        members={[alice, bob]}
+        warState={warSuccess([
+          { tag: '#A', decksUsed: 2 },
+          { tag: '#B', decksUsed: 3 },
+        ])}
+        minWeeklyBattles={8}
+        onMinWeeklyBattlesChange={noop}
+        ready
+      />,
+    );
+
+    const button = screen.getByRole('button', { name: /copier la liste/i });
+    expect(button).not.toBeDisabled();
+    fireEvent.click(button);
+
+    await waitFor(() =>
+      expect(writeText).toHaveBeenCalledWith(
+        "⚠️ Mise au point du Clan : Les joueurs suivants n'ont pas respecté le " +
+          'quota de combats cette semaine sur 8 : Alice, Bob. ' +
+          'Merci de corriger le tir rapidement !',
+      ),
+    );
+    expect(await screen.findByText('Copié ! ✅')).toBeInTheDocument();
+  });
 });
