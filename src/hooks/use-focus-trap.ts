@@ -47,7 +47,9 @@ export function useFocusTrap<T extends HTMLElement>(
         return;
       }
 
-      if (event.key !== 'Tab' || container === null || container === undefined) {
+      // `container` (`containerRef.current`) est de type `T | null` :
+      // jamais `undefined`, un second test contre `undefined` serait mort.
+      if (event.key !== 'Tab' || container === null) {
         return;
       }
 
@@ -73,6 +75,10 @@ export function useFocusTrap<T extends HTMLElement>(
     document.addEventListener('keydown', handleKeyDown);
     return () => {
       document.removeEventListener('keydown', handleKeyDown);
+      // `document.activeElement` (source de `previouslyFocused.current`)
+      // ne vaut jamais null en pratique (body au minimum) : le typage
+      // `HTMLElement | null` du cast ligne 38 est le seul a l'admettre
+      // (mutant Stryker "equivalent" sur cet enchainement optionnel).
       previouslyFocused.current?.focus();
     };
   }, [isOpen]);

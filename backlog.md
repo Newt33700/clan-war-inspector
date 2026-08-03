@@ -1068,11 +1068,52 @@ Critères d'acceptation :
 
 ---
 
+#### US 13.8 (Tech) — Passe Stryker sur `hooks/` (dette de test résorbée) ✅
+
+**En tant que** développeur, **je veux** que `useApiResource` (modifié par
+l'US 13.2, seed) et `usePlayerProfile` passent le seuil de mutation
+**afin de** ne pas laisser la dette de test des Épiques 13/14 s'accumuler.
+
+Constat : `npm run test:mutation` (Stryker) n'avait pas été relancé lors
+de la livraison initiale des Épiques 13 et 14 — seul `hooks/` (dans le
+périmètre `stryker.config.json`) était concerné par du code neuf ou
+modifié. Premier passage : score global 94,22 %, mais `hooks/` à 83,83 %
+(`use-api-resource.ts` 88,57 %, `use-focus-trap.ts` 74,51 %,
+`use-player-profile.ts` 85,37 %) — sous le seuil habituel de ce
+périmètre, même si le seuil de rupture global (90 %) restait franchi.
+
+Critères d'acceptation :
+
+- Requêtes périmées (chemin/tag changé avant qu'une requête en vol
+  n'aboutisse) n'écrasent plus l'état ni le cache une fois résolues
+  tardivement — testé pour `useApiResource` et `usePlayerProfile` en
+  résolvant délibérément la requête abandonnée après le changement de
+  chemin/tag
+- `useFocusTrap` : conteneur jamais attaché au DOM (défense), aucun
+  élément focusable à l'intérieur, Tab/Shift+Tab depuis un élément du
+  milieu (ordre naturel, non intercepté), écouteur clavier retiré à la
+  fermeture (pas de fuite) — chacun testé explicitement
+- Mutants restants documentés en commentaire comme équivalents plutôt
+  que forcés par un test artificiel, quand le comportement réel ne peut
+  pas différer (ex. tableau de dépendances `useCallback` constant, état
+  initial immédiatement écrasé par l'effet au montage,
+  `document.activeElement` qui ne vaut jamais `null` en pratique)
+- Score final : global 95,93 % (contre 94,22 %), `hooks/` 95,68 % (contre
+  83,83 %) — `use-api-resource.ts` 94,29 %, `use-focus-trap.ts` 97,83 %,
+  `use-player-profile.ts` 95,12 %, tous les survivants restants
+  documentés comme équivalents
+
+Hors périmètre de cette US (dette pré-existante, non introduite par les
+Épiques 13/14, jamais touchée par leur code) : les survivants déjà
+présents dans `domain/**` (34) et `app/api/_lib/supercell.ts` (6),
+inchangés par ce passage.
+
+---
+
 #### Notes d'implémentation (livrées le 2026-08-03)
 
 Épique 13 implémenté en totalité (US 13.1 à 13.7), `npm run verify` vert
-hors Stryker (non relancé dans cette passe — dette de test assumée,
-même pattern que les épiques précédents), build `next build` réel
+Stryker compris (voir US 13.8 ci-dessous), build `next build` réel
 vérifié (routes `/dashboard`, `/historique`, `/rh` en `ƒ` dynamique,
 `/` statique). Écarts assumés par rapport aux arbitrages initiaux :
 
@@ -1337,10 +1378,11 @@ Critères d'acceptation :
 #### Notes d'implémentation (livrées le 2026-08-03)
 
 Épique 14 implémenté en totalité (US 14.1 à 14.7). `npm run verify` vert
-hors Stryker (dette de test assumée, comme pour l'Épique 13) ; `next
-build` réel vérifié (le nouveau token `--spacing-tab-bar` compile bien en
-CSS). Le tableau desktop et la vue carte mobile **coexistent tous deux
-dans le DOM** (bascule au CSS `md:hidden`/`hidden md:block`, pas de
+Stryker compris (`useFocusTrap`, seul fichier de ce périmètre introduit
+par cet épique, couvert par l'US 13.8) ; `next build` réel vérifié (le
+nouveau token `--spacing-tab-bar` compile bien en CSS). Le tableau
+desktop et la vue carte mobile **coexistent tous deux dans le DOM**
+(bascule au CSS `md:hidden`/`hidden md:block`, pas de
 rendu conditionnel côté React) : plusieurs tests pré-existants qui
 cherchaient un texte ou un bouton sans le scoper au tableau (`getByText`,
 `getByRole('button', { name: ... })`) trouvaient désormais deux
@@ -1438,15 +1480,15 @@ le scope des assertions a bougé.
     tranchés (voir « Notes d'implémentation » en fin d'épique, notamment
     la résolution du conflit avec l'arbitrage B de l'Épique 12 par un
     pattern de seed plutôt qu'un passage en Server Components purs), US
-    13.1 à 13.7. `npm run verify` vert hors Stryker (dette de test
-    assumée) ; `next build` réel vérifié
+    13.1 à 13.8. `npm run verify` vert Stryker compris (`hooks/` 83,83 %
+    → 95,68 %, cf. US 13.8) ; `next build` réel vérifié
 19. ✅ **Épique 14** — audit UX mobile-first du 2026-08-03 : vues carte pour
     les 3 tableaux denses (tri via `<select>` mobile), accessibilité du
     panneau joueur (`useFocusTrap` : piège de focus, Échap, restauration),
     formulaire de recherche et zones de toucher adaptées au tactile,
     squelettes de chargement harmonisés, cohabitation avec la tab bar
     mobile fixe (`--spacing-tab-bar`), US 14.1 à 14.7. `npm run verify`
-    vert hors Stryker (dette de test assumée) ; `next build` réel vérifié
+    vert Stryker compris (US 13.8) ; `next build` réel vérifié
 
 ### Finition produit (hors backlog initial)
 

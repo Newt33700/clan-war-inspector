@@ -59,7 +59,10 @@ export function useApiResource<T>(
   const [state, setState] = useState<ApiResourceState<T>>(seed ?? { status: 'idle' });
   // Seul compte le fait que la valeur change (dependance d'effet plus bas) :
   // +1 est arbitraire, -1 serait tout aussi correct (mutant Stryker
-  // "equivalent" sur l'operateur arithmetique).
+  // "equivalent" sur l'operateur arithmetique). Le tableau de dependances
+  // vide de useCallback est un autre equivalent : tout litteral constant
+  // (chaine, nombre...) y produirait le meme comportement, puisque seule
+  // compte l'egalite de ses elements d'un rendu a l'autre.
   const [attempt, setAttempt] = useState(0);
   const refetch = useCallback(() => setAttempt((current) => current + 1), []);
   // Vrai uniquement pour le tout premier rendu quand un seed est fourni :

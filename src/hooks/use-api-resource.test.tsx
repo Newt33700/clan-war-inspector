@@ -266,4 +266,36 @@ describe('useApiResource', () => {
     // L'abort ne doit produire ni erreur non geree ni setState tardif.
     await new Promise((resolve) => setTimeout(resolve, 80));
   });
+
+  it('n ecrase pas l etat avec le resultat d une requete perimee, abortee au changement de chemin', async () => {
+    // La requete du premier chemin ne repond jamais toute seule : c'est
+    // nous qui la faisons aboutir tardivement, une fois le chemin deja
+    // repasse a `null`, pour verifier qu'elle n'a plus voix au chapitre.
+    let resolveStaleRequest!: (response: Response) => void;
+    mockServer.use(
+      http.get(
+        '*/api/clans/:clanTag',
+        () => new Promise<Response>((resolve) => (resolveStaleRequest = resolve)),
+      ),
+    );
+    const { result, rerender } = renderHook(
+      ({ path }: { path: string | null }) => useApiResource(path),
+      { initialProps: { path: '/api/clans/%2320PP' as string | null } },
+    );
+    expect(result.current.status).toBe('loading');
+    // Attend que la requete atteigne reellement MSW (interception
+    // asynchrone) avant d'abandonner le chemin : sinon l'abort survient
+    // avant meme que la requete soit "en vol", ce qui ne testerait rien.
+    await waitFor(() => expect(resolveStaleRequest).toBeDefined());
+
+    rerender({ path: null });
+    expect(result.current.status).toBe('idle');
+
+    resolveStaleRequest(HttpResponse.json({ tag: '#20PP-perime' }));
+    await new Promise((resolve) => setTimeout(resolve, 20));
+
+    // Ni le succes ni l'erreur perimes ne doivent avoir ecrase l'etat
+    // "idle" : la requete du chemin abandonne devait etre abortee.
+    expect(result.current.status).toBe('idle');
+  });
 });
