@@ -6,7 +6,7 @@
  * message d'erreur sont verrouillees par les tests.
  */
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 export type ApiResourceState<T> =
   | { status: 'idle' }
@@ -42,21 +42,39 @@ export function readApiErrorMessage(payload: unknown, status: number): string {
  * `null` met le hook au repos ; changer de chemin relance le chargement.
  * `refetch` relance un chargement sur le meme chemin (US 6.3), utile pour
  * reessayer une ressource en erreur sans re-soumettre tout le formulaire.
+ *
+ * `seed` (US 13.2, Epique 13) pre-remplit l'etat avec une donnee deja
+ * resolue par le Server Component de la page (fetch serveur initial) :
+ * le premier rendu affiche directement ce resultat, sans etat "loading"
+ * ni appel reseau redondant. Le hook reste seul maitre du cycle de vie
+ * pour toute interaction ulterieure (changement de `path`, `refetch`).
  */
-export function useApiResource<T>(path: string | null): ApiResource<T> {
-  // Valeur initiale sans consequence observable : l'effet ci-dessous la
-  // recalcule et l'ecrase au premier rendu, que path soit null ou non
-  // (mutant Stryker "equivalent" sur ce litteral).
-  const [state, setState] = useState<ApiResourceState<T>>({ status: 'idle' });
+export function useApiResource<T>(
+  path: string | null,
+  seed?: ApiResourceState<T>,
+): ApiResource<T> {
+  // Valeur initiale sans consequence observable en l'absence de seed :
+  // l'effet ci-dessous la recalcule et l'ecrase au premier rendu, que
+  // path soit null ou non (mutant Stryker "equivalent" sur ce litteral).
+  const [state, setState] = useState<ApiResourceState<T>>(seed ?? { status: 'idle' });
   // Seul compte le fait que la valeur change (dependance d'effet plus bas) :
   // +1 est arbitraire, -1 serait tout aussi correct (mutant Stryker
   // "equivalent" sur l'operateur arithmetique).
   const [attempt, setAttempt] = useState(0);
   const refetch = useCallback(() => setAttempt((current) => current + 1), []);
+  // Vrai uniquement pour le tout premier rendu quand un seed est fourni :
+  // evite de relancer immediatement un fetch qui ecraserait la donnee deja
+  // resolue par le serveur avec un aller-retour client redondant.
+  const skipNextFetch = useRef(seed !== undefined);
 
   useEffect(() => {
     if (path === null) {
       setState({ status: 'idle' });
+      return;
+    }
+
+    if (skipNextFetch.current) {
+      skipNextFetch.current = false;
       return;
     }
 

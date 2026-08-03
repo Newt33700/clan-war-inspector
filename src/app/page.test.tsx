@@ -1,21 +1,16 @@
-import { render, screen } from '@testing-library/react';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
+
+const redirectMock = vi.fn();
+vi.mock('next/navigation', () => ({
+  redirect: (path: string) => redirectMock(path),
+}));
 
 import HomePage from './page';
 
 describe('HomePage', () => {
-  it('affiche le nom du produit en titre principal', () => {
-    render(<HomePage />);
+  it('redirige inconditionnellement vers /dashboard (US 13.2)', () => {
+    HomePage();
 
-    expect(
-      screen.getByRole('heading', { level: 1, name: /clan war inspector/i }),
-    ).toBeInTheDocument();
-  });
-
-  it('rend le dashboard membres avec son formulaire de recherche', () => {
-    render(<HomePage />);
-
-    expect(screen.getByRole('form', { name: /recherche de clan/i })).toBeInTheDocument();
-    expect(screen.getByLabelText(/tag ou nom du clan/i)).toBeInTheDocument();
+    expect(redirectMock).toHaveBeenCalledWith('/dashboard');
   });
 });

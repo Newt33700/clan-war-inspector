@@ -97,11 +97,7 @@ export function CurrentWarSection({ warState, memberTags }: CurrentWarSectionPro
   }
 
   return (
-    <section
-      id="guerre-en-cours"
-      aria-labelledby="current-war-title"
-      className="scroll-mt-16 space-y-4"
-    >
+    <section aria-labelledby="current-war-title" className="space-y-4">
       <div className="flex flex-wrap items-center gap-3">
         <h2
           id="current-war-title"

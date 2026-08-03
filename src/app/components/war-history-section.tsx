@@ -122,11 +122,7 @@ export function WarHistorySection({
   }
 
   return (
-    <section
-      id="historique"
-      aria-labelledby="war-history-title"
-      className="scroll-mt-16 space-y-4"
-    >
+    <section aria-labelledby="war-history-title" className="space-y-4">
       <h2
         id="war-history-title"
         className="text-royale-parchment font-display text-xl tracking-wide"

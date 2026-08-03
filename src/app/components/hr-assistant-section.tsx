@@ -91,11 +91,7 @@ export function HrAssistantSection({
   }
 
   return (
-    <section
-      id="assistant-rh"
-      aria-labelledby="hr-assistant-title"
-      className="scroll-mt-16 space-y-4"
-    >
+    <section aria-labelledby="hr-assistant-title" className="space-y-4">
       <h2
         id="hr-assistant-title"
         className="text-royale-parchment font-display text-xl tracking-wide"

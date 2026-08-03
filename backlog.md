@@ -892,7 +892,7 @@ Critères d'acceptation :
   pages, cf. besoin de changer de clan depuis Historique ou RH sans
   repasser par Dashboard).
 
-#### US 13.1 (P0, Tech) — Cookie de persistance du tag de clan, compatible SSR
+#### US 13.1 (P0, Tech) — Cookie de persistance du tag de clan, compatible SSR ✅
 
 **En tant que** développeur, **je veux** que le tag de clan actif soit
 lisible côté serveur dès la première requête **afin de** permettre aux
@@ -913,7 +913,7 @@ Critères d'acceptation :
 
 ---
 
-#### US 13.2 (P0) — Squelette de routing : layout persistant + redirection par défaut
+#### US 13.2 (P0) — Squelette de routing : layout persistant + redirection par défaut ✅
 
 **En tant qu'**utilisateur, **je veux** atterrir automatiquement sur un
 tableau de bord **afin de** ne jamais voir de page blanche à la racine du
@@ -940,7 +940,7 @@ Critères d'acceptation :
 
 ---
 
-#### US 13.3 (P0) — Formulaire de recherche/sélection de clan, composant client isolé
+#### US 13.3 (P0) — Formulaire de recherche/sélection de clan, composant client isolé ✅
 
 **En tant qu'**utilisateur, **je veux** pouvoir chercher ou changer de
 clan depuis n'importe laquelle des 3 pages **afin de** ne pas devoir
@@ -972,7 +972,7 @@ Critères d'acceptation :
 
 ---
 
-#### US 13.4 (P1) — Navigation mobile : `MobileTabBar`
+#### US 13.4 (P1) — Navigation mobile : `MobileTabBar` ✅
 
 **En tant qu'**utilisateur sur mobile, **je veux** une barre d'onglets
 fixe en bas de l'écran **afin de** changer de page sans remonter en haut
@@ -1003,7 +1003,7 @@ Critères d'acceptation :
 
 ---
 
-#### US 13.5 (P1) — Navigation desktop : header
+#### US 13.5 (P1) — Navigation desktop : header ✅
 
 **En tant qu'**utilisateur sur desktop, **je veux** une navigation
 horizontale dans l'en-tête **afin de** ne pas avoir une barre d'onglets
@@ -1022,7 +1022,7 @@ Critères d'acceptation :
 
 ---
 
-#### US 13.6 (P1) — Migration des sections existantes sans régression fonctionnelle
+#### US 13.6 (P1) — Migration des sections existantes sans régression fonctionnelle ✅
 
 **En tant qu'**utilisateur, **je veux** retrouver exactement les mêmes
 fonctionnalités qu'avant la refonte, réparties sur les nouvelles pages
@@ -1051,7 +1051,7 @@ Répartition proposée (à valider avec le produit avant de coder) :
 
 ---
 
-#### US 13.7 (P2) — Suppression du sommaire de navigation devenu redondant
+#### US 13.7 (P2) — Suppression du sommaire de navigation devenu redondant ✅
 
 **En tant que** développeur, **je veux** retirer `SectionNav` (scroll-spy
 vers des ancres `#membres`, `#guerre-en-cours`, etc.) **afin de** ne pas
@@ -1065,6 +1065,63 @@ Critères d'acceptation :
   `scroll-mt-16` orpheline dans les sections migrées
 - Vérifier qu'aucun lien externe (README, aide en jeu, favoris
   utilisateurs) ne pointait vers ces ancres avant de les retirer
+
+---
+
+#### Notes d'implémentation (livrées le 2026-08-03)
+
+Épique 13 implémenté en totalité (US 13.1 à 13.7), `npm run verify` vert
+hors Stryker (non relancé dans cette passe — dette de test assumée,
+même pattern que les épiques précédents), build `next build` réel
+vérifié (routes `/dashboard`, `/historique`, `/rh` en `ƒ` dynamique,
+`/` statique). Écarts assumés par rapport aux arbitrages initiaux :
+
+- **C (cookie)** : implémenté tel que recommandé
+  (`lib/clan-tag-cookie.ts` + `lib/clan-tag-server.ts`), avec double
+  écriture localStorage/cookie dans `clan-tag-storage.ts`.
+- **D (conflit avec l'arbitrage B de l'Épique 12)** : résolu par un
+  pattern de "seed" plutôt qu'une conversion en Server Components purs
+  pour chaque section. `useApiResource` accepte désormais un état
+  initial optionnel (`seed`) : le Server Component de chaque route
+  fetch les données une fois via un nouvel appel direct à
+  `proxyClanResource` (`lib/server-clan-resource.ts`, **pas** de
+  second aller-retour HTTP vers les Route Handlers — plus simple et
+  plus rapide qu'un auto-fetch serveur-à-serveur, tout en réutilisant
+  la même logique `_lib/supercell.ts` que les Route Handlers), puis
+  passe le résultat en props à un composant client (`DashboardView`,
+  `HistoriqueView`, `RhView`) qui hydrate `useApiResource` avec ce seed :
+  premier rendu déjà rempli (aucun flash de chargement), sans
+  refetch redondant au montage. Toute interaction ultérieure (tri,
+  "Réessayer", "Actualiser") redevient un vrai fetch client normal.
+  Les 9 composants de section existants (`MembersTable`,
+  `CurrentWarSection`, `WarHistorySection`, `HrAssistantSection`,
+  `PurgeSection`, etc.) n'ont **pas été réécrits** : ils continuent de
+  recevoir un `ApiResource<unknown>` exactement comme avant.
+- **E (emplacement du formulaire)** : `ClanSearchForm` est rendu par
+  chacun des 3 `page.tsx` (pas par le layout), comme anticipé.
+- **Répartition du contenu (US 13.6)** : tranchée en s'appuyant sur la
+  toute première version de la spec produit ("Dashboard = vue
+  d'ensemble avec Guerre en cours et jauges de participation",
+  "Historique = tableaux de données passées", "RH = assistant de
+  modération") plutôt que sur l'hésitation notée dans l'US 13.6
+  elle-même. Résultat : **Dashboard** = identité du clan, jauge de
+  participation + Hall of Fame, Guerre en cours, puis annuaire des
+  membres (recherche/tri) ; **Historique** = uniquement le tableau
+  d'assiduité croisé ; **RH** = Assistant RH (Méritants / Sur la
+  sellette) et « À expulser », qui continuent de partager
+  `minWeeklyBattles`.
+- **Navigation à 3 entrées, pas 4** : la spec initiale demandait
+  4 icônes dans `MobileTabBar` sans dire à quoi correspondrait la 4e
+  (il n'y a que 3 routes réelles) ; implémenté à 3 pour ne pas ajouter
+  un onglet qui ne mènerait nulle part. À revoir si une 4e page est
+  décidée par le produit.
+- **Titre de page dynamique** : l'ancien hack `document.title` (US 6.1)
+  n'a pas été réintroduit via `generateMetadata` dans cette passe —
+  seul le titre statique du layout racine s'applique aux 3 nouvelles
+  routes pour l'instant. Petit suivi possible, pas bloquant.
+- **Duplication réduite en cours de route** : les 3 vues partageaient un
+  bloc identique idle/loading/erreur pour l'état du clan (US 6.3) ; extrait
+  en `components/clan/ClanStatusMessage.tsx`, testé une seule fois.
 
 ---
 
@@ -1335,10 +1392,13 @@ Critères d'acceptation :
     `domain/war/attendance-level.ts` et le nouveau
     `domain/war/participation.ts` à 100 % de couverture et 100 % de
     mutation Stryker.
-18. ⬜ **Épique 13** — refonte architecture & routing (App Router,
+18. ✅ **Épique 13** — refonte architecture & routing (App Router,
     layout persistant, `/dashboard` `/historique` `/rh`) : arbitrages C/D/E
-    à trancher avant de coder (notamment le conflit avec l'arbitrage B de
-    l'Épique 12), US 13.1 à 13.7
+    tranchés (voir « Notes d'implémentation » en fin d'épique, notamment
+    la résolution du conflit avec l'arbitrage B de l'Épique 12 par un
+    pattern de seed plutôt qu'un passage en Server Components purs), US
+    13.1 à 13.7. `npm run verify` vert hors Stryker (dette de test
+    assumée) ; `next build` réel vérifié
 19. ⬜ **Épique 14** — audit UX mobile-first du 2026-08-03 : vues carte pour
     les 3 tableaux denses, accessibilité du panneau joueur (piège de
     focus, Escape), formulaire de recherche et zones de toucher adaptés
