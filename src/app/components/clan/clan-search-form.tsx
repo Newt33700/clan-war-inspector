@@ -110,7 +110,7 @@ export function ClanSearchForm() {
         <button
           type="submit"
           disabled={!draftIsValid}
-          className="bg-royale-gold-400 text-royale-navy-950 min-h-11 rounded-md px-4 py-2 font-semibold disabled:opacity-40"
+          className="btn-cr-gold min-h-11 px-4 py-2 disabled:opacity-40"
         >
           Inspecter
         </button>
@@ -147,7 +147,7 @@ export function ClanSearchForm() {
           <button
             type="button"
             onClick={searchState.refetch}
-            className="border-royale-gold-400 text-royale-gold-400 rounded-md border px-3 py-1 text-sm font-semibold"
+            className="btn-cr-red px-3 py-1 text-sm"
           >
             Reessayer
           </button>
@@ -161,38 +161,40 @@ export function ClanSearchForm() {
       )}
 
       {searchState.status === 'success' && searchResults.length > 1 && (
-        <ul className="space-y-2">
-          {searchResults.map((candidate) => (
-            <li key={candidate.tag}>
-              <button
-                type="button"
-                data-testid="clan-search-candidate"
-                onClick={() => loadClan(candidate.tag)}
-                className="border-royale-blue-800 bg-royale-navy-900 hover:bg-royale-blue-800/20 flex w-full flex-wrap items-center gap-3 rounded-md border px-4 py-3 text-left"
-              >
-                {candidate.badgeUrl.length > 0 && (
-                  <img
-                    src={candidate.badgeUrl}
-                    alt=""
-                    aria-hidden="true"
-                    className="h-8 w-8"
-                  />
-                )}
-                <span>
-                  <span className="text-royale-parchment block font-semibold">
-                    {candidate.name}
-                    <span className="text-royale-parchment-dim ml-2 text-xs font-normal">
-                      {candidate.tag}
+        <div className="bg-cr-panel-light rounded-lg border-2 border-black p-3">
+          <ul className="space-y-2">
+            {searchResults.map((candidate) => (
+              <li key={candidate.tag}>
+                <button
+                  type="button"
+                  data-testid="clan-search-candidate"
+                  onClick={() => loadClan(candidate.tag)}
+                  className="cr-pill-row flex w-full flex-wrap items-center gap-3 px-4 py-3 text-left hover:from-slate-50 hover:to-slate-200"
+                >
+                  {candidate.badgeUrl.length > 0 && (
+                    <img
+                      src={candidate.badgeUrl}
+                      alt=""
+                      aria-hidden="true"
+                      className="h-8 w-8"
+                    />
+                  )}
+                  <span>
+                    <span className="font-display block font-semibold text-slate-900">
+                      {candidate.name}
+                      <span className="ml-2 text-xs font-normal text-slate-500">
+                        {candidate.tag}
+                      </span>
+                    </span>
+                    <span className="text-xs text-slate-500">
+                      {candidate.memberCount}/50 membres
                     </span>
                   </span>
-                  <span className="text-royale-parchment-dim text-xs">
-                    {candidate.memberCount}/50 membres
-                  </span>
-                </span>
-              </button>
-            </li>
-          ))}
-        </ul>
+                </button>
+              </li>
+            ))}
+          </ul>
+        </div>
       )}
     </div>
   );

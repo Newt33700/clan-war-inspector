@@ -28,6 +28,7 @@ import {
 import type { ApiResource } from '@/hooks/use-api-resource';
 import { CopyButton } from './copy-button';
 import { EmptyState } from './empty-state';
+import { TrophyIcon } from './section-icons';
 import { Skeleton } from './skeleton';
 
 interface QuarantineSectionProps {
@@ -37,10 +38,10 @@ interface QuarantineSectionProps {
 }
 
 const LEVEL_BADGE_CLASSES: Record<ReliabilityLevel, string> = {
-  red: 'bg-royale-red-700 text-royale-parchment',
-  orange: 'bg-orange-600 text-royale-parchment',
-  green: 'bg-royale-green-500 text-royale-navy-950',
-  unknown: 'bg-slate-700 text-royale-parchment',
+  red: 'bg-cr-red text-white',
+  orange: 'bg-orange-600 text-white',
+  green: 'bg-cr-green text-royale-navy-950',
+  unknown: 'bg-slate-500 text-white',
 };
 
 /** Feux justifiant une action de moderation immediate. */
@@ -76,19 +77,19 @@ function QuarantineCard({
     resource?.status === 'success' ? computeReliabilityLevel(resource.stats) : null;
 
   return (
-    <div
-      data-testid="quarantine-card"
-      className="border-royale-blue-800 bg-royale-navy-900 space-y-4 rounded-lg border p-4"
-    >
+    <div data-testid="quarantine-card" className="cr-pill-row space-y-4 p-4">
       <div className="flex items-center gap-3">
-        <div aria-hidden="true" className="text-royale-parchment-dim">
+        <div aria-hidden="true" className="text-slate-500">
           <PlayerIcon />
         </div>
         <div className="min-w-0 flex-1">
-          <p className="text-royale-parchment truncate font-semibold">{member.name}</p>
-          <p className="text-royale-parchment-dim text-xs">{member.tag}</p>
+          <p className="font-display truncate font-semibold text-slate-900">
+            {member.name}
+          </p>
+          <p className="text-xs text-slate-500">{member.tag}</p>
         </div>
-        <p className="text-royale-gold-400 shrink-0 text-right font-semibold tabular-nums">
+        <p className="font-display flex shrink-0 items-center gap-1 text-right font-semibold text-slate-900 tabular-nums">
+          <TrophyIcon className="text-cr-gold h-4 w-4" />
           {member.trophies}
         </p>
       </div>
@@ -96,25 +97,21 @@ function QuarantineCard({
       {resource === undefined || resource.status === 'loading' ? (
         <CardSkeleton />
       ) : resource.status === 'error' ? (
-        <p role="alert" className="text-royale-red-500 text-sm">
+        <p role="alert" className="text-cr-red text-sm">
           {resource.message}
         </p>
       ) : (
         <>
           <dl className="grid grid-cols-2 gap-3 text-sm">
             <div>
-              <dt className="text-royale-parchment-dim text-xs uppercase">
-                Combats totaux
-              </dt>
-              <dd className="text-royale-parchment font-semibold tabular-nums">
+              <dt className="text-xs text-slate-500 uppercase">Combats totaux</dt>
+              <dd className="font-display font-semibold text-slate-900 tabular-nums">
                 {resource.stats.battleCount}
               </dd>
             </div>
             <div>
-              <dt className="text-royale-parchment-dim text-xs uppercase">
-                Victoires GDC (vie)
-              </dt>
-              <dd className="text-royale-parchment font-semibold tabular-nums">
+              <dt className="text-xs text-slate-500 uppercase">Victoires GDC (vie)</dt>
+              <dd className="font-display font-semibold text-slate-900 tabular-nums">
                 {resource.stats.clanWarWins}
               </dd>
             </div>
@@ -173,7 +170,7 @@ export function QuarantineSection({
     <section aria-labelledby="quarantine-title" className="space-y-4">
       <h2
         id="quarantine-title"
-        className="text-royale-parchment font-display text-xl tracking-wide"
+        className="cr-wood-header text-cr-title font-display rounded-lg text-xl tracking-wide"
       >
         Sas de quarantaine
       </h2>

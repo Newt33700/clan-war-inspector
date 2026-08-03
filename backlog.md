@@ -1575,6 +1575,22 @@ Critères d'acceptation :
   pages) : mention légale de non-affiliation à Supercell (texte imposé,
   inchangé) avec lien cliquable vers `supercell.com/fan-content-policy`
   (nouvel onglet).
+- ✅ **Refonte graphique « Gaming 3D / skeuomorphique »** (2026-08-03) :
+  abandon du flat design sur une palette hexadécimale précise (tokens
+  `cr-*` dans `globals.css` : `cr-bg-blue`, `cr-bg-purple`, `cr-panel-light`,
+  `cr-blue/green/red/gold`, `cr-wood`), utilitaire `.text-cr-title` (contour
+  noir + ombre portée), boutons 3D `.btn-cr-blue/green/red/gold` (reflet +
+  épaisseur + enfoncement au clic), `.cr-wood-header` et `.cr-pill-row`
+  réutilisables. Déployé d'abord sur Dashboard et Historique (`MembersTable`,
+  `WarHistorySection`, `MobileTabBar`), puis étendu à l'ensemble du site :
+  toutes les sections du Dashboard (Guerre en cours, Hall of Fame, A
+  expulser, Participation), RH, Nouveaux membres, Météo, ainsi que les
+  composants partagés (recherche de clan, en-tête de clan, panneau
+  d'inspection joueur, bouton copier). Fond global du site basculé sur
+  `cr-bg-blue` (contraste AA revérifié pour tous les tokens de texte
+  existants). `EmptyState` gagne une prop `tone` (`dark`/`light`) pour
+  s'adapter au panneau clair du profil joueur sans régresser son usage par
+  défaut ailleurs.
 
 ### Dette de test assumée (à reprendre par la passe testing)
 

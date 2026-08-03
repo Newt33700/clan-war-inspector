@@ -39,11 +39,11 @@ const PROFILE_STROKE_CLASSES: Record<ConsistencyProfile, string> = {
 
 /** Badge rouge clignotant pour Le Decrocheur (spec US 12), sobre ailleurs. */
 const PROFILE_BADGE_CLASSES: Record<ConsistencyProfile, string> = {
-  roc: 'bg-royale-green-500 text-royale-navy-950',
-  decrocheur: 'bg-royale-red-700 text-royale-parchment animate-pulse',
-  redemption: 'bg-blue-500 text-royale-navy-950',
-  touriste: 'bg-slate-600 text-royale-parchment',
-  irregulier: 'bg-orange-500 text-royale-navy-950',
+  roc: 'bg-cr-green text-royale-navy-950',
+  decrocheur: 'bg-cr-red animate-pulse text-white',
+  redemption: 'bg-blue-500 text-white',
+  touriste: 'bg-slate-500 text-white',
+  irregulier: 'bg-orange-500 text-white',
 };
 
 function WeatherIcon() {
@@ -80,7 +80,7 @@ export function WeatherSection({ clanTag, clanState, logState }: WeatherSectionP
     <section aria-labelledby="weather-title" className="space-y-4">
       <h2
         id="weather-title"
-        className="text-royale-parchment font-display text-xl tracking-wide"
+        className="cr-wood-header text-cr-title font-display rounded-lg text-xl tracking-wide"
       >
         La Meteo du Clan
       </h2>
@@ -98,20 +98,20 @@ export function WeatherSection({ clanTag, clanState, logState }: WeatherSectionP
           description="Il faut au moins 5 semaines de guerre completes pour degager une tendance."
         />
       ) : (
-        <div className="overflow-x-auto">
-          <table className="w-full border-collapse text-sm">
+        <div className="bg-cr-panel-light overflow-x-auto rounded-lg border-2 border-black p-3">
+          <table className="w-full border-separate border-spacing-y-2 text-sm">
             <caption className="sr-only">
               Tendance d assiduite des 5 dernieres semaines par joueur
             </caption>
             <thead>
-              <tr className="border-royale-blue-800 text-royale-parchment-dim border-b uppercase">
-                <th scope="col" className="px-3 py-2 text-left">
+              <tr className="uppercase">
+                <th scope="col" className="px-3 py-2 text-left text-slate-600">
                   Joueur
                 </th>
-                <th scope="col" className="px-3 py-2 text-left">
+                <th scope="col" className="px-3 py-2 text-left text-slate-600">
                   Tendance
                 </th>
-                <th scope="col" className="px-3 py-2 text-left">
+                <th scope="col" className="px-3 py-2 text-left text-slate-600">
                   Profil
                 </th>
               </tr>
@@ -121,19 +121,19 @@ export function WeatherSection({ clanTag, clanState, logState }: WeatherSectionP
                 <tr
                   key={trend.tag}
                   data-testid="weather-row"
-                  className="border-royale-blue-800/40 text-royale-parchment border-b"
+                  className="bg-gradient-to-b from-white to-slate-100 text-slate-900"
                 >
-                  <td className="px-3 py-2">
-                    <p className="font-semibold">{trend.name}</p>
-                    <p className="text-royale-parchment-dim text-xs">{trend.tag}</p>
+                  <td className="rounded-l-xl border-y-2 border-l-2 border-black px-3 py-2">
+                    <p className="font-display font-semibold">{trend.name}</p>
+                    <p className="text-xs text-slate-500">{trend.tag}</p>
                   </td>
-                  <td className="px-3 py-2">
+                  <td className="border-y-2 border-black px-3 py-2">
                     <Sparkline
                       values={trend.weeklyValues}
                       colorClassName={PROFILE_STROKE_CLASSES[trend.profile]}
                     />
                   </td>
-                  <td className="px-3 py-2">
+                  <td className="rounded-r-xl border-y-2 border-r-2 border-black px-3 py-2">
                     <span
                       className={`inline-block rounded-full px-3 py-1 text-xs font-bold uppercase ${PROFILE_BADGE_CLASSES[trend.profile]}`}
                     >

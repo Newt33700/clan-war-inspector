@@ -14,7 +14,7 @@ export function DesktopHeader() {
   const pathname = usePathname();
 
   return (
-    <header className="border-royale-blue-800 bg-royale-navy-950/95 sticky top-0 z-50 hidden border-b backdrop-blur md:block">
+    <header className="bg-cr-bg-blue/95 border-royale-blue-800 sticky top-0 z-50 hidden border-b backdrop-blur md:block">
       <div className="mx-auto flex max-w-4xl items-center justify-between px-6 py-3">
         <Link
           href="/dashboard"
@@ -30,9 +30,9 @@ export function DesktopHeader() {
                 key={item.href}
                 href={item.href}
                 aria-current={active ? 'page' : undefined}
-                className={`rounded-md px-3 py-2 text-sm font-semibold tracking-wide uppercase transition-colors ${
+                className={`rounded-md px-3 py-2 text-sm font-semibold tracking-wide uppercase transition-transform ${
                   active
-                    ? 'bg-royale-gold-400 text-royale-navy-950'
+                    ? 'bg-royale-gold-400 text-royale-navy-950 border-cr-wood-dark -translate-y-0.5 border-2 shadow-[0_2px_0_rgba(0,0,0,0.4)]'
                     : 'text-royale-parchment-dim hover:text-royale-parchment'
                 }`}
               >
