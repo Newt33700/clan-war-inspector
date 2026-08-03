@@ -1498,6 +1498,14 @@ le scope des assertions a bougé.
   « colonne de synthèse » de l'US 4.3, en plus du Total).
 - ✅ **Pages 404 / erreur** thématisées avec bouton de relance.
 - ✅ **Favicon SVG** (épées croisées + couronne) et métadonnées OpenGraph.
+- ✅ **Suppression de la colonne « Niveau » du tableau des membres**
+  (2026-08-03) : `/clans/{tag}` ne renvoie jamais de valeur exploitable
+  pour `expLevel` (0 pour tous les membres en pratique, cf. US-4 de
+  l'Épique 8), l'affichage était donc systématiquement un tiret. Retirée
+  du tableau desktop, de la carte mobile (US 14.2) et des options de tri
+  (`MemberSortKey`, `isExpLevelAvailable` supprimés du domaine). Le
+  niveau reste affiché dans le panneau joueur (US 9) : `/players/{tag}`,
+  une source différente, renvoie la vraie valeur de façon fiable.
 
 ### Dette de test assumée (à reprendre par la passe testing)
 

@@ -13,7 +13,6 @@ function candidate(overrides: Partial<PurgeCandidate>): PurgeCandidate {
       tag: '#A',
       name: 'Alice',
       role: 'member',
-      expLevel: 10,
       trophies: 5000,
       donations: 0,
     },

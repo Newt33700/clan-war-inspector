@@ -15,7 +15,6 @@ function member(overrides: Partial<ClanMember>): ClanMember {
     tag: '#TAG',
     name: 'Nom',
     role: 'member',
-    expLevel: 10,
     trophies: 5000,
     donations: 0,
     ...overrides,
