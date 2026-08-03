@@ -48,6 +48,31 @@
      Utilise en `pb-tab-bar` par le conteneur principal (`layout.tsx`) et
      par la tab bar elle-meme. */
   --spacing-tab-bar: calc(4rem + env(safe-area-inset-bottom));
+
+  /* Refonte "Gaming 3D / skeuomorphique" (identite visuelle, phase 2,
+     2026-08-03) : palette hexadecimale precise demandee, deployee en
+     priorite sur Dashboard et Historique. Coexiste avec les tokens
+     `royale-*` ci-dessus (encore utilises ailleurs) le temps du deploiement
+     progressif. */
+  --color-cr-bg-blue: #11203f;
+  --color-cr-bg-purple: #5832a8;
+  --color-cr-panel-light: #e4eaf1;
+  --color-cr-blue: #368afa;
+  --color-cr-green: #55d63e;
+  --color-cr-red: #e53638;
+  --color-cr-gold: #f9d02b;
+  --color-cr-wood: #b07446;
+  --color-cr-wood-dark: #4a2c17;
+}
+
+/* Style de titre embleme du jeu : texte blanc a contour noir marque et
+   ombre portee, lisible sur n'importe quel fond (d'ou l'independance vis
+   a vis de la couleur de fond, contrairement aux paires texte/fond
+   verifiees par theme-contrast.test.ts). */
+@utility text-cr-title {
+  color: white;
+  -webkit-text-stroke: 1.5px black;
+  text-shadow: 0px 3px 0px rgba(0, 0, 0, 0.7);
 }
 
 @keyframes fade-in {
@@ -97,5 +122,57 @@
       animation-iteration-count: 1 !important;
       transition-duration: 0.01ms !important;
     }
+  }
+}
+
+@layer components {
+  /* Bouton "bonbon" 3D du jeu : reflet blanc en haut, epaisseur noire en
+     bas, qui s'enfonce au clic (l'ombre externe disparait, le bouton
+     descend visuellement de la meme hauteur que son epaisseur). */
+  .btn-cr-blue,
+  .btn-cr-green,
+  .btn-cr-red,
+  .btn-cr-gold {
+    @apply font-display inline-flex items-center justify-center gap-2 rounded-lg border-2 border-black px-4 py-2 text-white;
+    box-shadow:
+      inset 0 3px 0 rgba(255, 255, 255, 0.4),
+      0 4px 0 black;
+    transition:
+      transform 0.05s ease,
+      box-shadow 0.05s ease;
+  }
+  .btn-cr-blue:active,
+  .btn-cr-green:active,
+  .btn-cr-red:active,
+  .btn-cr-gold:active {
+    transform: translateY(4px);
+    box-shadow: inset 0 3px 0 rgba(255, 255, 255, 0.4);
+  }
+  .btn-cr-blue {
+    @apply bg-cr-blue;
+  }
+  .btn-cr-green {
+    @apply bg-cr-green;
+  }
+  .btn-cr-red {
+    @apply bg-cr-red;
+  }
+  .btn-cr-gold {
+    /* Contraste AA : blanc sur le jaune cr-gold est illisible, texte fonce
+       comme le bouton dore existant de DesktopHeader (gold-400/navy-950). */
+    @apply bg-cr-gold text-royale-navy-950;
+  }
+
+  /* En-tete "bois" d'une liste/tableau (ex. "Chevraux Team") : bandeau
+     colore au-dessus du contenu, titre en .text-cr-title centre. */
+  .cr-wood-header {
+    @apply border-cr-wood-dark flex items-center justify-center gap-2 rounded-t-lg border-2 px-4 py-3;
+    background-color: var(--color-cr-wood);
+  }
+
+  /* Ligne "pilule" d'une liste de joueurs sur fond cr-panel-light : leger
+     degrade gris vers blanc, fine bordure noire, coins tres arrondis. */
+  .cr-pill-row {
+    @apply rounded-xl border border-black bg-gradient-to-b from-white to-slate-100 text-slate-900;
   }
 }

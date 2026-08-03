@@ -71,27 +71,29 @@ function MemberCard({
         type="button"
         data-testid="member-card"
         onClick={() => onSelectMember(member.tag)}
-        className="border-royale-blue-800 bg-royale-navy-900 flex w-full flex-col gap-2 rounded-lg border p-4 text-left"
+        className="cr-pill-row flex w-full flex-col gap-2 p-4 text-left"
       >
         <div>
-          <p className="text-royale-parchment font-semibold">{member.name}</p>
-          <p className="text-royale-parchment-dim text-xs">{member.tag}</p>
+          <p className="font-display font-semibold text-slate-900">{member.name}</p>
+          <p className="text-xs text-slate-500">{member.tag}</p>
         </div>
         <dl className="grid grid-cols-3 gap-2 text-center text-xs">
           <div>
-            <dt className="text-royale-parchment-dim uppercase">Role</dt>
-            <dd className="text-royale-parchment">{ROLE_LABELS[member.role]}</dd>
+            <dt className="text-slate-500 uppercase">Role</dt>
+            <dd className="text-slate-900">{ROLE_LABELS[member.role]}</dd>
           </div>
           <div>
-            <dt className="text-royale-parchment-dim uppercase">Trophees</dt>
-            <dd className="text-royale-parchment flex items-center justify-center gap-1 tabular-nums">
-              <TrophyIcon className="text-royale-gold-400 h-4 w-4" />
+            <dt className="text-slate-500 uppercase">Trophees</dt>
+            <dd className="font-display flex items-center justify-center gap-1 text-slate-900 tabular-nums">
+              <TrophyIcon className="text-cr-gold h-4 w-4" />
               {member.trophies}
             </dd>
           </div>
           <div>
-            <dt className="text-royale-parchment-dim uppercase">Dons</dt>
-            <dd className="text-royale-parchment tabular-nums">{member.donations}</dd>
+            <dt className="text-slate-500 uppercase">Dons</dt>
+            <dd className="font-display text-slate-900 tabular-nums">
+              {member.donations}
+            </dd>
           </div>
         </dl>
       </button>
@@ -120,18 +122,16 @@ export function MembersTable({
   }
 
   return (
-    <div>
+    <div className="bg-cr-panel-light space-y-3 rounded-lg border-2 border-black p-3">
       {/* Vue carte mobile (US 14.2) : le tableau reste reserve a partir de
           `md` (souris/trackpad), comme pour l'historique (US 14.1). */}
       <div className="space-y-3 md:hidden">
         <label className="flex flex-col gap-1 text-xs">
-          <span className="text-royale-parchment-dim tracking-wide uppercase">
-            Trier par
-          </span>
+          <span className="tracking-wide text-slate-600 uppercase">Trier par</span>
           <select
             value={selectValue}
             onChange={(event) => handleSelectChange(event.target.value)}
-            className="border-royale-blue-800 bg-royale-navy-900 text-royale-parchment min-h-11 rounded-md border px-3 py-2"
+            className="min-h-11 rounded-md border border-black bg-white px-3 py-2 text-slate-900"
           >
             {SORT_SELECT_OPTIONS.map((option) => (
               <option key={option.value} value={option.value}>
@@ -152,10 +152,10 @@ export function MembersTable({
       </div>
 
       <div className="hidden overflow-x-auto md:block">
-        <table className="w-full border-collapse text-sm">
+        <table className="w-full border-separate border-spacing-y-2 text-sm">
           <caption className="sr-only">Membres du clan</caption>
           <thead>
-            <tr className="border-royale-blue-800 border-b">
+            <tr>
               {COLUMNS.map((column) => {
                 const isActive = sortKey === column.key;
                 return (
@@ -176,7 +176,7 @@ export function MembersTable({
                       onClick={() => onSortChange(column.key)}
                       className={`w-full px-3 py-2 font-semibold tracking-wide uppercase ${
                         column.numeric ? 'text-right' : 'text-left'
-                      } ${isActive ? 'text-royale-gold-400' : 'text-royale-parchment-dim'}`}
+                      } ${isActive ? 'text-cr-blue' : 'text-slate-600'}`}
                     >
                       {column.label}
                       <span aria-hidden="true">
@@ -194,31 +194,35 @@ export function MembersTable({
                 key={memberEntry.tag}
                 data-testid="member-row"
                 onClick={() => onSelectMember(memberEntry.tag)}
-                className="border-royale-blue-800/40 text-royale-parchment hover:bg-royale-blue-800/20 cursor-pointer border-b"
+                className="cursor-pointer bg-gradient-to-b from-white to-slate-100 text-slate-900 hover:from-slate-50 hover:to-slate-200"
               >
-                <td className="px-3 py-2">
+                <td className="rounded-l-xl border-y-2 border-l-2 border-black px-3 py-2">
                   <button
                     type="button"
                     onClick={(event) => {
                       event.stopPropagation();
                       onSelectMember(memberEntry.tag);
                     }}
-                    className="text-left hover:underline focus-visible:underline"
+                    className="font-display text-left hover:underline focus-visible:underline"
                   >
                     {memberEntry.name}
-                    <span className="text-royale-parchment-dim block text-xs">
+                    <span className="block text-xs font-normal text-slate-500">
                       {memberEntry.tag}
                     </span>
                   </button>
                 </td>
-                <td className="px-3 py-2">{ROLE_LABELS[memberEntry.role]}</td>
-                <td className="px-3 py-2 text-right">
+                <td className="border-y-2 border-black px-3 py-2">
+                  {ROLE_LABELS[memberEntry.role]}
+                </td>
+                <td className="font-display border-y-2 border-black px-3 py-2 text-right tabular-nums">
                   <span className="flex items-center justify-end gap-1">
-                    <TrophyIcon className="text-royale-gold-400 h-4 w-4" />
+                    <TrophyIcon className="text-cr-gold h-4 w-4" />
                     {memberEntry.trophies}
                   </span>
                 </td>
-                <td className="px-3 py-2 text-right">{memberEntry.donations}</td>
+                <td className="font-display rounded-r-xl border-y-2 border-r-2 border-black px-3 py-2 text-right tabular-nums">
+                  {memberEntry.donations}
+                </td>
               </tr>
             ))}
           </tbody>

@@ -114,9 +114,9 @@ export function DashboardView({ tag, clanSeed, warSeed, logSeed }: DashboardView
           <section aria-labelledby="dashboard-members-title" className="space-y-6">
             <h2
               id="dashboard-members-title"
-              className="text-royale-parchment font-display flex items-center gap-2 text-xl tracking-wide"
+              className="cr-wood-header text-cr-title font-display rounded-lg text-xl tracking-wide"
             >
-              <MembersIcon className="text-royale-gold-400 h-5 w-5" />
+              <MembersIcon className="h-5 w-5" />
               Membres du clan
             </h2>
 
