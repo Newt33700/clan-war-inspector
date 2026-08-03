@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import type { ReactNode } from 'react';
 import { Lilita_One, Nunito } from 'next/font/google';
 
+import { Footer } from './components/footer';
 import { DesktopHeader } from './components/navigation/desktop-header';
 import { MobileTabBar } from './components/navigation/mobile-tab-bar';
 import './globals.css';
@@ -51,7 +52,8 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         </p>
         {/* pb-tab-bar (US 14.7) : garde le contenu au-dessus de la
             MobileTabBar fixe, zone sure iOS comprise. */}
-        <main className="pb-tab-bar mx-auto max-w-4xl px-6 md:pb-12">{children}</main>
+        <main className="mx-auto max-w-4xl px-6 md:pb-12">{children}</main>
+        <Footer />
         <MobileTabBar />
       </body>
     </html>
