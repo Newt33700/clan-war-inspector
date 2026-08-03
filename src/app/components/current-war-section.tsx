@@ -25,6 +25,7 @@ import { BATTLES_PER_WAR_WEEK } from '@/domain/war/war-history';
 import type { ApiResource } from '@/hooks/use-api-resource';
 import { formatTimeOfDay } from '@/lib/format-time';
 import { PlayerProgressBar } from './player-progress-bar';
+import { SwordsIcon } from './section-icons';
 import { Skeleton } from './skeleton';
 
 interface CurrentWarSectionProps {
@@ -139,8 +140,9 @@ export function CurrentWarSection({ warState, memberTags }: CurrentWarSectionPro
       <div className="flex flex-wrap items-center gap-3">
         <h2
           id="current-war-title"
-          className="text-royale-parchment font-display text-xl tracking-wide"
+          className="text-royale-parchment font-display flex items-center gap-2 text-xl tracking-wide"
         >
+          <SwordsIcon className="text-royale-red-500 h-5 w-5" />
           Guerre en cours
         </h2>
         {war !== null && periodBadge(war.isTrainingDay, war.periodType)}

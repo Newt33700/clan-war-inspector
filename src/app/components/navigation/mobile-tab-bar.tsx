@@ -29,8 +29,8 @@ export function MobileTabBar() {
             key={item.href}
             href={item.href}
             aria-current={active ? 'page' : undefined}
-            className={`flex h-11 min-w-11 flex-col items-center justify-center gap-1 px-3 text-xs font-semibold ${
-              active ? 'text-yellow-400' : 'text-slate-400'
+            className={`flex h-11 min-w-11 flex-col items-center justify-center gap-1 rounded-lg px-3 text-xs font-semibold transition-colors ${
+              active ? 'bg-royale-purple-700/40 text-yellow-400' : 'text-slate-400'
             }`}
           >
             {Icon !== undefined && <Icon className="h-6 w-6" />}

@@ -1549,6 +1549,16 @@ Critères d'acceptation :
   (`MemberSortKey`, `isExpLevelAvailable` supprimés du domaine). Le
   niveau reste affiché dans le panneau joueur (US 9) : `/players/{tag}`,
   une source différente, renvoie la vraie valeur de façon fiable.
+- ✅ **Identité visuelle rapprochée de Clash Royale** (2026-08-03) : sur
+  demande explicite, sans réutiliser aucun asset officiel du jeu (icônes,
+  artworks, police) pour des raisons de droits — uniquement des tokens de
+  thème et icônes SVG maison. Palette violette ajoutée
+  (`royale-purple-700/500/300`, contraste AA vérifié), effet « bouton en
+  relief » et titres à contour appliqués globalement en couche `base`
+  (`globals.css`, aucune classe à modifier composant par composant), 3
+  nouvelles icônes de section originales (`section-icons.tsx` : trophée,
+  épées croisées, membres), carte d'en-tête de clan et onglet actif de la
+  navigation mobile retravaillés avec l'accent violet.
 
 ### Dette de test assumée (à reprendre par la passe testing)
 

@@ -28,6 +28,7 @@ import { HallOfFameSection } from '../components/hall-of-fame-section';
 import { MembersTable } from '../components/members-table';
 import { ParticipationSummarySection } from '../components/participation-summary-section';
 import { PlayerDrawer } from '../components/player-drawer';
+import { MembersIcon } from '../components/section-icons';
 
 interface DashboardViewProps {
   tag: string;
@@ -113,8 +114,9 @@ export function DashboardView({ tag, clanSeed, warSeed, logSeed }: DashboardView
           <section aria-labelledby="dashboard-members-title" className="space-y-6">
             <h2
               id="dashboard-members-title"
-              className="text-royale-parchment font-display text-xl tracking-wide"
+              className="text-royale-parchment font-display flex items-center gap-2 text-xl tracking-wide"
             >
+              <MembersIcon className="text-royale-gold-400 h-5 w-5" />
               Membres du clan
             </h2>
 
