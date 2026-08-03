@@ -3,6 +3,8 @@
  * saisi correspond bien au clan attendu, avant toute decision (expulsion...).
  */
 
+import Image from 'next/image';
+
 import type { ClanSummary } from '@/domain/clan/clan-summary';
 
 const CLAN_MAX_MEMBERS = 50;
@@ -18,9 +20,11 @@ export function ClanHeader({ summary }: ClanHeaderProps) {
       className="border-royale-gold-400/60 from-royale-purple-700/40 to-royale-navy-900 flex flex-wrap items-center gap-4 rounded-xl border-2 bg-gradient-to-r px-4 py-3 shadow-lg"
     >
       {summary.badgeUrl.length > 0 && (
-        <img
+        <Image
           src={summary.badgeUrl}
           alt=""
+          width={48}
+          height={48}
           className="border-royale-gold-400 h-12 w-12 rounded-full border-2"
           aria-hidden="true"
         />

@@ -13,6 +13,8 @@ import {
   type SortDirection,
 } from '@/domain/clan/members';
 
+import { TrophyIcon } from './section-icons';
+
 const COLUMNS: { key: MemberSortKey; label: string; numeric: boolean }[] = [
   { key: 'name', label: 'Joueur', numeric: false },
   { key: 'role', label: 'Role', numeric: false },
@@ -82,7 +84,10 @@ function MemberCard({
           </div>
           <div>
             <dt className="text-royale-parchment-dim uppercase">Trophees</dt>
-            <dd className="text-royale-parchment tabular-nums">{member.trophies}</dd>
+            <dd className="text-royale-parchment flex items-center justify-center gap-1 tabular-nums">
+              <TrophyIcon className="text-royale-gold-400 h-4 w-4" />
+              {member.trophies}
+            </dd>
           </div>
           <div>
             <dt className="text-royale-parchment-dim uppercase">Dons</dt>
@@ -207,7 +212,12 @@ export function MembersTable({
                   </button>
                 </td>
                 <td className="px-3 py-2">{ROLE_LABELS[memberEntry.role]}</td>
-                <td className="px-3 py-2 text-right">{memberEntry.trophies}</td>
+                <td className="px-3 py-2 text-right">
+                  <span className="flex items-center justify-end gap-1">
+                    <TrophyIcon className="text-royale-gold-400 h-4 w-4" />
+                    {memberEntry.trophies}
+                  </span>
+                </td>
                 <td className="px-3 py-2 text-right">{memberEntry.donations}</td>
               </tr>
             ))}

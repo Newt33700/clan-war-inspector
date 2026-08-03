@@ -1559,6 +1559,22 @@ Critères d'acceptation :
   nouvelles icônes de section originales (`section-icons.tsx` : trophée,
   épées croisées, membres), carte d'en-tête de clan et onglet actif de la
   navigation mobile retravaillés avec l'accent violet.
+- ✅ **US 13 — Habillage graphique et conformité légale** (2026-08-03) :
+  `next.config.ts` autorise désormais `api-assets.clashroyale.com` en
+  `images.remotePatterns` (seul hébergeur utilisé : CDN officiel Supercell,
+  déjà la source légitime du badge de clan via l'API — un dépôt communautaire
+  envisagé initialement, `royaleapi/cr-api-assets`, interdit explicitement
+  l'usage en CDN direct dans son README, écarté après vérification). Badge de
+  clan (`ClanHeader`) converti en `next/image`. Icône trophée ajoutée à côté
+  des trophées dans `MembersTable` (carte mobile et tableau desktop) et icône
+  « épées croisées » ajoutée aux en-têtes `<h1>` du Dashboard et de la Météo —
+  ces deux icônes réutilisent les SVG maison de `section-icons.tsx` plutôt
+  qu'une image distante, faute d'URL officielle par élément sans appel API
+  supplémentaire par membre. Nouveau composant global `<Footer/>`
+  (`app/components/footer.tsx`, monté dans `layout.tsx` sur toutes les
+  pages) : mention légale de non-affiliation à Supercell (texte imposé,
+  inchangé) avec lien cliquable vers `supercell.com/fan-content-policy`
+  (nouvel onglet).
 
 ### Dette de test assumée (à reprendre par la passe testing)
 
