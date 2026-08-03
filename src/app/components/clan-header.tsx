@@ -15,10 +15,15 @@ export function ClanHeader({ summary }: ClanHeaderProps) {
   return (
     <div
       data-testid="clan-header"
-      className="border-royale-blue-800 bg-royale-navy-900 flex flex-wrap items-center gap-4 rounded-md border px-4 py-3"
+      className="border-royale-gold-400/60 from-royale-purple-700/40 to-royale-navy-900 flex flex-wrap items-center gap-4 rounded-xl border-2 bg-gradient-to-r px-4 py-3 shadow-lg"
     >
       {summary.badgeUrl.length > 0 && (
-        <img src={summary.badgeUrl} alt="" className="h-12 w-12" aria-hidden="true" />
+        <img
+          src={summary.badgeUrl}
+          alt=""
+          className="border-royale-gold-400 h-12 w-12 rounded-full border-2"
+          aria-hidden="true"
+        />
       )}
       <div>
         <p className="text-royale-parchment font-display text-lg tracking-wide">

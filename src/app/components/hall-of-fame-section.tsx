@@ -12,6 +12,7 @@ import { useMemo } from 'react';
 import { findWeeklyTopFame, type HallOfFameEntry } from '@/domain/clan/hall-of-fame';
 import type { ApiResource } from '@/hooks/use-api-resource';
 import { EmptyState } from './empty-state';
+import { TrophyIcon } from './section-icons';
 import { Skeleton } from './skeleton';
 
 interface HallOfFameSectionProps {
@@ -96,8 +97,9 @@ export function HallOfFameSection({ logState, clanTag }: HallOfFameSectionProps)
     <section aria-labelledby="hall-of-fame-title" className="space-y-4">
       <h2
         id="hall-of-fame-title"
-        className="text-royale-parchment font-display text-xl tracking-wide"
+        className="text-royale-parchment font-display flex items-center gap-2 text-xl tracking-wide"
       >
+        <TrophyIcon className="text-royale-gold-400 h-5 w-5" />
         Hall of Fame
       </h2>
 

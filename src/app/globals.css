@@ -23,6 +23,14 @@
 
   --color-royale-green-500: #37c46a;
 
+  /* Violet des panneaux "Social"/"Guerre de clans" du jeu (identite
+     visuelle, 2026-08-03) : reserve aux badges et bandeaux d'accent, pas
+     au texte courant. Contraste verifie (src/lib/theme-contrast.test.ts) :
+     parchment sur purple-700 = 9.32:1, gold-400 sur purple-700 = 7.23:1. */
+  --color-royale-purple-700: #4c1d95;
+  --color-royale-purple-500: #7c3aed;
+  --color-royale-purple-300: #c4b5fd;
+
   --color-royale-parchment: #f6ecd4;
   --color-royale-parchment-dim: #b9b19c;
 
@@ -57,6 +65,28 @@
   :focus-visible {
     outline: 2px solid var(--color-royale-gold-400);
     outline-offset: 3px;
+  }
+
+  /* Boutons "en relief" (identite visuelle Clash Royale, 2026-08-03) :
+     legere ombre portee au repos, bouton qui s'enfonce au clic - sans
+     toucher aux classes Tailwind de chaque composant (couleurs, tailles
+     deja definies au cas par cas). `disabled` reste plat : pas d'illusion
+     de profondeur sur une action indisponible. */
+  button:not(:disabled) {
+    box-shadow: 0 3px 0 rgba(0, 0, 0, 0.35);
+    transition:
+      transform 0.1s ease,
+      box-shadow 0.1s ease;
+  }
+  button:not(:disabled):active {
+    transform: translateY(2px);
+    box-shadow: 0 1px 0 rgba(0, 0, 0, 0.35);
+  }
+
+  /* Titrage a contour sombre, comme le rendu de police du jeu. */
+  h1,
+  h2 {
+    text-shadow: 0 2px 0 rgba(0, 0, 0, 0.35);
   }
 
   @media (prefers-reduced-motion: reduce) {
