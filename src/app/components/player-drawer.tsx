@@ -7,13 +7,14 @@
  */
 
 import type { PlayerProfile } from '@/domain/player/player-profile';
+import { summarizeCardsByLevel } from '@/domain/player/card-collection';
 import { useFocusTrap } from '@/hooks/use-focus-trap';
 import { usePlayerProfile } from '@/hooks/use-player-profile';
 import { EmptyState } from './empty-state';
 import { Skeleton } from './skeleton';
 import { useTranslations } from './i18n/locale-provider';
 
-type Translate = (key: string) => string;
+type Translate = (key: string, vars?: Record<string, string | number>) => string;
 
 interface PlayerDrawerProps {
   /** Tag du joueur a inspecter, `null` = panneau ferme. */
@@ -56,8 +57,67 @@ function CardsGrid({ deck, t }: { deck: PlayerProfile['deck']; t: Translate }) {
           <span className="w-full truncate text-center text-[10px] text-slate-500">
             {card.name}
           </span>
+          <span
+            data-testid="deck-card-level"
+            className="text-royale-blue-800 text-[10px] font-semibold tabular-nums"
+          >
+            {t('playerDrawer.cardLevel', { level: card.level })}
+          </span>
         </div>
       ))}
+    </div>
+  );
+}
+
+function CardCollection({ cards, t }: { cards: PlayerProfile['cards']; t: Translate }) {
+  if (cards.length === 0) {
+    return (
+      <EmptyState
+        icon={
+          <svg viewBox="0 0 24 24" className="h-8 w-8 fill-current" aria-hidden="true">
+            <rect x="6" y="2" width="12" height="18" rx="2" />
+          </svg>
+        }
+        title={t('playerDrawer.cardCollectionUnavailableTitle')}
+        description={t('playerDrawer.cardCollectionUnavailableDescription')}
+        tone="light"
+      />
+    );
+  }
+
+  const breakdown = summarizeCardsByLevel(cards);
+  const maxCount = Math.max(...breakdown.map((entry) => entry.count));
+
+  return (
+    <div className="space-y-3">
+      <p data-testid="cards-obtained-total" className="font-semibold text-slate-900">
+        {t('playerDrawer.cardsObtained', { count: cards.length })}
+      </p>
+      <ul className="space-y-1.5">
+        {breakdown.map((entry) => (
+          <li
+            key={entry.level}
+            data-testid="card-level-row"
+            className="flex items-center gap-2 text-xs"
+          >
+            <span className="w-20 shrink-0 font-semibold text-slate-700">
+              {t('playerDrawer.cardLevelRow', { level: entry.level })}
+            </span>
+            <span
+              aria-hidden="true"
+              className="bg-royale-navy-950 relative h-2.5 flex-1 overflow-hidden rounded-sm border border-black"
+            >
+              <span
+                className="bg-royale-gold-400 block h-full"
+                style={{ width: `${(entry.count / maxCount) * 100}%` }}
+              />
+            </span>
+            <span className="w-6 shrink-0 text-right text-slate-500 tabular-nums">
+              {entry.count}
+            </span>
+          </li>
+        ))}
+      </ul>
     </div>
   );
 }
@@ -116,6 +176,13 @@ function ProfileContent({ profile, t }: { profile: PlayerProfile; t: Translate }
           {t('playerDrawer.deck')}
         </h3>
         <CardsGrid deck={profile.deck} t={t} />
+      </div>
+
+      <div>
+        <h3 className="mb-2 text-xs text-slate-500 uppercase">
+          {t('playerDrawer.cardCollectionTitle')}
+        </h3>
+        <CardCollection cards={profile.cards} t={t} />
       </div>
     </div>
   );

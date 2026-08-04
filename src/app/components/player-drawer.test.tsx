@@ -49,6 +49,37 @@ describe('PlayerDrawer', () => {
     expect(screen.getByText('13')).toBeInTheDocument();
     expect(screen.getByText('500')).toBeInTheDocument();
     expect(screen.getAllByTestId('deck-card')).toHaveLength(8);
+    expect(screen.getAllByTestId('deck-card-level')[0]).toHaveTextContent('Niv. 11');
+  });
+
+  it('affiche le total de cartes obtenues et la repartition par niveau', async () => {
+    mockServer.use(
+      http.get('*/api/players/:playerTag', () =>
+        HttpResponse.json(FIXTURE_PLAYER_PROFILE),
+      ),
+    );
+    render(<PlayerDrawer tag="#PLAYER1" onClose={vi.fn()} />);
+
+    expect(await screen.findByTestId('cards-obtained-total')).toHaveTextContent(
+      '8 cartes obtenues',
+    );
+    const rows = screen.getAllByTestId('card-level-row');
+    expect(rows).toHaveLength(4);
+    expect(rows[0]).toHaveTextContent('Niveau 14');
+    expect(rows[0]).toHaveTextContent('1');
+    expect(rows[3]).toHaveTextContent('Niveau 6');
+    expect(rows[3]).toHaveTextContent('2');
+  });
+
+  it('affiche un etat vide illustre quand aucune carte n est exploitable dans la collection', async () => {
+    mockServer.use(
+      http.get('*/api/players/:playerTag', () =>
+        HttpResponse.json({ tag: '#P5', name: 'Joueur 5' }),
+      ),
+    );
+    render(<PlayerDrawer tag="#P5" onClose={vi.fn()} />);
+
+    expect(await screen.findByText(/collection indisponible/i)).toBeInTheDocument();
   });
 
   it('replie sur currentFavouriteCard quand currentDeck est absent', async () => {

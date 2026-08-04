@@ -221,6 +221,13 @@ const it = {
     deckUnavailableTitle: 'Mazzo non disponibile',
     deckUnavailableDescription:
       'Nessun mazzo attuale né carta preferita in questo profilo.',
+    cardLevel: 'Liv. {level}',
+    cardCollectionTitle: 'Collezione di carte',
+    cardsObtained: '{count} carte ottenute',
+    cardLevelRow: 'Livello {level}',
+    cardCollectionUnavailableTitle: 'Collezione non disponibile',
+    cardCollectionUnavailableDescription:
+      'Questo profilo non espone alcuna carta posseduta.',
     loadingLabel: 'Caricamento del profilo giocatore',
   },
   copyButton: {

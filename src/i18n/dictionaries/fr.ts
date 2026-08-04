@@ -224,6 +224,12 @@ const fr = {
     deck: 'Deck',
     deckUnavailableTitle: 'Deck indisponible',
     deckUnavailableDescription: 'Ni deck actuel ni carte favorite dans ce profil.',
+    cardLevel: 'Niv. {level}',
+    cardCollectionTitle: 'Collection de cartes',
+    cardsObtained: '{count} cartes obtenues',
+    cardLevelRow: 'Niveau {level}',
+    cardCollectionUnavailableTitle: 'Collection indisponible',
+    cardCollectionUnavailableDescription: 'Ce profil n expose aucune carte possedee.',
     loadingLabel: 'Chargement du profil joueur',
   },
   copyButton: {

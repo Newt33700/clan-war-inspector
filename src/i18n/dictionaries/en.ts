@@ -212,6 +212,12 @@ const en = {
     deck: 'Deck',
     deckUnavailableTitle: 'Deck unavailable',
     deckUnavailableDescription: 'No current deck or favorite card in this profile.',
+    cardLevel: 'Lvl. {level}',
+    cardCollectionTitle: 'Card collection',
+    cardsObtained: '{count} cards obtained',
+    cardLevelRow: 'Level {level}',
+    cardCollectionUnavailableTitle: 'Collection unavailable',
+    cardCollectionUnavailableDescription: 'This profile does not expose any owned card.',
     loadingLabel: 'Loading player profile',
   },
   copyButton: {

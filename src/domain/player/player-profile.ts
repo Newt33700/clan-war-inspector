@@ -12,6 +12,8 @@ export interface PlayerDeckCard {
   name: string;
   iconUrl: string;
   level: number;
+  /** Niveau maximum de la carte (echelle propre a sa rarete). */
+  maxLevel: number;
 }
 
 export interface PlayerProfile {
@@ -23,6 +25,8 @@ export interface PlayerProfile {
   donations: number;
   /** Jusqu'a 8 cartes : `currentDeck` en priorite, repli sur `currentFavouriteCard`. */
   deck: PlayerDeckCard[];
+  /** Toutes les cartes debloquees par le joueur (`cards`), retour utilisateur 2026-08-04. */
+  cards: PlayerDeckCard[];
 }
 
 type UnknownRecord = Record<string, unknown>;
@@ -51,7 +55,12 @@ function toCard(candidate: unknown): PlayerDeckCard | null {
   const iconUrls = candidate.iconUrls;
   const iconUrl =
     isRecord(iconUrls) && typeof iconUrls.medium === 'string' ? iconUrls.medium : '';
-  return { name, iconUrl, level: toSafeCount(candidate.level) };
+  return {
+    name,
+    iconUrl,
+    level: toSafeCount(candidate.level),
+    maxLevel: toSafeCount(candidate.maxLevel),
+  };
 }
 
 function toDeck(raw: UnknownRecord): PlayerDeckCard[] {
@@ -62,6 +71,14 @@ function toDeck(raw: UnknownRecord): PlayerDeckCard[] {
   }
   const favourite = toCard(raw.currentFavouriteCard);
   return favourite === null ? [] : [favourite];
+}
+
+/** Collection complete du joueur (`cards`) : absente si l'API ne l'expose pas. */
+function toCards(raw: UnknownRecord): PlayerDeckCard[] {
+  if (!Array.isArray(raw.cards)) {
+    return [];
+  }
+  return raw.cards.map(toCard).filter((card): card is PlayerDeckCard => card !== null);
 }
 
 /**
@@ -86,5 +103,6 @@ export function parsePlayerProfile(raw: unknown): PlayerProfile | null {
     expLevel: toSafeCount(raw.expLevel),
     donations: toSafeCount(raw.donations),
     deck: toDeck(raw),
+    cards: toCards(raw),
   };
 }

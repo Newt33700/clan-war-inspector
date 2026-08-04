@@ -218,6 +218,12 @@ const es = {
     deck: 'Mazo',
     deckUnavailableTitle: 'Mazo no disponible',
     deckUnavailableDescription: 'Ni mazo actual ni carta favorita en este perfil.',
+    cardLevel: 'Niv. {level}',
+    cardCollectionTitle: 'Colección de cartas',
+    cardsObtained: '{count} cartas obtenidas',
+    cardLevelRow: 'Nivel {level}',
+    cardCollectionUnavailableTitle: 'Colección no disponible',
+    cardCollectionUnavailableDescription: 'Este perfil no expone ninguna carta poseída.',
     loadingLabel: 'Cargando el perfil del jugador',
   },
   copyButton: {

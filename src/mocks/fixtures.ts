@@ -234,6 +234,65 @@ export const FIXTURE_PLAYER_PROFILE: PlayerProfileInfo = {
     maxLevel: 14,
     iconUrls: { medium: `https://example.com/cards/${index + 1}.png` },
   })),
+  /** Collection complete (US carte/niveau, retour 2026-08-04) : 8 cartes sur 4 niveaux. */
+  cards: [
+    {
+      name: 'Knight',
+      id: 2000,
+      level: 11,
+      maxLevel: 14,
+      iconUrls: { medium: 'https://example.com/cards/knight.png' },
+    },
+    {
+      name: 'Archers',
+      id: 2001,
+      level: 11,
+      maxLevel: 14,
+      iconUrls: { medium: 'https://example.com/cards/archers.png' },
+    },
+    {
+      name: 'Giant',
+      id: 2002,
+      level: 9,
+      maxLevel: 13,
+      iconUrls: { medium: 'https://example.com/cards/giant.png' },
+    },
+    {
+      name: 'Fireball',
+      id: 2003,
+      level: 9,
+      maxLevel: 13,
+      iconUrls: { medium: 'https://example.com/cards/fireball.png' },
+    },
+    {
+      name: 'Musketeer',
+      id: 2004,
+      level: 9,
+      maxLevel: 13,
+      iconUrls: { medium: 'https://example.com/cards/musketeer.png' },
+    },
+    {
+      name: 'Mini P.E.K.K.A',
+      id: 2005,
+      level: 6,
+      maxLevel: 11,
+      iconUrls: { medium: 'https://example.com/cards/mini-pekka.png' },
+    },
+    {
+      name: 'Balloon',
+      id: 2006,
+      level: 6,
+      maxLevel: 11,
+      iconUrls: { medium: 'https://example.com/cards/balloon.png' },
+    },
+    {
+      name: 'Skeletons',
+      id: 2007,
+      level: 14,
+      maxLevel: 15,
+      iconUrls: { medium: 'https://example.com/cards/skeletons.png' },
+    },
+  ],
 };
 
 /**

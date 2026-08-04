@@ -22,6 +22,7 @@ describe('parsePlayerProfile', () => {
       name: 'Carte 1',
       iconUrl: 'https://example.com/cards/1.png',
       level: 11,
+      maxLevel: 14,
     });
   });
 
@@ -32,8 +33,25 @@ describe('parsePlayerProfile', () => {
         name: 'Carte Favorite',
         iconUrl: 'https://example.com/cards/favorite.png',
         level: 9,
+        maxLevel: 14,
       },
     ]);
+  });
+
+  it('extrait la collection complete de cartes (cards)', () => {
+    const profile = parsePlayerProfile(FIXTURE_PLAYER_PROFILE);
+    expect(profile?.cards.length).toBeGreaterThan(0);
+    expect(profile?.cards[0]).toEqual({
+      name: 'Knight',
+      iconUrl: 'https://example.com/cards/knight.png',
+      level: 11,
+      maxLevel: 14,
+    });
+  });
+
+  it('collection vide quand cards est absent ou inexploitable', () => {
+    expect(parsePlayerProfile({ tag: '#A' })?.cards).toEqual([]);
+    expect(parsePlayerProfile({ tag: '#A', cards: 'oops' })?.cards).toEqual([]);
   });
 
   it.each([
@@ -90,7 +108,9 @@ describe('parsePlayerProfile', () => {
       tag: '#A',
       currentDeck: ['oops', null, { name: 'Valide', id: 1, level: 5, maxLevel: 14 }],
     });
-    expect(profile?.deck).toEqual([{ name: 'Valide', iconUrl: '', level: 5 }]);
+    expect(profile?.deck).toEqual([
+      { name: 'Valide', iconUrl: '', level: 5, maxLevel: 14 },
+    ]);
   });
 
   it('borne le niveau d une carte manquant a 0 et l icone a vide', () => {
@@ -98,11 +118,13 @@ describe('parsePlayerProfile', () => {
       tag: '#A',
       currentDeck: [{ name: 'Sans niveau' }],
     });
-    expect(profile?.deck).toEqual([{ name: 'Sans niveau', iconUrl: '', level: 0 }]);
+    expect(profile?.deck).toEqual([
+      { name: 'Sans niveau', iconUrl: '', level: 0, maxLevel: 0 },
+    ]);
   });
 
   it('remplace un nom de carte manquant par une chaine vide', () => {
     const profile = parsePlayerProfile({ tag: '#A', currentDeck: [{ level: 5 }] });
-    expect(profile?.deck).toEqual([{ name: '', iconUrl: '', level: 5 }]);
+    expect(profile?.deck).toEqual([{ name: '', iconUrl: '', level: 5, maxLevel: 0 }]);
   });
 });

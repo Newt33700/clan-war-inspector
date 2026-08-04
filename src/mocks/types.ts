@@ -85,6 +85,8 @@ export interface PlayerProfileInfo {
   clan?: { tag: string; name: string };
   currentDeck?: PlayerProfileCard[];
   currentFavouriteCard?: PlayerProfileCard;
+  /** Collection complete de cartes debloquees (US carte/niveau, retour 2026-08-04). */
+  cards?: PlayerProfileCard[];
   /** Combats totaux, utilise par l'indice de fiabilite (US 11). */
   battleCount?: number;
   /** Contient le badge `ClanWarWins` (US 11, "le hack des badges"). */
