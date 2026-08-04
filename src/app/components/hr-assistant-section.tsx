@@ -20,6 +20,7 @@ import {
   formatMeritoriousForClipboard,
   formatWatchlistForClipboard,
 } from '@/lib/hr-recommendations-export';
+import { Accordion } from './accordion';
 import { CopyButton } from './copy-button';
 import { EmptyState } from './empty-state';
 import { Skeleton } from './skeleton';
@@ -141,21 +142,25 @@ export function HrAssistantSection({
                       style={{ animationDelay: `${index * 60}ms` }}
                       className="animate-fade-in cr-pill-row border-l-cr-green border-l-4 p-4"
                     >
-                      <div className="flex items-center gap-3">
-                        <ShieldIcon className="text-cr-green h-8 w-8" />
-                        <div>
-                          <p className="font-display font-bold text-slate-900">
-                            {member.name}
-                          </p>
-                          <p className="text-xs text-slate-500">{member.tag}</p>
-                        </div>
-                      </div>
-                      <span className="bg-cr-green mt-3 inline-block rounded-full px-3 py-1 text-xs font-semibold text-white">
-                        Promotion suggeree : Aine
-                      </span>
-                      <div className="mt-3">
+                      <Accordion
+                        summary={
+                          <>
+                            <ShieldIcon className="text-cr-green h-8 w-8 shrink-0" />
+                            <div className="min-w-0 flex-1">
+                              <p className="font-display truncate font-bold text-slate-900">
+                                {member.name}
+                              </p>
+                              <span className="bg-cr-green mt-1 inline-block rounded-full px-3 py-1 text-xs font-semibold text-white">
+                                Promotion suggeree : Aine
+                              </span>
+                            </div>
+                          </>
+                        }
+                        detailClassName="space-y-2 pt-3"
+                      >
+                        <p className="text-xs text-slate-500">{member.tag}</p>
                         <CopyButton text={member.tag} />
-                      </div>
+                      </Accordion>
                     </li>
                   ))}
                 </ul>
@@ -195,24 +200,28 @@ export function HrAssistantSection({
                       style={{ animationDelay: `${index * 60}ms` }}
                       className="animate-fade-in cr-pill-row border-l-cr-red border-l-4 p-4"
                     >
-                      <div className="flex items-center gap-3">
-                        <TriangleWarningIcon className="text-cr-red h-8 w-8" />
-                        <div>
-                          <p className="font-display font-bold text-slate-900">
-                            {candidate.member.name}
-                          </p>
-                          <p className="text-xs text-slate-500">{candidate.member.tag}</p>
-                        </div>
-                      </div>
-                      <p className="text-cr-red mt-3 text-sm font-semibold">
-                        Retrogradation conseillee
-                      </p>
-                      <p className="mt-1 text-xs text-slate-500">
-                        {candidate.currentWeekBattles}/16 combats cette semaine
-                      </p>
-                      <div className="mt-3">
+                      <Accordion
+                        summary={
+                          <>
+                            <TriangleWarningIcon className="text-cr-red h-8 w-8 shrink-0" />
+                            <div className="min-w-0 flex-1">
+                              <p className="font-display truncate font-bold text-slate-900">
+                                {candidate.member.name}
+                              </p>
+                              <p className="text-cr-red text-sm font-semibold">
+                                Retrogradation conseillee
+                              </p>
+                              <p className="text-xs text-slate-500">
+                                {candidate.currentWeekBattles}/16 combats cette semaine
+                              </p>
+                            </div>
+                          </>
+                        }
+                        detailClassName="space-y-2 pt-3"
+                      >
+                        <p className="text-xs text-slate-500">{candidate.member.tag}</p>
                         <CopyButton text={candidate.member.tag} />
-                      </div>
+                      </Accordion>
                     </li>
                   ))}
                 </ul>

@@ -26,6 +26,7 @@ import {
   type ReliabilityResource,
 } from '@/hooks/use-new-member-reliability';
 import type { ApiResource } from '@/hooks/use-api-resource';
+import { Accordion } from './accordion';
 import { CopyButton } from './copy-button';
 import { EmptyState } from './empty-state';
 import { TrophyIcon } from './section-icons';
@@ -77,31 +78,33 @@ function QuarantineCard({
     resource?.status === 'success' ? computeReliabilityLevel(resource.stats) : null;
 
   return (
-    <div data-testid="quarantine-card" className="cr-pill-row space-y-4 p-4">
-      <div className="flex items-center gap-3">
-        <div aria-hidden="true" className="text-slate-500">
-          <PlayerIcon />
-        </div>
-        <div className="min-w-0 flex-1">
-          <p className="font-display truncate font-semibold text-slate-900">
-            {member.name}
-          </p>
-          <p className="text-xs text-slate-500">{member.tag}</p>
-        </div>
-        <p className="font-display flex shrink-0 items-center gap-1 text-right font-semibold text-slate-900 tabular-nums">
-          <TrophyIcon className="text-cr-gold h-4 w-4" />
-          {member.trophies}
-        </p>
-      </div>
-
-      {resource === undefined || resource.status === 'loading' ? (
-        <CardSkeleton />
-      ) : resource.status === 'error' ? (
-        <p role="alert" className="text-cr-red text-sm">
-          {resource.message}
-        </p>
-      ) : (
-        <>
+    <div data-testid="quarantine-card" className="cr-pill-row space-y-3 p-4">
+      {/* Le verdict (badge + kick) et le chargement/l'erreur restent
+          visibles sans interaction : c'est la raison d'etre de cette
+          section (evaluer un risque au premier coup d'oeil). Seul le
+          detail brut (tag, stats) se deplie au tap, comme les autres
+          cartes en accordeon. */}
+      <Accordion
+        summary={
+          <>
+            <div aria-hidden="true" className="text-slate-500">
+              <PlayerIcon />
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="font-display truncate font-semibold text-slate-900">
+                {member.name}
+              </p>
+            </div>
+            <p className="font-display flex shrink-0 items-center gap-1 text-right font-semibold text-slate-900 tabular-nums">
+              <TrophyIcon className="text-cr-gold h-4 w-4" />
+              {member.trophies}
+            </p>
+          </>
+        }
+        detailClassName="space-y-2 pt-3"
+      >
+        <p className="text-xs text-slate-500">{member.tag}</p>
+        {resource?.status === 'success' && (
           <dl className="grid grid-cols-2 gap-3 text-sm">
             <div>
               <dt className="text-xs text-slate-500 uppercase">Combats totaux</dt>
@@ -116,20 +119,28 @@ function QuarantineCard({
               </dd>
             </div>
           </dl>
+        )}
+      </Accordion>
 
-          {level !== null && (
-            <div className="space-y-3">
-              <span
-                className={`inline-block rounded-full px-3 py-1 text-xs font-bold uppercase ${LEVEL_BADGE_CLASSES[level]}`}
-              >
-                {RELIABILITY_LABELS[level]}
-              </span>
-              {KICKABLE_LEVELS.includes(level) && (
-                <CopyButton text={member.tag} label="Copier Tag pour Kick" />
-              )}
-            </div>
+      {(resource === undefined || resource.status === 'loading') && <CardSkeleton />}
+
+      {resource?.status === 'error' && (
+        <p role="alert" className="text-cr-red text-sm">
+          {resource.message}
+        </p>
+      )}
+
+      {level !== null && (
+        <div className="space-y-3">
+          <span
+            className={`inline-block rounded-full px-3 py-1 text-xs font-bold uppercase ${LEVEL_BADGE_CLASSES[level]}`}
+          >
+            {RELIABILITY_LABELS[level]}
+          </span>
+          {KICKABLE_LEVELS.includes(level) && (
+            <CopyButton text={member.tag} label="Copier Tag pour Kick" />
           )}
-        </>
+        </div>
       )}
     </div>
   );
