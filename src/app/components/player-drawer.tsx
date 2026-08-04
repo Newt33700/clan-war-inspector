@@ -6,6 +6,7 @@
  * directive UX generale de l'Epique 7).
  */
 
+import type { ClanRole } from '@/domain/clan/members';
 import type { PlayerProfile } from '@/domain/player/player-profile';
 import { summarizeCardsByLevel } from '@/domain/player/card-collection';
 import { averageElixirCost } from '@/domain/player/deck-stats';
@@ -15,10 +16,34 @@ import { usePlayerProfile } from '@/hooks/use-player-profile';
 import { usePlayerBattlelog } from '@/hooks/use-player-battlelog';
 import { EmptyState } from './empty-state';
 import { Skeleton } from './skeleton';
-import { SwordsIcon } from './section-icons';
+import { ROLE_ICONS, SwordsIcon } from './section-icons';
 import { useTranslations } from './i18n/locale-provider';
 
 type Translate = (key: string, vars?: Record<string, string | number>) => string;
+
+/**
+ * Icone d'elixir reelle (retour utilisateur 2026-08-04, "P0" logos Clash) :
+ * meme CDN communautaire deja utilise pour l'icone de dons et les trophees
+ * de l'en-tete du clan, pas d'asset officiel Supercell equivalent.
+ */
+const ELIXIR_ICON_URL = 'https://cdn.royaleapi.com/static/img/ui/elixir.png';
+
+const ROLE_ICON_CLASSES: Record<ClanRole, string> = {
+  leader: 'text-cr-gold',
+  coLeader: 'text-cr-blue',
+  elder: 'text-royale-purple-500',
+  member: 'text-slate-400',
+};
+
+function RoleBadge({ role, t }: { role: ClanRole; t: Translate }) {
+  const RoleIcon = ROLE_ICONS[role];
+  return (
+    <>
+      <RoleIcon className={`h-4 w-4 ${ROLE_ICON_CLASSES[role]}`} />
+      {t(`roles.${role}`)}
+    </>
+  );
+}
 
 interface PlayerDrawerProps {
   /** Tag du joueur a inspecter, `null` = panneau ferme. */
@@ -236,10 +261,12 @@ function ProfileContent({ profile, t }: { profile: PlayerProfile; t: Translate }
       <dl className="grid grid-cols-2 gap-3 text-sm">
         <div>
           <dt className="text-xs text-slate-500 uppercase">{t('playerDrawer.role')}</dt>
-          <dd className="font-semibold text-slate-900">
-            {profile.role !== null
-              ? t(`roles.${profile.role}`)
-              : t('playerDrawer.outOfClan')}
+          <dd className="flex items-center gap-1.5 font-semibold text-slate-900">
+            {profile.role !== null ? (
+              <RoleBadge role={profile.role} t={t} />
+            ) : (
+              t('playerDrawer.outOfClan')
+            )}
           </dd>
         </div>
         <div>
@@ -298,8 +325,14 @@ function ProfileContent({ profile, t }: { profile: PlayerProfile; t: Translate }
           {profile.deck.length > 0 && (
             <span
               data-testid="deck-average-elixir"
-              className="text-royale-blue-800 normal-case"
+              className="text-royale-blue-800 flex items-center gap-1 normal-case"
             >
+              <img
+                src={ELIXIR_ICON_URL}
+                alt=""
+                aria-hidden="true"
+                className="h-3.5 w-3.5"
+              />
               {t('playerDrawer.deckAverageElixir', {
                 average: averageElixirCost(profile.deck),
               })}

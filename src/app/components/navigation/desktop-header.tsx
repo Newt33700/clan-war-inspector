@@ -11,6 +11,7 @@ import { usePathname } from 'next/navigation';
 import { useTranslations } from '../i18n/locale-provider';
 import { BrandMark } from './brand-mark';
 import { isNavItemActive, NAV_ITEMS } from './nav-items';
+import { NAV_ICONS } from './nav-icons';
 import { KofiButton } from '../kofi-button';
 
 export function DesktopHeader() {
@@ -30,17 +31,19 @@ export function DesktopHeader() {
         <nav aria-label={t('nav.ariaLabel')} className="flex items-center gap-1">
           {NAV_ITEMS.map((item) => {
             const active = isNavItemActive(pathname, item.href);
+            const Icon = NAV_ICONS[item.href];
             return (
               <Link
                 key={item.href}
                 href={item.href}
                 aria-current={active ? 'page' : undefined}
-                className={`rounded-md px-3 py-2 text-sm font-semibold tracking-wide uppercase transition-transform ${
+                className={`flex items-center gap-1.5 rounded-md px-3 py-2 text-sm font-semibold tracking-wide uppercase transition-transform ${
                   active
                     ? 'bg-royale-gold-400 text-royale-navy-950 border-cr-wood-dark -translate-y-0.5 border-2 shadow-[0_2px_0_rgba(0,0,0,0.4)]'
                     : 'text-slate-300 hover:text-white'
                 }`}
               >
+                {Icon !== undefined && <Icon className="h-4 w-4" />}
                 {t(item.labelKey)}
               </Link>
             );

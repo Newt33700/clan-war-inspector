@@ -15,7 +15,7 @@
 
 import { useState } from 'react';
 import type { ClanMember } from '@/domain/clan/members';
-import { TrophyIcon } from './section-icons';
+import { ROLE_ICONS, TrophyIcon } from './section-icons';
 import { useTranslations } from './i18n/locale-provider';
 
 /** Asset RoyaleAPI : icone de dons a cote du decompte. */
@@ -41,6 +41,7 @@ export function PlayerAccordionItem({
 }: PlayerAccordionItemProps) {
   const [isOpen, setIsOpen] = useState(false);
   const { t } = useTranslations();
+  const RoleIcon = ROLE_ICONS[member.role];
 
   return (
     <li data-testid="member-card" className="cr-pill-row overflow-hidden">
@@ -61,8 +62,9 @@ export function PlayerAccordionItem({
             {member.name}
           </span>
           <span
-            className={`mt-0.5 inline-block rounded px-2 py-0.5 text-[10px] font-semibold uppercase ${ROLE_BADGE_CLASSES[member.role]}`}
+            className={`mt-0.5 inline-flex items-center gap-1 rounded px-2 py-0.5 text-[10px] font-semibold uppercase ${ROLE_BADGE_CLASSES[member.role]}`}
           >
+            <RoleIcon className="h-3 w-3" />
             {t(`roles.${member.role}`)}
           </span>
         </span>
