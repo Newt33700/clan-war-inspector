@@ -23,6 +23,16 @@ const eslintConfig = [
       'no-console': ['warn', { allow: ['warn', 'error'] }],
     },
   },
+  {
+    // Outillage CI execute par Node : la sortie console EST leur interface.
+    files: ['scripts/**/*.mjs'],
+    languageOptions: {
+      globals: { console: 'readonly', process: 'readonly' },
+    },
+    rules: {
+      'no-console': 'off',
+    },
+  },
   prettier,
 ];
 

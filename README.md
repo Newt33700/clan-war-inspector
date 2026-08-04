@@ -59,6 +59,19 @@ appeler directement `https://api.clashroyale.com/v1`.
 | `npm run test:mutation` | Mutation testing Stryker, **echoue sous 90 %**        |
 | `npm run verify`        | Enchaine format, lint, types, couverture et mutation  |
 
+Le mutation testing est pilote par `scripts/mutation.mjs`, qui decoupe le travail en
+perimetres (`domain`, `api`, `hooks`). Chaque perimetre n'execute que les tests qui le
+concernent, dans l'environnement minimal qui lui suffit (cf. `vitest.mutation.config.ts`) :
+la logique metier pure tourne sous `node` sans jsdom ni MSW. `scripts/mutation-report.mjs`
+fusionne ensuite les rapports et applique le seuil une seule fois, sur l'ensemble.
+
+```bash
+npm run test:mutation                                   # tous les perimetres
+node scripts/mutation.mjs --scope domain                # un seul perimetre
+node scripts/mutation.mjs --scope hooks --shard 2/2     # un shard, comme en CI
+npm run test:mutation:verify                            # exhaustivite des perimetres
+```
+
 ## Portes de qualite
 
 Ces seuils ne sont pas indicatifs : les commandes sortent en erreur quand ils ne sont
@@ -70,7 +83,15 @@ pas atteints, et la CI (US 2.1) bloquera la merge request.
 | `src/domain/**`                          | Vitest + v8 | **100 %**                |
 | `src/domain`, `src/app/api`, `src/hooks` | Stryker     | **90 %** de mutants tues |
 
-Rapports generes : `coverage/index.html` et `reports/mutation/index.html`.
+Rapports generes : `coverage/index.html`, un `reports/mutation/<perimetre>.html` par
+perimetre, et `reports/mutation/merged.json` (union des perimetres, sur laquelle le seuil
+de 90 % est evalue).
+
+En CI, les perimetres tournent dans des jobs paralleles, en parallele des controles
+statiques, des tests et du build ; un job final fusionne les rapports et applique le
+seuil. Le job `static` verifie aussi qu'aucun fichier a muter n'echappe aux perimetres :
+un nouveau repertoire de code metier doit etre declare dans `scripts/mutation-scopes.mjs`
+et dans `vitest.mutation.config.ts`, sinon la CI echoue.
 
 ## Structure
 
