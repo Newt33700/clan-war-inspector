@@ -137,21 +137,19 @@ export function PurgeSection({
               Copier la liste
             </button>
             {copyState === 'copied' && (
-              <span role="status" className="text-royale-green-500 text-sm">
+              <span role="status" className="text-sm text-green-800">
                 Copié ! ✅
               </span>
             )}
             {copyState === 'error' && (
-              <span role="alert" className="text-royale-red-500 text-sm">
+              <span role="alert" className="text-royale-red-700 text-sm">
                 Impossible de copier.
               </span>
             )}
           </div>
 
           {candidates.length === 0 ? (
-            <p className="text-royale-green-500">
-              Aucun membre problematique avec ce seuil.
-            </p>
+            <p className="text-green-800">Aucun membre problematique avec ce seuil.</p>
           ) : (
             <div className="bg-cr-panel-light rounded-lg border-2 border-black p-3">
               <ul className="space-y-2">

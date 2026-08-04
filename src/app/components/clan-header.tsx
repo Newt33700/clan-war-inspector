@@ -34,7 +34,7 @@ export function ClanHeader({ summary }: ClanHeaderProps) {
           {summary.name}
           <span className="ml-2 text-sm font-normal text-slate-200">{summary.tag}</span>
         </p>
-        <p className="text-royale-parchment-dim text-sm">
+        <p className="text-sm text-slate-200">
           {summary.memberCount}/{CLAN_MAX_MEMBERS} membres · Score {summary.clanScore} ·
           Trophees de guerre {summary.warTrophies}
         </p>

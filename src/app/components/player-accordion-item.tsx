@@ -50,7 +50,7 @@ export function PlayerAccordionItem({
       >
         <span
           aria-hidden="true"
-          className="bg-royale-navy-900 font-display text-royale-parchment flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-xs font-bold"
+          className="bg-royale-navy-900 font-display flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-xs font-bold text-white"
         >
           {member.name.slice(0, 2).toUpperCase()}
         </span>

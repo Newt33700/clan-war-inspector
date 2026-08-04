@@ -19,7 +19,7 @@ export function MobileTabBar() {
   return (
     <nav
       aria-label="Navigation principale"
-      className="fixed bottom-0 z-50 flex h-16 w-full flex-row items-center justify-around border-t border-white/10 bg-slate-700/85 pb-[env(safe-area-inset-bottom)] backdrop-blur-md md:hidden"
+      className="border-royale-blue-800 bg-cr-bg-blue/95 fixed bottom-0 z-50 flex h-16 w-full flex-row items-center justify-around border-t pb-[env(safe-area-inset-bottom)] backdrop-blur-md md:hidden"
     >
       {NAV_ITEMS.map((item) => {
         const Icon = NAV_ICONS[item.href];

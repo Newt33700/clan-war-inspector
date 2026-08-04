@@ -23,13 +23,6 @@ interface HallOfFameSectionProps {
 
 type Rank = 1 | 2 | 3;
 
-/** Assets RoyaleAPI (Refonte Podium "Hall of Fame") : pas d'avatar joueur
- *  expose par l'API Supercell, mais le jeu recompense toujours la victoire
- *  par des visuels riches (couronne, badge de ligue) plutot qu'un flat
- *  design - on reprend ces memes assets ici. */
-const CROWN_IMAGE_URL = 'https://cdn.royaleapi.com/static/img/ui/crown.png';
-const LEAGUE_BADGE_IMAGE_URL = 'https://cdn.royaleapi.com/static/img/ui/league-8.png';
-
 const RANK_STYLE: Record<
   Rank,
   { border: string; shadow: string; crown: string; order: string; size: string }
@@ -79,11 +72,7 @@ function PodiumCard({ entry, rank }: { entry: HallOfFameEntry; rank: Rank }) {
       } ${style.order}`}
     >
       {isChampion ? (
-        <img
-          src={CROWN_IMAGE_URL}
-          alt="Couronne du 1er"
-          className="h-10 w-10 drop-shadow-[0_2px_2px_rgba(0,0,0,0.6)]"
-        />
+        <CrownIcon className="h-10 w-10 text-yellow-400 drop-shadow-[0_2px_2px_rgba(0,0,0,0.6)]" />
       ) : (
         <CrownIcon className={`h-6 w-6 ${style.crown}`} />
       )}
@@ -96,7 +85,7 @@ function PodiumCard({ entry, rank }: { entry: HallOfFameEntry; rank: Rank }) {
         {entry.name}
       </p>
       <p className="text-royale-parchment-dim flex items-center gap-1 text-xs">
-        <img src={LEAGUE_BADGE_IMAGE_URL} alt="" aria-hidden="true" className="h-4 w-4" />
+        <TrophyIcon className="h-4 w-4 text-amber-800" />
         {entry.fame} fame
       </p>
     </div>

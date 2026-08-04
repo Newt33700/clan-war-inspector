@@ -47,13 +47,13 @@ export function ClanStatusMessage({ state, idleMessage }: ClanStatusMessageProps
 
   return (
     <div className="space-y-2">
-      <p role="alert" className="text-royale-red-500">
+      <p role="alert" className="text-royale-red-700">
         {state.message}
       </p>
       <button
         type="button"
         onClick={state.refetch}
-        className="border-royale-gold-400 text-royale-gold-400 rounded-md border px-3 py-1 text-sm font-semibold"
+        className="btn-cr-gold px-3 py-1 text-sm"
       >
         Reessayer
       </button>
