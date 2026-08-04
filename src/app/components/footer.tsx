@@ -12,6 +12,7 @@
  */
 
 import { useState } from 'react';
+import { KofiButton } from './kofi-button';
 import { LanguageSwitcher } from './i18n/language-switcher';
 import { useTranslations } from './i18n/locale-provider';
 
@@ -30,7 +31,10 @@ export function Footer() {
         >
           {t('footer.licenseLabel')}
         </button>
-        <LanguageSwitcher />
+        <div className="flex items-center gap-3">
+          <KofiButton />
+          <LanguageSwitcher />
+        </div>
       </div>
       {isLegalOpen && (
         <p className="mx-auto mt-2 max-w-4xl">
