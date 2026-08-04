@@ -4,7 +4,7 @@
  * Supercell des qu'un clan a plusieurs nouveaux membres a la fois).
  */
 
-import { renderHook, waitFor } from '@testing-library/react';
+import { renderHook, waitFor } from '@/test-utils';
 import { http, HttpResponse } from 'msw';
 import { describe, expect, it, vi } from 'vitest';
 import { mockServer } from '@/mocks/server';

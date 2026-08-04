@@ -14,6 +14,7 @@ import { useApiResource } from '@/hooks/use-api-resource';
 import type { ServerResourceResult } from '@/lib/server-clan-resource';
 import { ClanStatusMessage } from '../components/clan/clan-status-message';
 import { WarHistorySection } from '../components/war-history-section';
+import { useTranslations } from '../components/i18n/locale-provider';
 
 interface HistoriqueViewProps {
   tag: string;
@@ -22,6 +23,7 @@ interface HistoriqueViewProps {
 }
 
 export function HistoriqueView({ tag, clanSeed, logSeed }: HistoriqueViewProps) {
+  const { t } = useTranslations();
   const clanPath = `/api/clans/${toApiTagSegment(tag)}`;
   const clanState = useApiResource<unknown>(clanPath, clanSeed);
   const clanConfirmed = clanState.status === 'success';
@@ -38,10 +40,7 @@ export function HistoriqueView({ tag, clanSeed, logSeed }: HistoriqueViewProps) 
 
   return (
     <div className="space-y-10">
-      <ClanStatusMessage
-        state={clanState}
-        idleMessage="Saisissez le tag ou le nom de votre clan pour afficher son historique."
-      />
+      <ClanStatusMessage state={clanState} idleMessage={t('pages.historiqueIdle')} />
 
       {clanState.status === 'success' && (
         <WarHistorySection

@@ -4,7 +4,7 @@
  * guerre en cours.
  */
 
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@/test-utils';
 import { describe, expect, it, vi } from 'vitest';
 import type { ClanMember } from '@/domain/clan/members';
 import type { ApiResource } from '@/hooks/use-api-resource';
@@ -44,8 +44,8 @@ describe('PurgeSection', () => {
         ready
       />,
     );
-    expect(screen.getByText(/regle active/i)).toHaveTextContent(
-      'Regle active : role Membre et moins de 8 combats sur la semaine de guerre en cours.',
+    expect(screen.getByText(/règle active/i)).toHaveTextContent(
+      'Règle active : rôle Membre et moins de 8 combats sur la semaine de guerre en cours.',
     );
   });
 
@@ -93,7 +93,7 @@ describe('PurgeSection', () => {
         ready
       />,
     );
-    expect(screen.getByText(/n est pas en guerre actuellement/i)).toBeInTheDocument();
+    expect(screen.getByText(/n.est pas en guerre actuellement/i)).toBeInTheDocument();
   });
 
   it('n evalue pas les candidats un jour d entrainement (verifie sur le clan reel #20J20QG)', () => {
@@ -119,7 +119,7 @@ describe('PurgeSection', () => {
       />,
     );
     expect(screen.queryByTestId('purge-row')).not.toBeInTheDocument();
-    expect(screen.getByText(/jour d entrainement/i)).toBeInTheDocument();
+    expect(screen.getByText(/jour d.entraînement/i)).toBeInTheDocument();
   });
 
   it('liste un membre sous le seuil, mais pas un role elder', () => {
@@ -153,7 +153,7 @@ describe('PurgeSection', () => {
         ready
       />,
     );
-    expect(screen.getByText(/aucun membre problematique/i)).toBeInTheDocument();
+    expect(screen.getByText(/aucun membre problématique/i)).toBeInTheDocument();
   });
 
   it('affiche une erreur si la copie echoue', async () => {

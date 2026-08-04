@@ -7,7 +7,7 @@
  * proxy interne, appelee cote client par `useNewMemberReliability`).
  */
 
-import { render, screen, waitFor, within } from '@testing-library/react';
+import { render, screen, waitFor, within } from '@/test-utils';
 import { http, HttpResponse } from 'msw';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { SUPERCELL_API_BASE_URL } from '@/app/api/_lib/supercell';
@@ -81,7 +81,7 @@ describe('NouveauxMembresPage', () => {
       '[data-testid="quarantine-card"]',
     ) as HTMLElement;
     await waitFor(() => {
-      expect(within(riskyCard).getByText(/a risque/i)).toBeInTheDocument();
+      expect(within(riskyCard).getByText(/à risque/i)).toBeInTheDocument();
     });
     expect(
       within(riskyCard).getByRole('button', { name: /copier tag pour kick/i }),

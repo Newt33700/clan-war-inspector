@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen } from '@/test-utils';
 import { describe, expect, it, vi } from 'vitest';
 
 const usePathnameMock = vi.fn();
@@ -17,7 +17,7 @@ describe('MobileTabBar', () => {
     expect(screen.getByRole('link', { name: /historique/i })).toBeInTheDocument();
     expect(screen.getByRole('link', { name: /^rh$/i })).toBeInTheDocument();
     expect(screen.getByRole('link', { name: /nouveaux/i })).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: /meteo/i })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /météo/i })).toBeInTheDocument();
   });
 
   it('met en avant la route active en jaune, les autres en gris', () => {

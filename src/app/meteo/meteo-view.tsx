@@ -12,6 +12,7 @@ import { useApiResource } from '@/hooks/use-api-resource';
 import type { ServerResourceResult } from '@/lib/server-clan-resource';
 import { ClanStatusMessage } from '../components/clan/clan-status-message';
 import { WeatherSection } from '../components/weather-section';
+import { useTranslations } from '../components/i18n/locale-provider';
 
 interface MeteoViewProps {
   tag: string;
@@ -20,6 +21,7 @@ interface MeteoViewProps {
 }
 
 export function MeteoView({ tag, clanSeed, logSeed }: MeteoViewProps) {
+  const { t } = useTranslations();
   const clanPath = `/api/clans/${toApiTagSegment(tag)}`;
   const clanState = useApiResource<unknown>(clanPath, clanSeed);
   const clanConfirmed = clanState.status === 'success';
@@ -30,10 +32,7 @@ export function MeteoView({ tag, clanSeed, logSeed }: MeteoViewProps) {
 
   return (
     <div className="space-y-10">
-      <ClanStatusMessage
-        state={clanState}
-        idleMessage="Saisissez le tag ou le nom de votre clan pour afficher la meteo du clan."
-      />
+      <ClanStatusMessage state={clanState} idleMessage={t('pages.meteoIdle')} />
 
       {clanState.status === 'success' && (
         <WeatherSection clanTag={tag} clanState={clanState} logState={logState} />

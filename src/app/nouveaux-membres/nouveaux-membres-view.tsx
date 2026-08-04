@@ -12,6 +12,7 @@ import { useApiResource } from '@/hooks/use-api-resource';
 import type { ServerResourceResult } from '@/lib/server-clan-resource';
 import { ClanStatusMessage } from '../components/clan/clan-status-message';
 import { QuarantineSection } from '../components/quarantine-section';
+import { useTranslations } from '../components/i18n/locale-provider';
 
 interface NouveauxMembresViewProps {
   tag: string;
@@ -24,6 +25,7 @@ export function NouveauxMembresView({
   clanSeed,
   logSeed,
 }: NouveauxMembresViewProps) {
+  const { t } = useTranslations();
   const clanPath = `/api/clans/${toApiTagSegment(tag)}`;
   const clanState = useApiResource<unknown>(clanPath, clanSeed);
   const clanConfirmed = clanState.status === 'success';
@@ -34,10 +36,7 @@ export function NouveauxMembresView({
 
   return (
     <div className="space-y-10">
-      <ClanStatusMessage
-        state={clanState}
-        idleMessage="Saisissez le tag ou le nom de votre clan pour afficher le sas de quarantaine."
-      />
+      <ClanStatusMessage state={clanState} idleMessage={t('pages.nouveauxMembresIdle')} />
 
       {clanState.status === 'success' && (
         <QuarantineSection clanTag={tag} clanState={clanState} logState={logState} />

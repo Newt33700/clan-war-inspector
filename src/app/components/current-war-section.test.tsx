@@ -5,7 +5,7 @@
  * lignes inactionnables (ex-membres) polluer la lecture par defaut.
  */
 
-import { fireEvent, render, screen, within } from '@testing-library/react';
+import { fireEvent, render, screen, within } from '@/test-utils';
 import { describe, expect, it } from 'vitest';
 import type { ApiResource } from '@/hooks/use-api-resource';
 import { CurrentWarSection } from './current-war-section';
@@ -99,7 +99,7 @@ describe('CurrentWarSection', () => {
       />,
     );
     expect(
-      screen.getByText(/aucun membre actuel n a participe a cette guerre/i),
+      screen.getByText(/aucun membre actuel n.a participé à cette guerre/i),
     ).toBeInTheDocument();
   });
 });

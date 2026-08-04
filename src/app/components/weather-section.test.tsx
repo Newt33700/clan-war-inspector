@@ -2,7 +2,7 @@
  * Tests de "La Meteo du Clan" (US 12, Consistency Trend).
  */
 
-import { render, screen, within } from '@testing-library/react';
+import { render, screen, within } from '@/test-utils';
 import { describe, expect, it } from 'vitest';
 import type { ApiResource } from '@/hooks/use-api-resource';
 import { WeatherSection } from './weather-section';
@@ -88,7 +88,7 @@ describe('WeatherSection', () => {
         logState={success(shortLog)}
       />,
     );
-    expect(screen.getByText(/pas encore assez d historique/i)).toBeInTheDocument();
+    expect(screen.getByText(/pas encore assez d.historique/i)).toBeInTheDocument();
   });
 
   it('affiche une ligne par joueur a historique complet, triee Decrocheur avant Le Roc', () => {
@@ -102,7 +102,7 @@ describe('WeatherSection', () => {
     const rows = screen.getAllByTestId('weather-row');
     expect(rows).toHaveLength(2);
     expect(within(rows[0]!).getByText('Decro Bob')).toBeInTheDocument();
-    expect(within(rows[0]!).getByText(/decrocheur/i)).toBeInTheDocument();
+    expect(within(rows[0]!).getByText(/décrocheur/i)).toBeInTheDocument();
     expect(within(rows[1]!).getByText('Roc Alice')).toBeInTheDocument();
     expect(within(rows[1]!).getByText(/^le roc$/i)).toBeInTheDocument();
   });

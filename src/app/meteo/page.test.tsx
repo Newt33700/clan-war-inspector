@@ -4,7 +4,7 @@
  * amont plutot que `setMockResponse`, reserve au rechargement client).
  */
 
-import { render, screen, within } from '@testing-library/react';
+import { render, screen, within } from '@/test-utils';
 import { http, HttpResponse } from 'msw';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { SUPERCELL_API_BASE_URL } from '@/app/api/_lib/supercell';
@@ -111,7 +111,7 @@ describe('MeteoPage', () => {
     const rows = screen.getAllByTestId('weather-row');
     expect(rows).toHaveLength(2);
     expect(within(rows[0]!).getByText('Decro Bob')).toBeInTheDocument();
-    expect(within(rows[0]!).getByText(/decrocheur/i)).toBeInTheDocument();
+    expect(within(rows[0]!).getByText(/décrocheur/i)).toBeInTheDocument();
     expect(within(rows[1]!).getByText('Roc Alice')).toBeInTheDocument();
   });
 });

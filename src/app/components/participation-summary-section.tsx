@@ -14,6 +14,7 @@ import { parseCurrentWar } from '@/domain/war/current-war';
 import { computeWeeklyParticipation } from '@/domain/war/participation';
 import type { ApiResource } from '@/hooks/use-api-resource';
 import { Skeleton } from './skeleton';
+import { useTranslations } from './i18n/locale-provider';
 
 interface ParticipationSummarySectionProps {
   /** Etat du chargement de /currentriverrace, pilote par le dashboard. */
@@ -29,6 +30,7 @@ export function ParticipationSummarySection({
   warState,
   memberTags,
 }: ParticipationSummarySectionProps) {
+  const { t } = useTranslations();
   const war = useMemo(
     () => (warState.status === 'success' ? parseCurrentWar(warState.data) : null),
     [warState],
@@ -51,19 +53,17 @@ export function ParticipationSummarySection({
         id="participation-summary-title"
         className="cr-wood-header text-cr-title font-display rounded-lg text-xl tracking-wide"
       >
-        Participation de la semaine
+        {t('participation.title')}
       </h2>
 
       {warState.status === 'loading' || war === null || participation === null ? (
-        <div role="status" aria-label="Chargement de la participation">
+        <div role="status" aria-label={t('participation.loadingLabel')}>
           <Skeleton className="mx-auto h-32 w-32 rounded-full" />
         </div>
       ) : war.state === 'notInWar' ? (
-        <p className="text-royale-parchment-dim">
-          Le clan n est pas en guerre actuellement.
-        </p>
+        <p className="text-royale-parchment-dim">{t('participation.notInWar')}</p>
       ) : (
-        <ParticipationDonut participation={participation} />
+        <ParticipationDonut participation={participation} t={t} />
       )}
     </section>
   );
@@ -71,8 +71,10 @@ export function ParticipationSummarySection({
 
 function ParticipationDonut({
   participation,
+  t,
 }: {
   participation: ReturnType<typeof computeWeeklyParticipation>;
+  t: (key: string, vars?: Record<string, string | number>) => string;
 }) {
   const percent = Math.round(participation.ratio * 100);
   const filled = participation.ratio * CIRCUMFERENCE;
@@ -84,7 +86,11 @@ function ParticipationDonut({
           viewBox="0 0 100 100"
           className="h-32 w-32 -rotate-90"
           role="img"
-          aria-label={`${percent}% des combats de la semaine joues, ${participation.battlesPlayed} sur ${participation.battlesPossible}`}
+          aria-label={t('participation.ariaLabel', {
+            percent,
+            played: participation.battlesPlayed,
+            possible: participation.battlesPossible,
+          })}
         >
           <circle
             cx="50"
@@ -115,7 +121,10 @@ function ParticipationDonut({
         </div>
       </div>
       <p aria-hidden="true" className="text-royale-parchment-dim text-xs">
-        {participation.battlesPlayed}/{participation.battlesPossible} combats
+        {t('participation.battlesLabel', {
+          played: participation.battlesPlayed,
+          possible: participation.battlesPossible,
+        })}
       </p>
     </div>
   );

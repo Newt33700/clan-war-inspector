@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen } from '@/test-utils';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 import type { ApiResource } from '@/hooks/use-api-resource';
@@ -27,7 +27,7 @@ describe('ClanStatusMessage', () => {
     expect(screen.getByRole('alert')).toHaveTextContent('Boom.');
 
     const user = userEvent.setup();
-    await user.click(screen.getByRole('button', { name: /reessayer/i }));
+    await user.click(screen.getByRole('button', { name: /réessayer/i }));
     expect(refetch).toHaveBeenCalledOnce();
   });
 

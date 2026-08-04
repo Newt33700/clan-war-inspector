@@ -14,6 +14,7 @@ import { findPurgeCandidates } from '@/domain/clan/purge';
 import { parseCurrentWar } from '@/domain/war/current-war';
 import { formatModerationReportForClipboard } from '@/lib/purge-export';
 import type { ApiResource } from '@/hooks/use-api-resource';
+import { useTranslations } from './i18n/locale-provider';
 
 const COPY_CONFIRMATION_MS = 2000;
 
@@ -33,6 +34,7 @@ export function PurgeSection({
   onMinWeeklyBattlesChange,
   ready,
 }: PurgeSectionProps) {
+  const { t } = useTranslations();
   const [copyState, setCopyState] = useState<'idle' | 'copied' | 'error'>('idle');
 
   const war = useMemo(
@@ -91,16 +93,15 @@ export function PurgeSection({
         id="purge-title"
         className="cr-wood-header text-cr-title font-display rounded-lg text-xl tracking-wide"
       >
-        A expulser
+        {t('purge.title')}
       </h2>
 
       <p className="text-royale-parchment text-sm font-semibold">
-        Regle active : role Membre et moins de {minWeeklyBattles} combats sur la semaine
-        de guerre en cours.
+        {t('purge.activeRule', { threshold: minWeeklyBattles })}
       </p>
 
       <p className="text-royale-parchment-dim text-sm">
-        Membres ayant joue moins de
+        {t('purge.thresholdPrefix')}
         <label className="mx-2 inline-flex items-center gap-1">
           <input
             type="number"
@@ -111,19 +112,16 @@ export function PurgeSection({
               const parsed = Number.parseInt(event.target.value, 10);
               onMinWeeklyBattlesChange(Number.isNaN(parsed) ? 0 : Math.max(0, parsed));
             }}
-            aria-label="Seuil de combats sur la semaine en cours"
+            aria-label={t('purge.thresholdAriaLabel')}
             className="cr-glass text-royale-parchment min-h-11 w-16 px-2 py-2 text-right"
           />
         </label>
-        combats sur la semaine de guerre en cours (16 attendus). Ce seuil est aussi
-        utilise par l Assistant RH pour la rubrique « Sur la sellette ».
+        {t('purge.thresholdSuffix')}
       </p>
 
       {!warIsActive ? (
         <p className="text-royale-parchment-dim">
-          {war?.isTrainingDay
-            ? 'Jour d entrainement : la semaine de guerre n a pas encore commence, rien a evaluer.'
-            : 'Le clan n est pas en guerre actuellement : rien a evaluer sur la semaine en cours.'}
+          {war?.isTrainingDay ? t('purge.trainingDay') : t('purge.notInWar')}
         </p>
       ) : (
         <>
@@ -134,22 +132,22 @@ export function PurgeSection({
               disabled={candidates.length === 0}
               className="btn-cr-gold px-3 py-1 text-sm disabled:cursor-not-allowed disabled:opacity-40"
             >
-              Copier la liste
+              {t('purge.copyList')}
             </button>
             {copyState === 'copied' && (
               <span role="status" className="text-sm text-green-800">
-                Copié ! ✅
+                {t('purge.copied')}
               </span>
             )}
             {copyState === 'error' && (
               <span role="alert" className="text-royale-red-700 text-sm">
-                Impossible de copier.
+                {t('purge.copyError')}
               </span>
             )}
           </div>
 
           {candidates.length === 0 ? (
-            <p className="text-green-800">Aucun membre problematique avec ce seuil.</p>
+            <p className="text-green-800">{t('purge.noCandidates')}</p>
           ) : (
             <div className="bg-cr-panel-light rounded-lg border-2 border-black p-3">
               <ul className="space-y-2">
@@ -167,11 +165,13 @@ export function PurgeSection({
                         </span>
                       </p>
                       <p className="text-xs text-slate-500">
-                        {candidate.currentWeekBattles}/16 combats cette semaine
+                        {t('purge.battlesThisWeek', {
+                          count: candidate.currentWeekBattles,
+                        })}
                       </p>
                     </div>
                     <span className="bg-cr-red rounded-full px-3 py-1 text-xs font-semibold text-white">
-                      Combats insuffisants cette semaine
+                      {t('purge.insufficientBattles')}
                     </span>
                   </li>
                 ))}

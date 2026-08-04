@@ -1,23 +1,23 @@
+'use client';
+
 /**
  * Jauge de progression d'assiduite (US 12.1) : remplace un texte brut
  * "7/16" par une barre coloree, partagee par l'historique et par Guerre
  * en cours plutot que dupliquee dans chaque tableau.
  *
- * Purement presentationnel (aucun etat, aucun effet) : pas de directive
- * 'use client' necessaire ici. Les deux appelants actuels sont eux-memes
- * des Client Components (tris, scroll), donc ce composant est bundle cote
- * client dans cette app - mais rien ne l'empeche d'etre rendu depuis un
- * vrai Server Component si l'architecture evolue.
+ * Purement presentationnel (aucun etat local, aucun effet) : la directive
+ * 'use client' vient uniquement de `useTranslations` (contexte React,
+ * internationalisation 2026-08-04), pas d'une interactivite propre.
  */
 
 import {
   classifyBattleCount,
-  LEVEL_LABELS,
   LEVEL_SYMBOLS,
   type AttendanceLevel,
 } from '@/domain/war/attendance-level';
 import { BATTLES_PER_WAR_WEEK } from '@/domain/war/war-history';
 import { SwordsIcon } from './section-icons';
+import { useTranslations } from './i18n/locale-provider';
 
 /** Couleurs partagees : reutilisees par la legende de l'historique. */
 export const LEVEL_TEXT_CLASSES: Record<AttendanceLevel, string> = {
@@ -62,10 +62,15 @@ export function PlayerProgressBar({
   score,
   max = BATTLES_PER_WAR_WEEK,
 }: PlayerProgressBarProps) {
+  const { t } = useTranslations();
   const level = classifyBattleCount(score);
   return (
     <div
-      aria-label={`${score} combats sur ${max}, ${LEVEL_LABELS[level]}`}
+      aria-label={t('playerProgressBar.ariaLabel', {
+        score,
+        max,
+        level: t(`attendanceLevels.${level}`),
+      })}
       className="flex flex-col items-center gap-1"
     >
       <span

@@ -3,7 +3,7 @@
  * graphiques (interdiction explicite de la spec).
  */
 
-import { render, screen } from '@testing-library/react';
+import { render, screen } from '@/test-utils';
 import { describe, expect, it } from 'vitest';
 import { Sparkline } from './sparkline';
 

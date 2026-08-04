@@ -6,7 +6,7 @@
  * les tests de `MembersTable`, `CurrentWarSection`, etc.
  */
 
-import { render, screen, within } from '@testing-library/react';
+import { render, screen, within } from '@/test-utils';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it } from 'vitest';
 import { setMockResponse } from '@/mocks/handlers';
@@ -28,7 +28,7 @@ describe('DashboardView', () => {
 
     const rows = screen.getAllByTestId('member-row');
     const roles = rows.map((row) => within(row).getAllByRole('cell')[1]?.textContent);
-    expect(roles).toEqual(['Chef', 'Aine', 'Membre']);
+    expect(roles).toEqual(['Chef', 'Aîné', 'Membre']);
   });
 
   it('change de colonne de tri au clic et inverse en recliquant', async () => {
@@ -39,7 +39,7 @@ describe('DashboardView', () => {
     // le tableau.
     const table = screen.getByRole('table');
 
-    await user.click(within(table).getByRole('button', { name: /trophees/i }));
+    await user.click(within(table).getByRole('button', { name: /trophées/i }));
     let rows = screen.getAllByTestId('member-row');
     expect(rows.map((row) => within(row).getAllByRole('cell')[2]?.textContent)).toEqual([
       '5000',
@@ -47,7 +47,7 @@ describe('DashboardView', () => {
       '7000',
     ]);
 
-    await user.click(within(table).getByRole('button', { name: /trophees/i }));
+    await user.click(within(table).getByRole('button', { name: /trophées/i }));
     rows = screen.getAllByTestId('member-row');
     expect(rows.map((row) => within(row).getAllByRole('cell')[2]?.textContent)).toEqual([
       '7000',

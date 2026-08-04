@@ -14,6 +14,7 @@ import type { ApiResource } from '@/hooks/use-api-resource';
 import { EmptyState } from './empty-state';
 import { TrophyIcon } from './section-icons';
 import { Skeleton } from './skeleton';
+import { useTranslations } from './i18n/locale-provider';
 
 interface HallOfFameSectionProps {
   /** Etat du chargement de /riverracelog, pilote par le dashboard. */
@@ -58,7 +59,15 @@ function CrownIcon({ className }: { className: string }) {
   );
 }
 
-function PodiumCard({ entry, rank }: { entry: HallOfFameEntry; rank: Rank }) {
+function PodiumCard({
+  entry,
+  rank,
+  t,
+}: {
+  entry: HallOfFameEntry;
+  rank: Rank;
+  t: (key: string) => string;
+}) {
   const style = RANK_STYLE[rank];
   // Le 1er merite l'entree "ecran de fin de combat" (rebond) ; 2eme/3eme
   // gardent le fade-in existant, plus discret.
@@ -86,13 +95,14 @@ function PodiumCard({ entry, rank }: { entry: HallOfFameEntry; rank: Rank }) {
       </p>
       <p className="text-royale-parchment-dim flex items-center gap-1 text-xs">
         <TrophyIcon className="h-4 w-4 text-amber-800" />
-        {entry.fame} fame
+        {entry.fame} {t('hallOfFame.fame')}
       </p>
     </div>
   );
 }
 
 export function HallOfFameSection({ logState, clanTag }: HallOfFameSectionProps) {
+  const { t } = useTranslations();
   const top3 = useMemo(
     () =>
       logState.status === 'success' ? findWeeklyTopFame(logState.data, clanTag) : [],
@@ -112,14 +122,14 @@ export function HallOfFameSection({ logState, clanTag }: HallOfFameSectionProps)
         className="cr-wood-header text-cr-title font-display rounded-lg text-xl tracking-wide"
       >
         <TrophyIcon className="h-5 w-5" />
-        Hall of Fame
+        {t('hallOfFame.title')}
       </h2>
 
       {logState.status === 'loading' && (
         <div
           className="flex items-end justify-center gap-6"
           role="status"
-          aria-label="Chargement du Hall of Fame"
+          aria-label={t('hallOfFame.loadingLabel')}
         >
           <Skeleton className="h-20 w-20 rounded-full" />
           <Skeleton className="h-28 w-28 rounded-full" />
@@ -131,13 +141,18 @@ export function HallOfFameSection({ logState, clanTag }: HallOfFameSectionProps)
         (top3.length === 0 ? (
           <EmptyState
             icon={<CrownIcon className="h-10 w-10" />}
-            title="Pas encore de classement"
-            description="Revenez a la fin de la semaine de guerre pour voir le podium."
+            title={t('hallOfFame.emptyTitle')}
+            description={t('hallOfFame.emptyDescription')}
           />
         ) : (
           <div className="flex flex-col items-center gap-6 md:flex-row md:items-end md:justify-center">
             {top3.map((entry, index) => (
-              <PodiumCard key={entry.tag} entry={entry} rank={(index + 1) as Rank} />
+              <PodiumCard
+                key={entry.tag}
+                entry={entry}
+                rank={(index + 1) as Rank}
+                t={t}
+              />
             ))}
           </div>
         ))}

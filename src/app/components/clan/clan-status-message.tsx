@@ -10,6 +10,7 @@
 
 import type { ApiResource } from '@/hooks/use-api-resource';
 import { Skeleton } from '../skeleton';
+import { useTranslations } from '../i18n/locale-provider';
 
 interface ClanStatusMessageProps {
   state: ApiResource<unknown>;
@@ -18,6 +19,8 @@ interface ClanStatusMessageProps {
 }
 
 export function ClanStatusMessage({ state, idleMessage }: ClanStatusMessageProps) {
+  const { t } = useTranslations();
+
   if (state.status === 'success') {
     return null;
   }
@@ -33,7 +36,7 @@ export function ClanStatusMessage({ state, idleMessage }: ClanStatusMessageProps
     return (
       <div
         role="status"
-        aria-label="Chargement du clan"
+        aria-label={t('clanStatus.loadingLabel')}
         className="flex items-center gap-4"
       >
         <Skeleton className="h-12 w-12 rounded-full" />
@@ -55,7 +58,7 @@ export function ClanStatusMessage({ state, idleMessage }: ClanStatusMessageProps
         onClick={state.refetch}
         className="btn-cr-gold px-3 py-1 text-sm"
       >
-        Reessayer
+        {t('common.retry')}
       </button>
     </div>
   );

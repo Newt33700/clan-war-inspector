@@ -4,7 +4,7 @@
  * via /players/{tag} (indice de fiabilite).
  */
 
-import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor, within } from '@/test-utils';
 import { http, HttpResponse } from 'msw';
 import { describe, expect, it } from 'vitest';
 import { mockServer } from '@/mocks/server';
@@ -132,7 +132,7 @@ describe('QuarantineSection', () => {
     // Le verdict (badge + kick) reste visible sans interaction : c'est la
     // raison d'etre de la section. Seules les stats brutes se deplient.
     await waitFor(() => {
-      expect(within(card).getByText(/a risque/i)).toBeInTheDocument();
+      expect(within(card).getByText(/à risque/i)).toBeInTheDocument();
     });
     expect(
       within(card).getByRole('button', { name: /copier tag pour kick/i }),
