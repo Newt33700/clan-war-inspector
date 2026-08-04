@@ -10,6 +10,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { BrandMark } from './brand-mark';
 import { isNavItemActive, NAV_ITEMS } from './nav-items';
+import { KofiButton } from '../kofi-button';
 
 export function DesktopHeader() {
   const pathname = usePathname();
@@ -43,6 +44,7 @@ export function DesktopHeader() {
             );
           })}
         </nav>
+        <KofiButton />
       </div>
     </header>
   );
