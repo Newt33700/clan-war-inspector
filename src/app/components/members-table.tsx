@@ -13,8 +13,15 @@ import {
 } from '@/domain/clan/members';
 
 import { PlayerAccordionItem } from './player-accordion-item';
-import { TrophyIcon } from './section-icons';
+import { ROLE_ICONS, TrophyIcon } from './section-icons';
 import { useTranslations } from './i18n/locale-provider';
+
+const ROLE_ICON_CLASSES: Record<ClanMember['role'], string> = {
+  leader: 'text-cr-gold',
+  coLeader: 'text-cr-blue',
+  elder: 'text-royale-purple-500',
+  member: 'text-slate-400',
+};
 
 interface MembersTableProps {
   members: ClanMember[];
@@ -166,42 +173,50 @@ export function MembersTable({
             </tr>
           </thead>
           <tbody>
-            {members.map((memberEntry) => (
-              <tr
-                key={memberEntry.tag}
-                data-testid="member-row"
-                onClick={() => onSelectMember(memberEntry.tag)}
-                className="cursor-pointer bg-gradient-to-b from-white to-slate-100 text-slate-900 hover:from-slate-50 hover:to-slate-200"
-              >
-                <td className="rounded-l-xl border-y-2 border-l-2 border-black px-3 py-2">
-                  <button
-                    type="button"
-                    onClick={(event) => {
-                      event.stopPropagation();
-                      onSelectMember(memberEntry.tag);
-                    }}
-                    className="font-display text-left hover:underline focus-visible:underline"
-                  >
-                    {memberEntry.name}
-                    <span className="block text-xs font-normal text-slate-500">
-                      {memberEntry.tag}
+            {members.map((memberEntry) => {
+              const RoleIcon = ROLE_ICONS[memberEntry.role];
+              return (
+                <tr
+                  key={memberEntry.tag}
+                  data-testid="member-row"
+                  onClick={() => onSelectMember(memberEntry.tag)}
+                  className="cursor-pointer bg-gradient-to-b from-white to-slate-100 text-slate-900 hover:from-slate-50 hover:to-slate-200"
+                >
+                  <td className="rounded-l-xl border-y-2 border-l-2 border-black px-3 py-2">
+                    <button
+                      type="button"
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        onSelectMember(memberEntry.tag);
+                      }}
+                      className="font-display text-left hover:underline focus-visible:underline"
+                    >
+                      {memberEntry.name}
+                      <span className="block text-xs font-normal text-slate-500">
+                        {memberEntry.tag}
+                      </span>
+                    </button>
+                  </td>
+                  <td className="border-y-2 border-black px-3 py-2">
+                    <span className="flex items-center gap-1.5">
+                      <RoleIcon
+                        className={`h-4 w-4 ${ROLE_ICON_CLASSES[memberEntry.role]}`}
+                      />
+                      {t(`roles.${memberEntry.role}`)}
                     </span>
-                  </button>
-                </td>
-                <td className="border-y-2 border-black px-3 py-2">
-                  {t(`roles.${memberEntry.role}`)}
-                </td>
-                <td className="font-display border-y-2 border-black px-3 py-2 text-right tabular-nums">
-                  <span className="flex items-center justify-end gap-1">
-                    <TrophyIcon className="text-cr-gold h-4 w-4" />
-                    {memberEntry.trophies}
-                  </span>
-                </td>
-                <td className="font-display rounded-r-xl border-y-2 border-r-2 border-black px-3 py-2 text-right tabular-nums">
-                  {memberEntry.donations}
-                </td>
-              </tr>
-            ))}
+                  </td>
+                  <td className="font-display border-y-2 border-black px-3 py-2 text-right tabular-nums">
+                    <span className="flex items-center justify-end gap-1">
+                      <TrophyIcon className="text-cr-gold h-4 w-4" />
+                      {memberEntry.trophies}
+                    </span>
+                  </td>
+                  <td className="font-display rounded-r-xl border-y-2 border-r-2 border-black px-3 py-2 text-right tabular-nums">
+                    {memberEntry.donations}
+                  </td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
       </div>

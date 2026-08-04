@@ -151,4 +151,33 @@ describe('MembersTable', () => {
       expect(onSortSelect).toHaveBeenCalledExactlyOnceWith('trophies', 'desc');
     });
   });
+
+  it('affiche un blason de role distinct par role (retour utilisateur 2026-08-04)', () => {
+    const roles: ClanMember[] = [
+      { tag: '#A', name: 'Alice', role: 'leader', trophies: 1, donations: 0 },
+      { tag: '#B', name: 'Bob', role: 'coLeader', trophies: 1, donations: 0 },
+      { tag: '#C', name: 'Cid', role: 'elder', trophies: 1, donations: 0 },
+      { tag: '#D', name: 'Dan', role: 'member', trophies: 1, donations: 0 },
+    ];
+    render(
+      <MembersTable
+        members={roles}
+        sortKey="name"
+        direction="asc"
+        onSortChange={() => undefined}
+        onSortSelect={() => undefined}
+        onSelectMember={() => undefined}
+      />,
+    );
+
+    const rows = screen.getAllByTestId('member-row');
+    expect(rows).toHaveLength(4);
+    // Seul le blason "Membre" (RankDotIcon) est dessine en cercle : verifie
+    // que les 4 roles n'affichent pas tous la meme icone (jamais la seule
+    // couleur ne doit porter l'information, meme principe que le reste
+    // de l'app).
+    expect(within(rows[0]!).getByText('Chef')).toBeInTheDocument();
+    expect(rows[3]!.querySelector('circle')).not.toBeNull();
+    expect(rows[0]!.querySelector('circle')).toBeNull();
+  });
 });
