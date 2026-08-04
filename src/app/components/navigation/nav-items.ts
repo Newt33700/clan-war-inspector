@@ -6,15 +6,16 @@
 
 export interface NavItem {
   href: string;
-  label: string;
+  /** Cle de traduction (namespace `nav`), resolue par les composants via `useTranslations`. */
+  labelKey: string;
 }
 
 export const NAV_ITEMS: readonly NavItem[] = [
-  { href: '/dashboard', label: 'Dashboard' },
-  { href: '/historique', label: 'Historique' },
-  { href: '/rh', label: 'RH' },
-  { href: '/nouveaux-membres', label: 'Nouveaux' },
-  { href: '/meteo', label: 'Meteo' },
+  { href: '/dashboard', labelKey: 'nav.dashboard' },
+  { href: '/historique', labelKey: 'nav.historique' },
+  { href: '/rh', labelKey: 'nav.rh' },
+  { href: '/nouveaux-membres', labelKey: 'nav.nouveauxMembres' },
+  { href: '/meteo', labelKey: 'nav.meteo' },
 ];
 
 /**

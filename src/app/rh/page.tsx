@@ -1,5 +1,6 @@
 import { fetchClanResource, type ServerResourceResult } from '@/lib/server-clan-resource';
 import { resolveActiveClanTag } from '@/lib/resolve-clan-tag';
+import { getServerTranslator } from '@/i18n/get-translator';
 import { ClanSearchForm } from '../components/clan/clan-search-form';
 import { RhView } from './rh-view';
 
@@ -10,17 +11,16 @@ interface RhPageProps {
 /** Assistant de moderation (US 13.2/13.6, Epique 13). */
 export default async function RhPage({ searchParams }: RhPageProps) {
   const tag = await resolveActiveClanTag(await searchParams);
+  const t = await getServerTranslator();
 
   if (tag === null) {
     return (
       <div className="space-y-6">
         <h1 className="text-royale-parchment font-display text-2xl tracking-wide">
-          Assistant RH
+          {t('pages.rhTitle')}
         </h1>
-        <ClanSearchForm />
-        <p className="text-royale-parchment-dim">
-          Saisissez le tag ou le nom de votre clan pour afficher l assistant RH.
-        </p>
+        <ClanSearchForm hasActiveClan={false} />
+        <p className="text-royale-parchment-dim">{t('pages.rhIdle')}</p>
       </div>
     );
   }
@@ -38,9 +38,9 @@ export default async function RhPage({ searchParams }: RhPageProps) {
   return (
     <div className="space-y-6">
       <h1 className="text-royale-parchment font-display text-2xl tracking-wide">
-        Assistant RH
+        {t('pages.rhTitle')}
       </h1>
-      <ClanSearchForm />
+      <ClanSearchForm hasActiveClan={true} />
       <RhView tag={tag} clanSeed={clanResult} warSeed={warResult} logSeed={logResult} />
     </div>
   );

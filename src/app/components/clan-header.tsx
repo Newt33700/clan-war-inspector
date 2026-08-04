@@ -1,11 +1,21 @@
+'use client';
+
 /**
  * En-tete d'identite du clan (US 6.1) : confirme visuellement que le tag
  * saisi correspond bien au clan attendu, avant toute decision (expulsion...).
+ *
+ * Profite aussi d'avoir le vrai nom du clan pour completer/corriger la
+ * memoire de clans recents (`recent-clans-storage.ts`) : une soumission
+ * par tag direct ne connait pas le nom au moment de l'appel, ce backfill
+ * l'ajoute des que `ClanHeader` s'affiche.
  */
 
+import { useEffect } from 'react';
 import Image from 'next/image';
 
 import type { ClanSummary } from '@/domain/clan/clan-summary';
+import { rememberRecentClan } from '@/lib/recent-clans-storage';
+import { useTranslations } from './i18n/locale-provider';
 
 const CLAN_MAX_MEMBERS = 50;
 
@@ -14,6 +24,12 @@ interface ClanHeaderProps {
 }
 
 export function ClanHeader({ summary }: ClanHeaderProps) {
+  const { t } = useTranslations();
+
+  useEffect(() => {
+    rememberRecentClan(summary.tag, summary.name);
+  }, [summary.tag, summary.name]);
+
   return (
     <div
       data-testid="clan-header"
@@ -35,8 +51,12 @@ export function ClanHeader({ summary }: ClanHeaderProps) {
           <span className="ml-2 text-sm font-normal text-slate-200">{summary.tag}</span>
         </p>
         <p className="text-sm text-slate-200">
-          {summary.memberCount}/{CLAN_MAX_MEMBERS} membres · Score {summary.clanScore} ·
-          Trophees de guerre {summary.warTrophies}
+          {t('clanHeader.stats', {
+            count: summary.memberCount,
+            max: CLAN_MAX_MEMBERS,
+            score: summary.clanScore,
+            trophies: summary.warTrophies,
+          })}
         </p>
       </div>
     </div>

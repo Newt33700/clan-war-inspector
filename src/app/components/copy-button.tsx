@@ -7,6 +7,7 @@
  */
 
 import { useEffect, useState } from 'react';
+import { useTranslations } from './i18n/locale-provider';
 
 const CONFIRMATION_MS = 2000;
 
@@ -15,7 +16,8 @@ interface CopyButtonProps {
   label?: string;
 }
 
-export function CopyButton({ text, label = 'Copier le tag' }: CopyButtonProps) {
+export function CopyButton({ text, label }: CopyButtonProps) {
+  const { t } = useTranslations();
   const [copied, setCopied] = useState(false);
 
   useEffect(() => {
@@ -49,7 +51,7 @@ export function CopyButton({ text, label = 'Copier le tag' }: CopyButtonProps) {
         copied ? 'btn-cr-green' : 'btn-cr-gold'
       }`}
     >
-      {copied ? '✓ Copie !' : label}
+      {copied ? t('copyButton.copied') : (label ?? t('copyButton.defaultLabel'))}
     </button>
   );
 }

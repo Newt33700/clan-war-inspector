@@ -29,6 +29,7 @@ import { MembersTable } from '../components/members-table';
 import { ParticipationSummarySection } from '../components/participation-summary-section';
 import { PlayerDrawer } from '../components/player-drawer';
 import { MembersIcon } from '../components/section-icons';
+import { useTranslations } from '../components/i18n/locale-provider';
 
 interface DashboardViewProps {
   tag: string;
@@ -38,6 +39,7 @@ interface DashboardViewProps {
 }
 
 export function DashboardView({ tag, clanSeed, warSeed, logSeed }: DashboardViewProps) {
+  const { t } = useTranslations();
   const clanPath = `/api/clans/${toApiTagSegment(tag)}`;
   const [sortKey, setSortKey] = useState<MemberSortKey>('role');
   const [direction, setDirection] = useState<SortDirection>('desc');
@@ -95,10 +97,7 @@ export function DashboardView({ tag, clanSeed, warSeed, logSeed }: DashboardView
 
   return (
     <div className="space-y-10">
-      <ClanStatusMessage
-        state={clanState}
-        idleMessage="Saisissez le tag ou le nom de votre clan pour afficher le dashboard."
-      />
+      <ClanStatusMessage state={clanState} idleMessage={t('pages.dashboardIdle')} />
 
       {summary !== null && <ClanHeader summary={summary} />}
 
@@ -117,29 +116,29 @@ export function DashboardView({ tag, clanSeed, warSeed, logSeed }: DashboardView
               className="cr-wood-header text-cr-title font-display rounded-lg text-xl tracking-wide"
             >
               <MembersIcon className="h-5 w-5" />
-              Membres du clan
+              {t('dashboard.membersTitle')}
             </h2>
 
             {sortedMembers.length > 0 && (
               <label className="flex flex-col gap-1">
                 <span className="text-royale-parchment-dim text-sm">
-                  Rechercher un membre
+                  {t('dashboard.searchMemberLabel')}
                 </span>
                 <input
                   type="search"
                   value={memberQuery}
                   onChange={(event) => setMemberQuery(event.target.value)}
-                  placeholder="Pseudo ou tag..."
+                  placeholder={t('dashboard.searchMemberPlaceholder')}
                   className="cr-glass text-royale-parchment w-full max-w-xs px-3 py-2 placeholder:text-slate-400"
                 />
               </label>
             )}
 
             {sortedMembers.length === 0 ? (
-              <p className="text-royale-parchment-dim">Ce clan ne compte aucun membre.</p>
+              <p className="text-royale-parchment-dim">{t('dashboard.noMembers')}</p>
             ) : visibleMembers.length === 0 ? (
               <p className="text-royale-parchment-dim">
-                Aucun membre ne correspond a « {memberQuery} ».
+                {t('dashboard.noMemberMatch', { query: memberQuery })}
               </p>
             ) : (
               <MembersTable

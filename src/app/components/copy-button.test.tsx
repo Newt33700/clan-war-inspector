@@ -1,4 +1,4 @@
-import { act, render, screen } from '@testing-library/react';
+import { act, render, screen } from '@/test-utils';
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { CopyButton } from './copy-button';
@@ -25,7 +25,7 @@ describe('CopyButton', () => {
     await user.click(screen.getByRole('button', { name: /copier le tag/i }));
 
     expect(writeText).toHaveBeenCalledWith('#20J20QG');
-    expect(screen.getByRole('button', { name: /copie/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /copié/i })).toBeInTheDocument();
 
     await act(async () => {
       await vi.advanceTimersByTimeAsync(2000);

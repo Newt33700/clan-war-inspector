@@ -7,7 +7,6 @@
  */
 
 import {
-  ROLE_LABELS,
   type ClanMember,
   type MemberSortKey,
   type SortDirection,
@@ -15,37 +14,7 @@ import {
 
 import { PlayerAccordionItem } from './player-accordion-item';
 import { TrophyIcon } from './section-icons';
-
-const COLUMNS: { key: MemberSortKey; label: string; numeric: boolean }[] = [
-  { key: 'name', label: 'Joueur', numeric: false },
-  { key: 'role', label: 'Role', numeric: false },
-  { key: 'trophies', label: 'Trophees', numeric: true },
-  { key: 'donations', label: 'Dons', numeric: true },
-];
-
-/** Options du selecteur de tri mobile (US 14.2), une par colonne x sens. */
-const SORT_SELECT_OPTIONS: {
-  value: string;
-  key: MemberSortKey;
-  direction: SortDirection;
-  label: string;
-}[] = [
-  { value: 'name-asc', key: 'name', direction: 'asc', label: 'Joueur (A-Z)' },
-  { value: 'name-desc', key: 'name', direction: 'desc', label: 'Joueur (Z-A)' },
-  { value: 'role-desc', key: 'role', direction: 'desc', label: 'Role (chef en premier)' },
-  {
-    value: 'trophies-desc',
-    key: 'trophies',
-    direction: 'desc',
-    label: 'Trophees (decroissant)',
-  },
-  {
-    value: 'donations-desc',
-    key: 'donations',
-    direction: 'desc',
-    label: 'Dons (decroissant)',
-  },
-];
+import { useTranslations } from './i18n/locale-provider';
 
 interface MembersTableProps {
   members: ClanMember[];
@@ -67,6 +36,54 @@ export function MembersTable({
   onSortSelect,
   onSelectMember,
 }: MembersTableProps) {
+  const { t } = useTranslations();
+
+  const COLUMNS: { key: MemberSortKey; label: string; numeric: boolean }[] = [
+    { key: 'name', label: t('membersTable.columnName'), numeric: false },
+    { key: 'role', label: t('membersTable.columnRole'), numeric: false },
+    { key: 'trophies', label: t('membersTable.columnTrophies'), numeric: true },
+    { key: 'donations', label: t('membersTable.columnDonations'), numeric: true },
+  ];
+
+  /** Options du selecteur de tri mobile (US 14.2), une par colonne x sens. */
+  const SORT_SELECT_OPTIONS: {
+    value: string;
+    key: MemberSortKey;
+    direction: SortDirection;
+    label: string;
+  }[] = [
+    {
+      value: 'name-asc',
+      key: 'name',
+      direction: 'asc',
+      label: t('membersTable.sortNameAsc'),
+    },
+    {
+      value: 'name-desc',
+      key: 'name',
+      direction: 'desc',
+      label: t('membersTable.sortNameDesc'),
+    },
+    {
+      value: 'role-desc',
+      key: 'role',
+      direction: 'desc',
+      label: t('membersTable.sortRoleDesc'),
+    },
+    {
+      value: 'trophies-desc',
+      key: 'trophies',
+      direction: 'desc',
+      label: t('membersTable.sortTrophiesDesc'),
+    },
+    {
+      value: 'donations-desc',
+      key: 'donations',
+      direction: 'desc',
+      label: t('membersTable.sortDonationsDesc'),
+    },
+  ];
+
   const selectValue =
     SORT_SELECT_OPTIONS.find(
       (option) => option.key === sortKey && option.direction === direction,
@@ -85,7 +102,9 @@ export function MembersTable({
           `md` (souris/trackpad), comme pour l'historique (US 14.1). */}
       <div className="space-y-3 md:hidden">
         <label className="flex flex-col gap-1 text-xs">
-          <span className="tracking-wide text-slate-600 uppercase">Trier par</span>
+          <span className="tracking-wide text-slate-600 uppercase">
+            {t('membersTable.sortBy')}
+          </span>
           <select
             value={selectValue}
             onChange={(event) => handleSelectChange(event.target.value)}
@@ -111,7 +130,7 @@ export function MembersTable({
 
       <div className="hidden overflow-x-auto md:block">
         <table className="w-full border-separate border-spacing-y-2 text-sm">
-          <caption className="sr-only">Membres du clan</caption>
+          <caption className="sr-only">{t('membersTable.caption')}</caption>
           <thead>
             <tr>
               {COLUMNS.map((column) => {
@@ -170,7 +189,7 @@ export function MembersTable({
                   </button>
                 </td>
                 <td className="border-y-2 border-black px-3 py-2">
-                  {ROLE_LABELS[memberEntry.role]}
+                  {t(`roles.${memberEntry.role}`)}
                 </td>
                 <td className="font-display border-y-2 border-black px-3 py-2 text-right tabular-nums">
                   <span className="flex items-center justify-end gap-1">

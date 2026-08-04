@@ -12,7 +12,6 @@ import { useMemo } from 'react';
 import { parseClanMembers } from '@/domain/clan/members';
 import {
   computeConsistencyTrends,
-  CONSISTENCY_PROFILE_LABELS,
   sortConsistencyTrends,
   type ConsistencyProfile,
 } from '@/domain/war/consistency-trend';
@@ -21,6 +20,7 @@ import type { ApiResource } from '@/hooks/use-api-resource';
 import { EmptyState } from './empty-state';
 import { Skeleton } from './skeleton';
 import { Sparkline } from './sparkline';
+import { useTranslations } from './i18n/locale-provider';
 
 interface WeatherSectionProps {
   clanTag: string;
@@ -55,6 +55,7 @@ function WeatherIcon() {
 }
 
 export function WeatherSection({ clanTag, clanState, logState }: WeatherSectionProps) {
+  const { t } = useTranslations();
   const ready = clanState.status === 'success' && logState.status === 'success';
   const loading = clanState.status === 'loading' || logState.status === 'loading';
 
@@ -82,37 +83,35 @@ export function WeatherSection({ clanTag, clanState, logState }: WeatherSectionP
         id="weather-title"
         className="cr-wood-header text-cr-title font-display rounded-lg text-xl tracking-wide"
       >
-        La Meteo du Clan
+        {t('weather.title')}
       </h2>
 
       {!ready ? (
         <div className="space-y-2">
-          <Skeleton className="h-12 w-full" label="Analyse des tendances..." />
+          <Skeleton className="h-12 w-full" label={t('weather.analyzing')} />
           <Skeleton className="h-12 w-full" />
           <Skeleton className="h-12 w-full" />
         </div>
       ) : trends.length === 0 ? (
         <EmptyState
           icon={<WeatherIcon />}
-          title="Pas encore assez d historique"
-          description="Il faut au moins 5 semaines de guerre completes pour degager une tendance."
+          title={t('weather.emptyTitle')}
+          description={t('weather.emptyDescription')}
         />
       ) : (
         <div className="bg-cr-panel-light overflow-x-auto rounded-lg border-2 border-black p-3">
           <table className="w-full border-separate border-spacing-y-2 text-sm">
-            <caption className="sr-only">
-              Tendance d assiduite des 5 dernieres semaines par joueur
-            </caption>
+            <caption className="sr-only">{t('weather.tableCaption')}</caption>
             <thead>
               <tr className="uppercase">
                 <th scope="col" className="px-3 py-2 text-left text-slate-600">
-                  Joueur
+                  {t('weather.colPlayer')}
                 </th>
                 <th scope="col" className="px-3 py-2 text-left text-slate-600">
-                  Tendance
+                  {t('weather.colTrend')}
                 </th>
                 <th scope="col" className="px-3 py-2 text-left text-slate-600">
-                  Profil
+                  {t('weather.colProfile')}
                 </th>
               </tr>
             </thead>
@@ -137,7 +136,7 @@ export function WeatherSection({ clanTag, clanState, logState }: WeatherSectionP
                     <span
                       className={`inline-block rounded-full px-3 py-1 text-xs font-bold uppercase ${PROFILE_BADGE_CLASSES[trend.profile]}`}
                     >
-                      {CONSISTENCY_PROFILE_LABELS[trend.profile]}
+                      {t(`consistencyProfiles.${trend.profile}`)}
                     </span>
                   </td>
                 </tr>

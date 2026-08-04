@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor, within } from '@/test-utils';
 import { describe, expect, it, vi } from 'vitest';
 import type { ClanMember } from '@/domain/clan/members';
 import type { ApiResource } from '@/hooks/use-api-resource';
@@ -76,7 +76,7 @@ describe('HrAssistantSection', () => {
         minWeeklyBattles={MIN_WEEKLY_BATTLES}
       />,
     );
-    expect(screen.getByText(/aucun meritant pour l instant/i)).toBeInTheDocument();
+    expect(screen.getByText(/aucun méritant pour l.instant/i)).toBeInTheDocument();
     expect(screen.getByText(/personne sur la sellette/i)).toBeInTheDocument();
   });
 
@@ -98,7 +98,7 @@ describe('HrAssistantSection', () => {
     );
     const card = screen.getByTestId('merit-card');
     expect(within(card).getByText('Alice')).toBeInTheDocument();
-    expect(within(card).getByText(/promotion suggeree/i)).toBeInTheDocument();
+    expect(within(card).getByText(/promotion suggérée/i)).toBeInTheDocument();
     expect(within(card).queryByText('#A')).not.toBeInTheDocument();
 
     fireEvent.click(within(card).getByRole('button'));
@@ -126,7 +126,7 @@ describe('HrAssistantSection', () => {
     );
     const card = screen.getByTestId('watch-card');
     expect(within(card).getByText('Bob')).toBeInTheDocument();
-    expect(within(card).getByText(/retrogradation conseillee/i)).toBeInTheDocument();
+    expect(within(card).getByText(/rétrogradation conseillée/i)).toBeInTheDocument();
     expect(within(card).getByText(/3\/16 combats cette semaine/i)).toBeInTheDocument();
   });
 
@@ -191,7 +191,7 @@ describe('HrAssistantSection', () => {
       />,
     );
     expect(screen.queryByTestId('watch-card')).not.toBeInTheDocument();
-    expect(screen.getByText(/jour d entrainement/i)).toBeInTheDocument();
+    expect(screen.getByText(/jour d.entraînement/i)).toBeInTheDocument();
   });
 
   it('n evalue pas la semaine en cours tant que la guerre n est pas chargee', () => {

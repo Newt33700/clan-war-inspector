@@ -24,6 +24,7 @@ import { Accordion } from './accordion';
 import { CopyButton } from './copy-button';
 import { EmptyState } from './empty-state';
 import { Skeleton } from './skeleton';
+import { useTranslations } from './i18n/locale-provider';
 
 function ShieldIcon({ className = 'h-8 w-8' }: { className?: string }) {
   return (
@@ -64,6 +65,7 @@ export function HrAssistantSection({
   warState,
   minWeeklyBattles,
 }: HrAssistantSectionProps) {
+  const { t } = useTranslations();
   const ready = logState.status === 'success';
   const loading = logState.status === 'loading';
 
@@ -104,12 +106,12 @@ export function HrAssistantSection({
         id="hr-assistant-title"
         className="cr-wood-header text-cr-title font-display rounded-lg text-xl tracking-wide"
       >
-        Assistant Ressources Humaines
+        {t('hrAssistant.title')}
       </h2>
 
       {!ready ? (
         <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-          <Skeleton className="h-32 w-full" label="Chargement de l assistant RH" />
+          <Skeleton className="h-32 w-full" label={t('hrAssistant.loadingLabel')} />
           <Skeleton className="h-32 w-full" />
         </div>
       ) : (
@@ -117,20 +119,20 @@ export function HrAssistantSection({
           <div className="space-y-3">
             <div className="flex flex-wrap items-center justify-between gap-2">
               <h3 className="text-royale-parchment-dim text-sm font-semibold tracking-wide uppercase">
-                Meritants
+                {t('hrAssistant.meritorious')}
               </h3>
               {meritorious.length > 0 && (
                 <CopyButton
                   text={formatMeritoriousForClipboard(meritorious)}
-                  label="Copier les recommandations"
+                  label={t('hrAssistant.copyRecommendations')}
                 />
               )}
             </div>
             {meritorious.length === 0 ? (
               <EmptyState
                 icon={<ShieldIcon className="h-10 w-10" />}
-                title="Aucun meritant pour l instant"
-                description="16/16 sur 3 semaines et au moins un don cette semaine, pour un membre."
+                title={t('hrAssistant.noMeritoriousTitle')}
+                description={t('hrAssistant.noMeritoriousDescription')}
               />
             ) : (
               <div className="bg-cr-panel-light rounded-lg border-2 border-black p-3">
@@ -151,7 +153,7 @@ export function HrAssistantSection({
                                 {member.name}
                               </p>
                               <span className="bg-cr-green mt-1 inline-block rounded-full px-3 py-1 text-xs font-semibold text-white">
-                                Promotion suggeree : Aine
+                                {t('hrAssistant.promotionSuggested')}
                               </span>
                             </div>
                           </>
@@ -171,23 +173,23 @@ export function HrAssistantSection({
           <div className="space-y-3">
             <div className="flex flex-wrap items-center justify-between gap-2">
               <h3 className="text-royale-parchment-dim text-sm font-semibold tracking-wide uppercase">
-                Sur la sellette
+                {t('hrAssistant.onWatch')}
               </h3>
               {onWatch.length > 0 && (
                 <CopyButton
                   text={formatWatchlistForClipboard(onWatch)}
-                  label="Copier les recommandations"
+                  label={t('hrAssistant.copyRecommendations')}
                 />
               )}
             </div>
             {onWatch.length === 0 ? (
               <EmptyState
                 icon={<TriangleWarningIcon className="h-10 w-10" />}
-                title="Personne sur la sellette"
+                title={t('hrAssistant.noWatchTitle')}
                 description={
                   war?.isTrainingDay
-                    ? 'Jour d entrainement : la semaine de guerre n a pas encore commence, rien a evaluer.'
-                    : `Aucun aine sous ${minWeeklyBattles}/16 combats sur la semaine de guerre en cours.`
+                    ? t('hrAssistant.noWatchTrainingDescription')
+                    : t('hrAssistant.noWatchDescription', { threshold: minWeeklyBattles })
                 }
               />
             ) : (
@@ -209,10 +211,12 @@ export function HrAssistantSection({
                                 {candidate.member.name}
                               </p>
                               <p className="text-cr-red text-sm font-semibold">
-                                Retrogradation conseillee
+                                {t('hrAssistant.demotionSuggested')}
                               </p>
                               <p className="text-xs text-slate-500">
-                                {candidate.currentWeekBattles}/16 combats cette semaine
+                                {t('hrAssistant.battlesThisWeek', {
+                                  count: candidate.currentWeekBattles,
+                                })}
                               </p>
                             </div>
                           </>

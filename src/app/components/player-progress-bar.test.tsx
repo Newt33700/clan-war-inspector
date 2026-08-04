@@ -2,7 +2,7 @@
  * Tests de la jauge de progression partagee (US 12.1).
  */
 
-import { render, screen } from '@testing-library/react';
+import { render, screen } from '@/test-utils';
 import { describe, expect, it } from 'vitest';
 import { PlayerProgressBar } from './player-progress-bar';
 

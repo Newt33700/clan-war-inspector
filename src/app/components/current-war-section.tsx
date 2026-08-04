@@ -28,6 +28,7 @@ import { ActionButton } from './action-button';
 import { PlayerProgressBar } from './player-progress-bar';
 import { SwordsIcon } from './section-icons';
 import { Skeleton } from './skeleton';
+import { useTranslations } from './i18n/locale-provider';
 
 interface CurrentWarSectionProps {
   /** Etat du chargement de /currentriverrace, pilote par le dashboard. */
@@ -36,7 +37,13 @@ interface CurrentWarSectionProps {
   memberTags: readonly string[];
 }
 
-function WarParticipantCard({ participant }: { participant: AnnotatedWarParticipant }) {
+function WarParticipantCard({
+  participant,
+  t,
+}: {
+  participant: AnnotatedWarParticipant;
+  t: (key: string, vars?: Record<string, string | number>) => string;
+}) {
   const idleToday = participant.decksUsedToday === 0;
   return (
     <li
@@ -49,7 +56,7 @@ function WarParticipantCard({ participant }: { participant: AnnotatedWarParticip
           <p className="text-xs text-slate-500">{participant.tag}</p>
           {!participant.stillInClan && (
             <span className="bg-cr-red mt-1 inline-block rounded px-2 py-0.5 text-xs text-white">
-              A quitte le clan
+              {t('currentWar.leftClan')}
             </span>
           )}
         </div>
@@ -59,8 +66,10 @@ function WarParticipantCard({ participant }: { participant: AnnotatedWarParticip
           }`}
         >
           {participant.decksUsedToday}/{DECKS_PER_DAY}
-          <span className="block text-xs font-normal text-slate-500">Aujourd hui</span>
-          {idleToday && <span className="sr-only"> - aucun deck joue aujourd hui</span>}
+          <span className="block text-xs font-normal text-slate-500">
+            {t('currentWar.today')}
+          </span>
+          {idleToday && <span className="sr-only">{t('currentWar.idleTodaySr')}</span>}
         </p>
       </div>
       <PlayerProgressBar score={participant.decksUsed} max={BATTLES_PER_WAR_WEEK} />
@@ -68,11 +77,15 @@ function WarParticipantCard({ participant }: { participant: AnnotatedWarParticip
   );
 }
 
-function periodBadge(isTrainingDay: boolean, periodType: string) {
+function periodBadge(
+  isTrainingDay: boolean,
+  periodType: string,
+  t: (key: string, vars?: Record<string, string | number>) => string,
+) {
   if (isTrainingDay) {
     return (
       <span className="bg-royale-blue-800 rounded-full px-3 py-1 text-xs font-semibold text-white uppercase">
-        Jour d entrainement
+        {t('currentWar.trainingDay')}
       </span>
     );
   }
@@ -81,12 +94,13 @@ function periodBadge(isTrainingDay: boolean, periodType: string) {
   }
   return (
     <span className="bg-royale-red-700 rounded-full px-3 py-1 text-xs font-semibold text-white uppercase">
-      Jour de bataille
+      {t('currentWar.battleDay')}
     </span>
   );
 }
 
 export function CurrentWarSection({ warState, memberTags }: CurrentWarSectionProps) {
+  const { t } = useTranslations();
   // Horodatage de la derniere donnee recue avec succes (US 6.4) : la guerre
   // en cours evolue toute la journee, sans lui rien n'indique la fraicheur
   // de ce qui est affiche.
@@ -139,15 +153,15 @@ export function CurrentWarSection({ warState, memberTags }: CurrentWarSectionPro
         className="cr-wood-header text-cr-title font-display rounded-lg text-xl tracking-wide"
       >
         <SwordsIcon className="h-5 w-5" />
-        Guerre en cours
+        {t('currentWar.title')}
       </h2>
 
       <div className="flex flex-wrap items-center gap-3">
-        {war !== null && periodBadge(war.isTrainingDay, war.periodType)}
+        {war !== null && periodBadge(war.isTrainingDay, war.periodType, t)}
         {updatedAt !== null && (
           <div className="ml-auto flex items-center gap-3">
             <span className="text-royale-parchment-dim text-xs">
-              Mise a jour a {formatTimeOfDay(updatedAt)}
+              {t('currentWar.updatedAt', { time: formatTimeOfDay(updatedAt) })}
             </span>
             <ActionButton
               onClick={warState.refetch}
@@ -155,7 +169,7 @@ export function CurrentWarSection({ warState, memberTags }: CurrentWarSectionPro
               variant="blue"
               className="px-3 py-1 text-xs"
             >
-              Actualiser
+              {t('currentWar.refresh')}
             </ActionButton>
           </div>
         )}
@@ -164,7 +178,7 @@ export function CurrentWarSection({ warState, memberTags }: CurrentWarSectionPro
       {warState.status === 'loading' && (
         <div
           role="status"
-          aria-label="Chargement de la guerre en cours"
+          aria-label={t('currentWar.loadingLabel')}
           className="space-y-2"
         >
           <Skeleton className="h-10 w-full" />
@@ -183,7 +197,7 @@ export function CurrentWarSection({ warState, memberTags }: CurrentWarSectionPro
             onClick={warState.refetch}
             className="btn-cr-red px-3 py-1 text-sm"
           >
-            Reessayer
+            {t('common.retry')}
           </button>
         </div>
       )}
@@ -196,44 +210,42 @@ export function CurrentWarSection({ warState, memberTags }: CurrentWarSectionPro
             onChange={(event) => setShowFormerMembers(event.target.checked)}
             className="h-5 w-5"
           />
-          Afficher les anciens membres ({formerMemberCount})
+          {t('currentWar.showFormerMembers', { count: formerMemberCount })}
         </label>
       )}
 
       {war !== null &&
         (war.state === 'notInWar' || allParticipants.length === 0 ? (
-          <p className="text-royale-parchment-dim">
-            Le clan n est pas en guerre actuellement.
-          </p>
+          <p className="text-royale-parchment-dim">{t('currentWar.notInWar')}</p>
         ) : participants.length === 0 ? (
-          <p className="text-royale-parchment-dim">
-            Aucun membre actuel n a participe a cette guerre pour l instant.
-          </p>
+          <p className="text-royale-parchment-dim">{t('currentWar.noParticipants')}</p>
         ) : (
           <div className="bg-cr-panel-light space-y-3 rounded-lg border-2 border-black p-3">
             {/* Vue carte mobile (US 14.2) : le tableau reste reserve a
                 partir de `md` (souris/trackpad). */}
             <ul className="space-y-3 md:hidden">
               {participants.map((participant) => (
-                <WarParticipantCard key={participant.tag} participant={participant} />
+                <WarParticipantCard
+                  key={participant.tag}
+                  participant={participant}
+                  t={t}
+                />
               ))}
             </ul>
 
             <div className="hidden overflow-x-auto md:block">
               <table className="w-full border-separate border-spacing-y-2 text-sm">
-                <caption className="sr-only">
-                  Decks joues aujourd hui et sur la semaine par participant
-                </caption>
+                <caption className="sr-only">{t('currentWar.tableCaption')}</caption>
                 <thead>
                   <tr className="uppercase">
                     <th scope="col" className="px-3 py-2 text-left text-slate-600">
-                      Joueur
+                      {t('currentWar.colPlayer')}
                     </th>
                     <th scope="col" className="px-3 py-2 text-right text-slate-600">
-                      Aujourd hui
+                      {t('currentWar.colToday')}
                     </th>
                     <th scope="col" className="px-3 py-2 text-right text-slate-600">
-                      Semaine
+                      {t('currentWar.colWeek')}
                     </th>
                   </tr>
                 </thead>
@@ -258,7 +270,7 @@ export function CurrentWarSection({ warState, memberTags }: CurrentWarSectionPro
                           </span>
                           {!participant.stillInClan && (
                             <span className="bg-cr-red mt-1 inline-block rounded px-2 py-0.5 text-xs text-white">
-                              A quitte le clan
+                              {t('currentWar.leftClan')}
                             </span>
                           )}
                         </th>
@@ -269,10 +281,7 @@ export function CurrentWarSection({ warState, memberTags }: CurrentWarSectionPro
                         >
                           {participant.decksUsedToday}/{DECKS_PER_DAY}
                           {idleToday && (
-                            <span className="sr-only">
-                              {' '}
-                              - aucun deck joue aujourd hui
-                            </span>
+                            <span className="sr-only">{t('currentWar.idleTodaySr')}</span>
                           )}
                         </td>
                         <td className="rounded-r-xl border-y-2 border-r-2 border-black px-3 py-2">

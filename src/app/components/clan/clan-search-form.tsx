@@ -14,6 +14,12 @@
  * puis navigue (Next Router) vers la page courante avec `?clan=<tag>` --
  * ce qui relance le Server Component de la page avec les nouvelles
  * donnees.
+ *
+ * Replie automatiquement des qu'un clan est actif (retour utilisateur du
+ * 2026-08-04 : le formulaire complet reste affiche en permanence, "prend
+ * de la place pour rien") : `hasActiveClan` (fourni par chaque `page.tsx`,
+ * qui connait deja le tag resolu cote serveur) pilote l'etat replie/deplie
+ * initial, resynchronise a chaque nouveau clan charge.
  */
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
@@ -25,17 +31,39 @@ import {
   parseClanSearchResults,
 } from '@/domain/clan/clan-search';
 import { storeClanTag } from '@/lib/clan-tag-storage';
+import {
+  readRecentClans,
+  rememberRecentClan,
+  type RecentClan,
+} from '@/lib/recent-clans-storage';
 import { useApiResource } from '@/hooks/use-api-resource';
 import { useDebouncedValue } from '@/hooks/use-debounced-value';
+import { useTranslations } from '../i18n/locale-provider';
 
 // Delai avant d'afficher l'erreur de format (US 6.5) : le temps d'une
 // pause de frappe, pour ne pas juger une saisie encore en cours.
 const FORMAT_ERROR_DEBOUNCE_MS = 400;
 
-export function ClanSearchForm() {
+interface ClanSearchFormProps {
+  /** Vrai si une page a deja resolu un clan actif (URL ou cookie). */
+  hasActiveClan?: boolean;
+}
+
+export function ClanSearchForm({ hasActiveClan = false }: ClanSearchFormProps) {
+  const { t } = useTranslations();
   const router = useRouter();
   const pathname = usePathname();
   const [draftTag, setDraftTag] = useState('');
+  const [isExpanded, setIsExpanded] = useState(!hasActiveClan);
+  const [recentClans, setRecentClans] = useState<RecentClan[]>([]);
+
+  useEffect(() => {
+    setIsExpanded(!hasActiveClan);
+  }, [hasActiveClan]);
+
+  useEffect(() => {
+    setRecentClans(readRecentClans());
+  }, []);
 
   const draftIsValid = isValidClanTag(draftTag);
   const debouncedDraftTag = useDebouncedValue(draftTag, FORMAT_ERROR_DEBOUNCE_MS);
@@ -63,11 +91,14 @@ export function ClanSearchForm() {
 
   // Charge un clan par tag connu : point d'entree commun a la soumission du
   // formulaire (tag direct), a la resolution automatique d'un resultat de
-  // recherche unique, et au clic sur un candidat (US 10.1). Reste sur la
-  // page courante (US 13.3) : changer de clan depuis Historique y reste.
+  // recherche unique, et au clic sur un candidat (US 10.1) ou un clan
+  // recent. Reste sur la page courante (US 13.3) : changer de clan depuis
+  // Historique y reste.
   const loadClan = useCallback(
-    (tag: string) => {
+    (tag: string, name?: string) => {
       storeClanTag(tag);
+      rememberRecentClan(tag, name);
+      setRecentClans(readRecentClans());
       setDraftTag('');
       const target = `${pathname === '/' ? '/dashboard' : pathname}?clan=${encodeURIComponent(tag)}`;
       router.replace(target);
@@ -79,7 +110,7 @@ export function ClanSearchForm() {
   // explicitement (US 10.1) : pas d'etape intermediaire pour l'utilisateur.
   useEffect(() => {
     if (searchResults.length === 1) {
-      loadClan(searchResults[0]!.tag);
+      loadClan(searchResults[0]!.tag, searchResults[0]!.name);
     }
   }, [searchResults, loadClan]);
 
@@ -90,20 +121,45 @@ export function ClanSearchForm() {
     }
   }
 
+  if (hasActiveClan && !isExpanded) {
+    return (
+      <button
+        type="button"
+        onClick={() => setIsExpanded(true)}
+        aria-expanded={false}
+        className="btn-cr-blue min-h-11 px-3 py-1 text-xs"
+      >
+        {t('clanSearch.changeClan')}
+      </button>
+    );
+  }
+
   return (
     <div className="space-y-2">
+      {hasActiveClan && (
+        <button
+          type="button"
+          onClick={() => setIsExpanded(false)}
+          aria-expanded={true}
+          className="btn-cr-blue min-h-11 px-3 py-1 text-xs"
+        >
+          {t('clanSearch.changeClan')}
+        </button>
+      )}
       <form
         onSubmit={handleSubmit}
         className="flex flex-col items-stretch gap-3 sm:flex-row sm:flex-wrap sm:items-end"
-        aria-label="Recherche de clan"
+        aria-label={t('clanSearch.ariaLabel')}
       >
         <label className="flex flex-col gap-1">
-          <span className="text-royale-parchment-dim text-sm">Tag ou nom du clan</span>
+          <span className="text-royale-parchment-dim text-sm">
+            {t('clanSearch.fieldLabel')}
+          </span>
           <input
             type="text"
             value={draftTag}
             onChange={(event) => setDraftTag(event.target.value)}
-            placeholder="#20J20QG ou Chevreaux Team"
+            placeholder={t('clanSearch.placeholder')}
             className="cr-glass text-royale-parchment min-h-11 px-3 py-2 placeholder:text-slate-400"
           />
         </label>
@@ -112,30 +168,50 @@ export function ClanSearchForm() {
           disabled={!draftIsValid}
           className="btn-cr-gold min-h-11 px-4 py-2 disabled:opacity-40"
         >
-          Inspecter
+          {t('clanSearch.submit')}
         </button>
         {/* text-sm (14px), pas text-xs (US 14.4) : lisibilite mobile minimale. */}
         <p className="text-royale-parchment-dim w-full text-sm">
-          Saisissez le tag de votre clan (visible dans Clash Royale, sous son nom, sur l
-          ecran du clan) ou directement son nom.
+          {t('clanSearch.helpText')}
         </p>
         {showFormatError && (
           <p className="text-royale-red-700 w-full text-sm">
-            Tag invalide : caracteres autorises 0289PYLQGRJCUV, longueur 3 a 14.
+            {t('clanSearch.formatError')}
           </p>
         )}
       </form>
 
+      {recentClans.length > 0 && (
+        <div className="space-y-1">
+          <p className="text-royale-parchment-dim text-xs tracking-wide uppercase">
+            {t('clanSearch.recentClansLabel')}
+          </p>
+          <div className="flex flex-wrap gap-2">
+            {recentClans.map((clan) => (
+              <button
+                key={clan.tag}
+                type="button"
+                data-testid="recent-clan"
+                onClick={() => loadClan(clan.tag, clan.name)}
+                className="cr-pill-row px-3 py-1 text-xs text-slate-900"
+              >
+                {clan.name}
+                <span className="ml-1 text-slate-500">{clan.tag}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
       {searchQueryTooShort && (
         <p className="text-royale-parchment-dim text-sm">
-          Continuez a taper ({MIN_SEARCH_NAME_LENGTH} caracteres minimum) pour rechercher
-          par nom.
+          {t('clanSearch.continueTyping', { min: MIN_SEARCH_NAME_LENGTH })}
         </p>
       )}
 
       {searchPath !== null && searchState.status === 'loading' && (
         <p role="status" className="text-royale-parchment-dim">
-          Recherche de clans nommes « {trimmedDebouncedDraft} »...
+          {t('clanSearch.searching', { query: trimmedDebouncedDraft })}
         </p>
       )}
 
@@ -149,14 +225,14 @@ export function ClanSearchForm() {
             onClick={searchState.refetch}
             className="btn-cr-red px-3 py-1 text-sm"
           >
-            Reessayer
+            {t('common.retry')}
           </button>
         </div>
       )}
 
       {searchState.status === 'success' && searchResults.length === 0 && (
         <p className="text-royale-parchment-dim">
-          Aucun clan ne correspond a « {trimmedDebouncedDraft} ».
+          {t('clanSearch.noResults', { query: trimmedDebouncedDraft })}
         </p>
       )}
 
@@ -168,7 +244,7 @@ export function ClanSearchForm() {
                 <button
                   type="button"
                   data-testid="clan-search-candidate"
-                  onClick={() => loadClan(candidate.tag)}
+                  onClick={() => loadClan(candidate.tag, candidate.name)}
                   className="cr-pill-row flex w-full flex-wrap items-center gap-3 px-4 py-3 text-left hover:from-slate-50 hover:to-slate-200"
                 >
                   {candidate.badgeUrl.length > 0 && (
@@ -187,7 +263,7 @@ export function ClanSearchForm() {
                       </span>
                     </span>
                     <span className="text-xs text-slate-500">
-                      {candidate.memberCount}/50 membres
+                      {t('clanSearch.memberCount', { count: candidate.memberCount })}
                     </span>
                   </span>
                 </button>

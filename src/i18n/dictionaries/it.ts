@@ -1,0 +1,262 @@
+import type { Dictionary } from './fr';
+
+const it = {
+  common: {
+    retry: 'Riprova',
+  },
+  nav: {
+    ariaLabel: 'Navigazione principale',
+    brand: 'Clan War Inspector',
+    dashboard: 'Dashboard',
+    historique: 'Storico',
+    rh: 'RU',
+    nouveauxMembres: 'Nuovi',
+    meteo: 'Meteo',
+  },
+  languageSwitcher: {
+    label: 'Lingua',
+  },
+  footer: {
+    legalText:
+      'Questo contenuto non è affiliato, sostenuto, sponsorizzato o specificamente approvato da Supercell e Supercell non ne è responsabile. Per maggiori informazioni, consulta la Fan Content Policy di Supercell:',
+    linkLabel: 'www.supercell.com/fan-content-policy',
+    licenseLabel: 'Licenza',
+  },
+  clanSearch: {
+    ariaLabel: 'Ricerca clan',
+    fieldLabel: 'Tag o nome del clan',
+    placeholder: '#20J20QG o Chevreaux Team',
+    submit: 'Ispeziona',
+    helpText:
+      'Inserisci il tag del tuo clan (visibile in Clash Royale, sotto il nome, nella schermata del clan) oppure direttamente il suo nome.',
+    formatError: 'Tag non valido: caratteri ammessi 0289PYLQGRJCUV, lunghezza 3-14.',
+    continueTyping: 'Continua a digitare (minimo {min} caratteri) per cercare per nome.',
+    searching: 'Ricerca clan chiamati "{query}"...',
+    noResults: 'Nessun clan corrisponde a "{query}".',
+    memberCount: '{count}/50 membri',
+    changeClan: 'Cambia clan',
+    activeClanSummary: 'Clan attivo: {name} ({tag})',
+    recentClansLabel: 'Clan recenti',
+  },
+  clanStatus: {
+    loadingLabel: 'Caricamento del clan',
+  },
+  clanHeader: {
+    stats: '{count}/{max} membri · Punteggio {score} · Trofei di guerra {trophies}',
+  },
+  errorPage: {
+    title: 'Sconfitta!',
+    heading: 'Un errore imprevisto ha abbattuto la torre',
+    description:
+      "Nulla di definitivo: riavvia la partita. Se l'errore persiste, verifica la configurazione del server (chiave API Supercell).",
+  },
+  notFoundPage: {
+    code: '404',
+    heading: 'Questa pagina ha disertato il campo di battaglia',
+    description:
+      'Nemmeno lei ha giocato le sue 16 battaglie. Torna alla dashboard per ispezionare il tuo clan.',
+    backLink: 'Torna alla dashboard',
+  },
+  pages: {
+    dashboardTitle: 'Dashboard',
+    dashboardIdle:
+      'Inserisci il tag o il nome del tuo clan per visualizzare la dashboard.',
+    historiqueTitle: 'Storico delle guerre',
+    historiqueIdle:
+      'Inserisci il tag o il nome del tuo clan per visualizzare lo storico.',
+    rhTitle: 'Assistente RU',
+    rhIdle: "Inserisci il tag o il nome del tuo clan per visualizzare l'assistente RU.",
+    meteoTitle: 'Il Meteo del Clan',
+    meteoIdle:
+      'Inserisci il tag o il nome del tuo clan per visualizzare il meteo del clan.',
+    nouveauxMembresTitle: 'Zona di quarantena',
+    nouveauxMembresIdle:
+      'Inserisci il tag o il nome del tuo clan per visualizzare la zona di quarantena.',
+  },
+  dashboard: {
+    membersTitle: 'Membri del clan',
+    searchMemberLabel: 'Cerca un membro',
+    searchMemberPlaceholder: 'Nome o tag...',
+    noMembers: 'Questo clan non ha membri.',
+    noMemberMatch: 'Nessun membro corrisponde a "{query}".',
+  },
+  membersTable: {
+    caption: 'Membri del clan',
+    sortBy: 'Ordina per',
+    columnName: 'Giocatore',
+    columnRole: 'Ruolo',
+    columnTrophies: 'Trofei',
+    columnDonations: 'Donazioni',
+    sortNameAsc: 'Giocatore (A-Z)',
+    sortNameDesc: 'Giocatore (Z-A)',
+    sortRoleDesc: 'Ruolo (capo per primo)',
+    sortTrophiesDesc: 'Trofei (decrescente)',
+    sortDonationsDesc: 'Donazioni (decrescente)',
+    viewProfile: 'Vedi il profilo completo →',
+    tag: 'Tag',
+    trophies: 'Trofei',
+    donations: 'Donazioni',
+  },
+  currentWar: {
+    title: 'Guerra in corso',
+    leftClan: 'Ha lasciato il clan',
+    today: 'Oggi',
+    trainingDay: 'Giorno di allenamento',
+    battleDay: 'Giorno di battaglia',
+    updatedAt: 'Aggiornato alle {time}',
+    refresh: 'Aggiorna',
+    loadingLabel: 'Caricamento della guerra in corso',
+    showFormerMembers: 'Mostra ex membri ({count})',
+    notInWar: 'Il clan non è attualmente in guerra.',
+    noParticipants: 'Nessun membro attuale ha ancora partecipato a questa guerra.',
+    tableCaption: 'Mazzi giocati oggi e questa settimana per partecipante',
+    colPlayer: 'Giocatore',
+    colToday: 'Oggi',
+    colWeek: 'Settimana',
+    idleTodaySr: ' - nessun mazzo giocato oggi',
+  },
+  warHistory: {
+    title: 'Storico delle guerre',
+    loadingLabel: 'Caricamento dello storico',
+    noHistory: 'Nessuno storico di guerra disponibile per questo clan.',
+    noCurrentPlayers: 'Nessun membro attuale ha uno storico di guerra in questo periodo.',
+    legendNotMember: 'Non membro quella settimana',
+    total: 'totale',
+    average: 'media',
+    averageAria: 'Media su {count} settimana/e di presenza',
+    seeMoreWeeks: 'Vedi tutte le settimane',
+    seeLessWeeks: 'Vedi meno settimane',
+    sortBy: 'Ordina per',
+    defaultOrder: 'Ordine predefinito',
+    totalDesc: 'Totale (decrescente)',
+    totalAsc: 'Totale (crescente)',
+    averageDesc: 'Media (decrescente)',
+    averageAsc: 'Media (crescente)',
+    scrollHint: 'Trascina per vedere più settimane →',
+    colPlayer: 'Giocatore',
+    colTotal: 'Totale',
+    colAverage: 'Media',
+    tableCaption: 'Battaglie giocate su {max} per giocatore e per settimana',
+  },
+  hallOfFame: {
+    title: 'Hall of Fame',
+    loadingLabel: "Caricamento dell'Hall of Fame",
+    emptyTitle: 'Nessuna classifica ancora',
+    emptyDescription: 'Torna alla fine della settimana di guerra per vedere il podio.',
+    fame: 'fama',
+  },
+  participation: {
+    title: 'Partecipazione della settimana',
+    loadingLabel: 'Caricamento della partecipazione',
+    notInWar: 'Il clan non è attualmente in guerra.',
+    battlesLabel: '{played}/{possible} battaglie',
+    ariaLabel:
+      '{percent}% delle battaglie della settimana giocate, {played} su {possible}',
+  },
+  hrAssistant: {
+    title: 'Assistente Risorse Umane',
+    loadingLabel: "Caricamento dell'assistente RU",
+    meritorious: 'Meritevoli',
+    onWatch: 'Sotto osservazione',
+    copyRecommendations: 'Copia le raccomandazioni',
+    noMeritoriousTitle: 'Nessun membro meritevole per ora',
+    noMeritoriousDescription:
+      '16/16 in 3 settimane e almeno una donazione questa settimana, per un membro.',
+    promotionSuggested: 'Promozione suggerita: Anziano',
+    noWatchTitle: 'Nessuno sotto osservazione',
+    noWatchTrainingDescription:
+      'Giorno di allenamento: la settimana di guerra non è ancora iniziata, niente da valutare.',
+    noWatchDescription:
+      'Nessun anziano sotto {threshold}/16 battaglie nella settimana di guerra in corso.',
+    demotionSuggested: 'Retrocessione consigliata',
+    battlesThisWeek: '{count}/16 battaglie questa settimana',
+  },
+  purge: {
+    title: 'Da espellere',
+    activeRule:
+      'Regola attiva: ruolo Membro e meno di {threshold} battaglie nella settimana di guerra in corso.',
+    thresholdPrefix: 'Membri che hanno giocato meno di',
+    thresholdSuffix:
+      "battaglie nella settimana di guerra in corso (16 previste). Questa soglia è usata anche dall'Assistente RU per «Sotto osservazione».",
+    thresholdAriaLabel: 'Soglia di battaglie per la settimana in corso',
+    trainingDay:
+      'Giorno di allenamento: la settimana di guerra non è ancora iniziata, niente da valutare.',
+    notInWar: 'Il clan non è attualmente in guerra: niente da valutare questa settimana.',
+    copyList: 'Copia la lista',
+    copied: 'Copiato! ✅',
+    copyError: 'Impossibile copiare.',
+    noCandidates: 'Nessun membro problematico con questa soglia.',
+    insufficientBattles: 'Battaglie insufficienti questa settimana',
+    battlesThisWeek: '{count}/16 battaglie questa settimana',
+  },
+  quarantine: {
+    title: 'Zona di quarantena',
+    searching: 'Ricerca dei nuovi membri...',
+    analyzing: 'Analisi del profilo in corso...',
+    emptyTitle: 'Nessun nuovo membro',
+    emptyDescription: 'Tutti i membri attuali hanno già uno storico di guerra con noi.',
+    totalBattles: 'Battaglie totali',
+    clanWarWins: 'Vittorie GDC (a vita)',
+    copyKick: 'Copia tag per espellere',
+  },
+  weather: {
+    title: 'Il Meteo del Clan',
+    analyzing: 'Analisi delle tendenze...',
+    emptyTitle: 'Storico ancora insufficiente',
+    emptyDescription:
+      'Servono almeno 5 settimane di guerra complete per individuare una tendenza.',
+    colPlayer: 'Giocatore',
+    colTrend: 'Tendenza',
+    colProfile: 'Profilo',
+    tableCaption: 'Tendenza di partecipazione delle ultime 5 settimane per giocatore',
+  },
+  playerDrawer: {
+    title: 'Profilo giocatore',
+    close: 'Chiudi il pannello',
+    role: 'Ruolo',
+    outOfClan: 'Fuori dal clan',
+    level: 'Livello',
+    totalDonations: 'Donazioni totali',
+    deck: 'Mazzo',
+    deckUnavailableTitle: 'Mazzo non disponibile',
+    deckUnavailableDescription:
+      'Nessun mazzo attuale né carta preferita in questo profilo.',
+    loadingLabel: 'Caricamento del profilo giocatore',
+  },
+  copyButton: {
+    defaultLabel: 'Copia il tag',
+    copied: '✓ Copiato!',
+  },
+  playerProgressBar: {
+    ariaLabel: '{score} battaglie su {max}, {level}',
+  },
+  sparkline: {
+    ariaLabel: 'Storico delle ultime {count} settimane: {values} battaglie su {max}',
+  },
+  roles: {
+    leader: 'Capo',
+    coLeader: 'Vice capo',
+    elder: 'Anziano',
+    member: 'Membro',
+  },
+  attendanceLevels: {
+    complete: 'Completo',
+    warning: 'Incompleto',
+    critical: 'Critico',
+  },
+  reliabilityLevels: {
+    red: 'A rischio',
+    orange: 'Da monitorare',
+    green: 'Buon profilo',
+    unknown: 'Profilo neutro',
+  },
+  consistencyProfiles: {
+    roc: 'La Roccia',
+    decrocheur: 'Il Mollato',
+    redemption: 'In Redenzione',
+    touriste: 'Il Turista',
+    irregulier: 'Irregolare',
+  },
+} satisfies Dictionary;
+
+export default it;

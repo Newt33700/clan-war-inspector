@@ -2,7 +2,7 @@
  * Tests du resume synthetique de participation (US 12.4).
  */
 
-import { render, screen } from '@testing-library/react';
+import { render, screen } from '@/test-utils';
 import { describe, expect, it } from 'vitest';
 import type { ApiResource } from '@/hooks/use-api-resource';
 import { ParticipationSummarySection } from './participation-summary-section';
@@ -54,7 +54,7 @@ describe('ParticipationSummarySection', () => {
         memberTags={[]}
       />,
     );
-    expect(screen.getByText(/n est pas en guerre actuellement/i)).toBeInTheDocument();
+    expect(screen.getByText(/n.est pas en guerre actuellement/i)).toBeInTheDocument();
   });
 
   it('calcule le pourcentage de participation parmi les membres actuels', () => {
@@ -91,7 +91,7 @@ describe('ParticipationSummarySection', () => {
     );
     expect(
       screen.getByRole('img', {
-        name: '100% des combats de la semaine joues, 16 sur 16',
+        name: '100% des combats de la semaine joués, 16 sur 16',
       }),
     ).toBeInTheDocument();
   });

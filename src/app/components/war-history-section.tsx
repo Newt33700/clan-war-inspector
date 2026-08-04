@@ -8,11 +8,7 @@
  */
 
 import { useEffect, useMemo, useRef, useState } from 'react';
-import {
-  classifyBattleCount,
-  LEVEL_LABELS,
-  LEVEL_SYMBOLS,
-} from '@/domain/war/attendance-level';
+import { classifyBattleCount, LEVEL_SYMBOLS } from '@/domain/war/attendance-level';
 import {
   BATTLES_PER_WAR_WEEK,
   buildClanWarHistory,
@@ -27,6 +23,9 @@ import type { SortDirection } from '@/domain/clan/members';
 import type { ApiResource } from '@/hooks/use-api-resource';
 import { LEVEL_TEXT_CLASSES, PlayerProgressBar } from './player-progress-bar';
 import { Skeleton } from './skeleton';
+import { useTranslations } from './i18n/locale-provider';
+
+type Translate = (key: string, vars?: Record<string, string | number>) => string;
 
 // Au-dela de ce nombre de semaines, le tableau depasse la largeur visible
 // sur la plupart des ecrans : un indice de scroll horizontal est ajoute.
@@ -48,9 +47,11 @@ const MOBILE_COLLAPSED_WEEKS = 4;
 function HistoryPlayerCard({
   player,
   weeks,
+  t,
 }: {
   player: PlayerAttendance;
   weeks: readonly WarWeek[];
+  t: Translate;
 }) {
   const [expanded, setExpanded] = useState(false);
   const canExpand = weeks.length > MOBILE_COLLAPSED_WEEKS;
@@ -65,13 +66,13 @@ function HistoryPlayerCard({
         </div>
         <div className="text-right">
           <p className="font-display text-sm font-semibold text-slate-900 tabular-nums">
-            {player.totalBattles} total
+            {player.totalBattles} {t('warHistory.total')}
           </p>
           <p
             className="font-display text-xs text-slate-500 tabular-nums"
-            aria-label={`Moyenne sur ${player.weeksPresent} semaine(s) de presence`}
+            aria-label={t('warHistory.averageAria', { count: player.weeksPresent })}
           >
-            {player.averagePerPresentWeek.toFixed(1)} moy.
+            {player.averagePerPresentWeek.toFixed(1)} {t('warHistory.average')}
           </p>
         </div>
       </div>
@@ -83,7 +84,10 @@ function HistoryPlayerCard({
             <li key={week.weekId} className="space-y-1">
               <span className="block truncate text-slate-500">{weekLabel(week)}</span>
               {battles === null ? (
-                <span aria-label="Non membre cette semaine" className="text-slate-400">
+                <span
+                  aria-label={t('warHistory.legendNotMember')}
+                  className="text-slate-400"
+                >
                   —
                 </span>
               ) : (
@@ -108,7 +112,7 @@ function HistoryPlayerCard({
           onClick={() => setExpanded((current) => !current)}
           className="text-cr-blue min-h-11 text-xs font-semibold"
         >
-          {expanded ? 'Voir moins de semaines' : 'Voir toutes les semaines'}
+          {expanded ? t('warHistory.seeLessWeeks') : t('warHistory.seeMoreWeeks')}
         </button>
       )}
     </li>
@@ -122,11 +126,11 @@ function weekLabel(week: WarWeek): string {
   return week.weekId;
 }
 
-function BattleCell({ battles }: { battles: number | null }) {
+function BattleCell({ battles, t }: { battles: number | null; t: Translate }) {
   if (battles === null) {
     return (
       <td className="border-y-2 border-black px-3 py-2 text-center">
-        <span aria-label="Non membre cette semaine" className="text-slate-400">
+        <span aria-label={t('warHistory.legendNotMember')} className="text-slate-400">
           —
         </span>
       </td>
@@ -153,6 +157,7 @@ export function WarHistorySection({
   clanTag,
   currentMemberTags,
 }: WarHistorySectionProps) {
+  const { t } = useTranslations();
   const [sortKey, setSortKey] = useState<AttendanceSortKey | null>(null);
   const [direction, setDirection] = useState<SortDirection>('asc');
 
@@ -226,11 +231,15 @@ export function WarHistorySection({
         id="war-history-title"
         className="cr-wood-header text-cr-title font-display rounded-lg text-xl tracking-wide"
       >
-        Historique des guerres
+        {t('warHistory.title')}
       </h2>
 
       {logState.status === 'loading' && (
-        <div role="status" aria-label="Chargement de l historique" className="space-y-2">
+        <div
+          role="status"
+          aria-label={t('warHistory.loadingLabel')}
+          className="space-y-2"
+        >
           <Skeleton className="h-10 w-full" />
           <Skeleton className="h-10 w-full" />
           <Skeleton className="h-10 w-5/6" />
@@ -248,20 +257,16 @@ export function WarHistorySection({
             onClick={logState.refetch}
             className="btn-cr-gold px-3 py-1 text-sm"
           >
-            Reessayer
+            {t('common.retry')}
           </button>
         </div>
       )}
 
       {history !== null &&
         (history.weeks.length === 0 ? (
-          <p className="text-royale-parchment-dim">
-            Aucun historique de guerre disponible pour ce clan.
-          </p>
+          <p className="text-royale-parchment-dim">{t('warHistory.noHistory')}</p>
         ) : currentPlayers.length === 0 ? (
-          <p className="text-royale-parchment-dim">
-            Aucun membre actuel n a d historique de guerre sur cette periode.
-          </p>
+          <p className="text-royale-parchment-dim">{t('warHistory.noCurrentPlayers')}</p>
         ) : (
           <div className="space-y-1">
             <ul className="text-royale-parchment-dim flex flex-wrap gap-x-4 gap-y-1 text-xs">
@@ -271,29 +276,31 @@ export function WarHistorySection({
                   className={`flex items-center gap-1 ${LEVEL_TEXT_CLASSES[level]}`}
                 >
                   <span aria-hidden="true">{LEVEL_SYMBOLS[level]}</span>
-                  {LEVEL_LABELS[level]}
+                  {t(`attendanceLevels.${level}`)}
                 </li>
               ))}
               <li className="flex items-center gap-1">
                 <span aria-hidden="true">—</span>
-                Non membre cette semaine-la
+                {t('warHistory.legendNotMember')}
               </li>
             </ul>
             {/* Vue carte mobile (US 14.1) : le tableau, dense et a defilement
                 horizontal, est reserve a partir de `md` (souris/trackpad). */}
             <div className="bg-cr-panel-light space-y-3 rounded-lg border-2 border-black p-3 md:hidden">
               <label className="flex flex-col gap-1 text-xs">
-                <span className="tracking-wide text-slate-600 uppercase">Trier par</span>
+                <span className="tracking-wide text-slate-600 uppercase">
+                  {t('warHistory.sortBy')}
+                </span>
                 <select
                   value={sortKey === null ? 'none' : `${sortKey}-${direction}`}
                   onChange={(event) => handleSortSelectChange(event.target.value)}
                   className="min-h-11 rounded-md border border-black bg-white px-3 py-2 text-slate-900"
                 >
-                  <option value="none">Ordre par defaut</option>
-                  <option value="total-desc">Total (decroissant)</option>
-                  <option value="total-asc">Total (croissant)</option>
-                  <option value="average-desc">Moyenne (decroissante)</option>
-                  <option value="average-asc">Moyenne (croissante)</option>
+                  <option value="none">{t('warHistory.defaultOrder')}</option>
+                  <option value="total-desc">{t('warHistory.totalDesc')}</option>
+                  <option value="total-asc">{t('warHistory.totalAsc')}</option>
+                  <option value="average-desc">{t('warHistory.averageDesc')}</option>
+                  <option value="average-asc">{t('warHistory.averageAsc')}</option>
                 </select>
               </label>
               <ul className="space-y-3">
@@ -302,6 +309,7 @@ export function WarHistorySection({
                     key={player.tag}
                     player={player}
                     weeks={history.weeks}
+                    t={t}
                   />
                 ))}
               </ul>
@@ -312,7 +320,7 @@ export function WarHistorySection({
                 aria-hidden="true"
                 className="text-royale-parchment-dim hidden text-right text-xs md:block"
               >
-                Faites glisser pour voir plus de semaines →
+                {t('warHistory.scrollHint')}
               </p>
             )}
             <div className="bg-cr-panel-light relative hidden rounded-lg border-2 border-black p-3 md:block">
@@ -326,7 +334,7 @@ export function WarHistorySection({
               <div ref={scrollRef} onScroll={handleScroll} className="overflow-x-auto">
                 <table className="w-full border-separate border-spacing-y-2 text-sm">
                   <caption className="sr-only">
-                    Combats joues sur {BATTLES_PER_WAR_WEEK} par joueur et par semaine
+                    {t('warHistory.tableCaption', { max: BATTLES_PER_WAR_WEEK })}
                   </caption>
                   <thead>
                     <tr className="uppercase">
@@ -334,7 +342,7 @@ export function WarHistorySection({
                         scope="col"
                         className={`px-3 py-2 text-left text-slate-600 ${STICKY_FIRST_COLUMN_HEADER}`}
                       >
-                        Joueur
+                        {t('warHistory.colPlayer')}
                       </th>
                       {history.weeks.map((week) => (
                         <th
@@ -348,8 +356,8 @@ export function WarHistorySection({
                       ))}
                       {(
                         [
-                          { key: 'total' as const, label: 'Total' },
-                          { key: 'average' as const, label: 'Moyenne' },
+                          { key: 'total' as const, label: t('warHistory.colTotal') },
+                          { key: 'average' as const, label: t('warHistory.colAverage') },
                         ] satisfies { key: AttendanceSortKey; label: string }[]
                       ).map((column) => {
                         const isActive = sortKey === column.key;
@@ -403,6 +411,7 @@ export function WarHistorySection({
                           <BattleCell
                             key={history.weeks[index]?.weekId ?? index}
                             battles={battles}
+                            t={t}
                           />
                         ))}
                         <td className="font-display border-y-2 border-black px-3 py-2 text-right font-semibold tabular-nums">
@@ -410,7 +419,9 @@ export function WarHistorySection({
                         </td>
                         <td
                           className="font-display rounded-r-xl border-y-2 border-r-2 border-black px-3 py-2 text-right text-slate-500 tabular-nums"
-                          aria-label={`Moyenne sur ${player.weeksPresent} semaine(s) de presence`}
+                          aria-label={t('warHistory.averageAria', {
+                            count: player.weeksPresent,
+                          })}
                         >
                           {player.averagePerPresentWeek.toFixed(1)}
                         </td>

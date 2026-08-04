@@ -2,7 +2,10 @@ import type { Metadata, Viewport } from 'next';
 import type { ReactNode } from 'react';
 import { Lilita_One, Nunito } from 'next/font/google';
 
+import { DEFAULT_LOCALE } from '@/i18n/locale';
+import { readLocaleFromCookies } from '@/lib/locale-server';
 import { Footer } from './components/footer';
+import { LocaleProvider } from './components/i18n/locale-provider';
 import { BrandMark } from './components/navigation/brand-mark';
 import { DesktopHeader } from './components/navigation/desktop-header';
 import { MobileTabBar } from './components/navigation/mobile-tab-bar';
@@ -47,29 +50,38 @@ export const viewport: Viewport = {
   colorScheme: 'light',
 };
 
-export default function RootLayout({ children }: { children: ReactNode }) {
+export default async function RootLayout({ children }: { children: ReactNode }) {
+  // Langue active resolue cote serveur (cookie, internationalisation
+  // 2026-08-04) : premier rendu deja dans la bonne langue, sans flash --
+  // meme principe que le tag de clan (US 13.1, `clan-tag-server.ts`).
+  const locale = (await readLocaleFromCookies()) ?? DEFAULT_LOCALE;
+
   return (
-    <html lang="fr" className={`${displayFont.variable} ${bodyFont.variable}`}>
+    <html lang={locale} className={`${displayFont.variable} ${bodyFont.variable}`}>
       <body className="text-royale-parchment flex min-h-screen flex-col font-sans antialiased">
-        <PageBackdrop />
-        <DesktopHeader />
-        {/* Bandeau de marque mobile (pas un <h1> : chaque page porte le
-            sien, propre a son contenu -- "Dashboard", "Historique des
-            guerres", "Assistant RH" -- pour rester utile a la navigation
-            au clavier/lecteur d'ecran plutot que de repeter le nom du
-            produit sur toutes les pages). */}
-        <p className="flex items-center gap-2 px-6 pt-8 pb-2 text-xs font-semibold tracking-[0.35em] text-amber-800 uppercase md:hidden">
-          <BrandMark className="h-5 w-5" />
-          Clan War Inspector
-        </p>
-        {/* flex-1 (2026-08-04) : pousse le footer en bas de l'ecran sur les
-            pages courtes (etat idle "saisissez un clan") au lieu de le
-            laisser flotter au milieu, entoure de damier vide. pb-tab-bar
-            (US 14.7) : garde le contenu au-dessus de la MobileTabBar fixe,
-            zone sure iOS comprise. */}
-        <main className="mx-auto w-full max-w-4xl flex-1 px-6 md:pb-12">{children}</main>
-        <Footer />
-        <MobileTabBar />
+        <LocaleProvider initialLocale={locale}>
+          <PageBackdrop />
+          <DesktopHeader />
+          {/* Bandeau de marque mobile (pas un <h1> : chaque page porte le
+              sien, propre a son contenu -- "Dashboard", "Historique des
+              guerres", "Assistant RH" -- pour rester utile a la navigation
+              au clavier/lecteur d'ecran plutot que de repeter le nom du
+              produit sur toutes les pages). */}
+          <p className="flex items-center gap-2 px-6 pt-8 pb-2 text-xs font-semibold tracking-[0.35em] text-amber-800 uppercase md:hidden">
+            <BrandMark className="h-5 w-5" />
+            Clan War Inspector
+          </p>
+          {/* flex-1 (2026-08-04) : pousse le footer en bas de l'ecran sur les
+              pages courtes (etat idle "saisissez un clan") au lieu de le
+              laisser flotter au milieu, entoure de damier vide. pb-tab-bar
+              (US 14.7) : garde le contenu au-dessus de la MobileTabBar fixe,
+              zone sure iOS comprise. */}
+          <main className="mx-auto w-full max-w-4xl flex-1 px-6 md:pb-12">
+            {children}
+          </main>
+          <Footer />
+          <MobileTabBar />
+        </LocaleProvider>
       </body>
     </html>
   );

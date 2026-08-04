@@ -3,7 +3,7 @@
  * tag) et memoisation (rouvrir un tag deja consulte ne refetch pas).
  */
 
-import { renderHook, waitFor } from '@testing-library/react';
+import { renderHook, waitFor } from '@/test-utils';
 import { http, HttpResponse } from 'msw';
 import { describe, expect, it, vi } from 'vitest';
 import { mockServer } from '@/mocks/server';
