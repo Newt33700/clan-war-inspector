@@ -42,7 +42,7 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="fr" className={`${displayFont.variable} ${bodyFont.variable}`}>
-      <body className="text-royale-parchment min-h-screen font-sans antialiased">
+      <body className="text-royale-parchment flex min-h-screen flex-col font-sans antialiased">
         <PageBackdrop />
         <DesktopHeader />
         {/* Bandeau de marque mobile (pas un <h1> : chaque page porte le
@@ -54,9 +54,12 @@ export default function RootLayout({ children }: { children: ReactNode }) {
           <BrandMark className="h-5 w-5" />
           Clan War Inspector
         </p>
-        {/* pb-tab-bar (US 14.7) : garde le contenu au-dessus de la
-            MobileTabBar fixe, zone sure iOS comprise. */}
-        <main className="mx-auto max-w-4xl px-6 md:pb-12">{children}</main>
+        {/* flex-1 (2026-08-04) : pousse le footer en bas de l'ecran sur les
+            pages courtes (etat idle "saisissez un clan") au lieu de le
+            laisser flotter au milieu, entoure de damier vide. pb-tab-bar
+            (US 14.7) : garde le contenu au-dessus de la MobileTabBar fixe,
+            zone sure iOS comprise. */}
+        <main className="mx-auto w-full max-w-4xl flex-1 px-6 md:pb-12">{children}</main>
         <Footer />
         <MobileTabBar />
       </body>
