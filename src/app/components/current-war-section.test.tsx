@@ -6,8 +6,11 @@
  */
 
 import { fireEvent, render, screen, within } from '@/test-utils';
+import userEvent from '@testing-library/user-event';
 import { describe, expect, it } from 'vitest';
 import type { ApiResource } from '@/hooks/use-api-resource';
+import { setMockResponse } from '@/mocks/handlers';
+import { FIXTURE_PLAYER_PROFILE } from '@/mocks/fixtures';
 import { CurrentWarSection } from './current-war-section';
 
 const idle: ApiResource<unknown> = { status: 'idle', refetch: () => undefined };
@@ -101,5 +104,32 @@ describe('CurrentWarSection', () => {
     expect(
       screen.getByText(/aucun membre actuel n.a participé à cette guerre/i),
     ).toBeInTheDocument();
+  });
+
+  it('ouvre la fiche joueur au clic sur le code du joueur', async () => {
+    setMockResponse('playerProfile', FIXTURE_PLAYER_PROFILE);
+    render(
+      <CurrentWarSection
+        warState={successState([
+          {
+            tag: FIXTURE_PLAYER_PROFILE.tag,
+            name: 'Present',
+            decksUsedToday: 2,
+            decksUsed: 8,
+          },
+        ])}
+        memberTags={[FIXTURE_PLAYER_PROFILE.tag]}
+      />,
+    );
+    const user = userEvent.setup();
+
+    const table = screen.getByRole('table');
+    await user.click(within(table).getByRole('button', { name: /present/i }));
+
+    const drawer = screen
+      .getByRole('heading', { name: /profil joueur/i })
+      .closest('aside')!;
+    expect(drawer).toHaveAttribute('aria-hidden', 'false');
+    await within(drawer).findByText('500');
   });
 });

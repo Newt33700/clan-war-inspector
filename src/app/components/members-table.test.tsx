@@ -129,6 +129,27 @@ describe('MembersTable', () => {
       expect(onSelectMember).toHaveBeenCalledExactlyOnceWith('#A');
     });
 
+    it('ouvre le panneau joueur au clic sur le code du joueur, dans la carte depliee', async () => {
+      const user = userEvent.setup();
+      const onSelectMember = vi.fn();
+      render(
+        <MembersTable
+          members={members}
+          sortKey="name"
+          direction="asc"
+          onSortChange={() => undefined}
+          onSortSelect={() => undefined}
+          onSelectMember={onSelectMember}
+        />,
+      );
+
+      const card = screen.getByTestId('member-card');
+      await user.click(within(card).getByRole('button', { name: /alice/i }));
+      await user.click(within(card).getByRole('button', { name: '#A' }));
+
+      expect(onSelectMember).toHaveBeenCalledExactlyOnceWith('#A');
+    });
+
     it('trie via le selecteur mobile', async () => {
       const user = userEvent.setup();
       const onSortSelect = vi.fn();

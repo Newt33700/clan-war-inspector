@@ -23,6 +23,7 @@ import {
 import { Accordion } from './accordion';
 import { CopyButton } from './copy-button';
 import { EmptyState } from './empty-state';
+import { PlayerTagButton } from './player-tag-button';
 import { Skeleton } from './skeleton';
 import { useTranslations } from './i18n/locale-provider';
 
@@ -160,7 +161,12 @@ export function HrAssistantSection({
                         }
                         detailClassName="space-y-2 pt-3"
                       >
-                        <p className="text-xs text-slate-500">{member.tag}</p>
+                        <PlayerTagButton
+                          tag={member.tag}
+                          className="block text-xs text-slate-500"
+                        >
+                          {member.tag}
+                        </PlayerTagButton>
                         <CopyButton text={member.tag} />
                       </Accordion>
                     </li>
@@ -223,7 +229,12 @@ export function HrAssistantSection({
                         }
                         detailClassName="space-y-2 pt-3"
                       >
-                        <p className="text-xs text-slate-500">{candidate.member.tag}</p>
+                        <PlayerTagButton
+                          tag={candidate.member.tag}
+                          className="block text-xs text-slate-500"
+                        >
+                          {candidate.member.tag}
+                        </PlayerTagButton>
                         <CopyButton text={candidate.member.tag} />
                       </Accordion>
                     </li>

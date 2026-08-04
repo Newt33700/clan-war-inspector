@@ -1,8 +1,11 @@
 import { fireEvent, render, screen, waitFor, within } from '@/test-utils';
+import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 import type { ClanMember } from '@/domain/clan/members';
 import type { ApiResource } from '@/hooks/use-api-resource';
 import type { PlayerAttendance } from '@/domain/war/war-history';
+import { setMockResponse } from '@/mocks/handlers';
+import { FIXTURE_PLAYER_PROFILE } from '@/mocks/fixtures';
 import { HrAssistantSection } from './hr-assistant-section';
 
 function member(overrides: Partial<ClanMember>): ClanMember {
@@ -255,6 +258,36 @@ describe('HrAssistantSection', () => {
     await waitFor(() =>
       expect(writeText).toHaveBeenCalledWith('Bob (#B) - 3 combats cette semaine'),
     );
+  });
+
+  it('ouvre la fiche joueur au clic sur le code du joueur meritant', async () => {
+    setMockResponse('playerProfile', { ...FIXTURE_PLAYER_PROFILE, tag: '#A' });
+    const candidate = member({
+      tag: '#A',
+      name: 'Alice',
+      role: 'member',
+      donations: 2,
+    });
+    render(
+      <HrAssistantSection
+        members={[candidate]}
+        attendance={[attendance('#A', [16, 16, 16])]}
+        logState={success}
+        warState={idle}
+        minWeeklyBattles={MIN_WEEKLY_BATTLES}
+      />,
+    );
+    const user = userEvent.setup();
+    const card = screen.getByTestId('merit-card');
+
+    await user.click(within(card).getByRole('button', { name: /alice/i }));
+    await user.click(within(card).getByRole('button', { name: '#A' }));
+
+    const drawer = screen
+      .getByRole('heading', { name: /profil joueur/i })
+      .closest('aside')!;
+    expect(drawer).toHaveAttribute('aria-hidden', 'false');
+    await within(drawer).findByText('500');
   });
 
   it('n affiche pas de bouton de copie globale quand les listes sont vides', () => {

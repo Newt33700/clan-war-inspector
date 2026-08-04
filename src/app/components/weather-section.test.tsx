@@ -3,8 +3,11 @@
  */
 
 import { render, screen, within } from '@/test-utils';
+import userEvent from '@testing-library/user-event';
 import { describe, expect, it } from 'vitest';
 import type { ApiResource } from '@/hooks/use-api-resource';
+import { setMockResponse } from '@/mocks/handlers';
+import { FIXTURE_PLAYER_PROFILE } from '@/mocks/fixtures';
 import { WeatherSection } from './weather-section';
 
 const idle: ApiResource<unknown> = { status: 'idle', refetch: () => undefined };
@@ -120,5 +123,26 @@ describe('WeatherSection', () => {
     const rocLine = within(rows[1]!).getByTestId('sparkline-line');
     expect(decroLine.getAttribute('class')).toContain('stroke-royale-red-500');
     expect(rocLine.getAttribute('class')).toContain('stroke-royale-green-500');
+  });
+
+  it('ouvre la fiche joueur au clic sur le code du joueur', async () => {
+    setMockResponse('playerProfile', { ...FIXTURE_PLAYER_PROFILE, tag: '#ROC' });
+    render(
+      <WeatherSection
+        clanTag="#20PP"
+        clanState={success(CLAN)}
+        logState={success(LOG)}
+      />,
+    );
+    const user = userEvent.setup();
+
+    const rows = screen.getAllByTestId('weather-row');
+    await user.click(within(rows[1]!).getByRole('button', { name: /roc alice/i }));
+
+    const drawer = screen
+      .getByRole('heading', { name: /profil joueur/i })
+      .closest('aside')!;
+    expect(drawer).toHaveAttribute('aria-hidden', 'false');
+    await within(drawer).findByText('500');
   });
 });

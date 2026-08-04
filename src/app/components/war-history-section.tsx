@@ -22,6 +22,7 @@ import {
 import type { SortDirection } from '@/domain/clan/members';
 import type { ApiResource } from '@/hooks/use-api-resource';
 import { LEVEL_TEXT_CLASSES, PlayerProgressBar } from './player-progress-bar';
+import { PlayerTagButton } from './player-tag-button';
 import { Skeleton } from './skeleton';
 import { useTranslations } from './i18n/locale-provider';
 
@@ -60,10 +61,10 @@ function HistoryPlayerCard({
   return (
     <li data-testid="history-card" className="cr-pill-row space-y-3 p-4">
       <div className="flex items-start justify-between gap-3">
-        <div>
+        <PlayerTagButton tag={player.tag} className="block">
           <p className="font-display font-semibold text-slate-900">{player.name}</p>
           <p className="text-xs text-slate-500">{player.tag}</p>
-        </div>
+        </PlayerTagButton>
         <div className="text-right">
           <p className="font-display text-sm font-semibold text-slate-900 tabular-nums">
             {player.totalBattles} {t('warHistory.total')}
@@ -402,10 +403,12 @@ export function WarHistorySection({
                           scope="row"
                           className={`px-3 py-2 text-left font-normal ${STICKY_FIRST_COLUMN}`}
                         >
-                          {player.name}
-                          <span className="block text-xs text-slate-500">
-                            {player.tag}
-                          </span>
+                          <PlayerTagButton tag={player.tag} className="font-display">
+                            {player.name}
+                            <span className="block text-xs font-normal text-slate-500">
+                              {player.tag}
+                            </span>
+                          </PlayerTagButton>
                         </th>
                         {player.battlesByWeek.map((battles, index) => (
                           <BattleCell
