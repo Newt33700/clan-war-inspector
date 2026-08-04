@@ -6,12 +6,14 @@
  * directive UX generale de l'Epique 7).
  */
 
-import { ROLE_LABELS } from '@/domain/clan/members';
 import type { PlayerProfile } from '@/domain/player/player-profile';
 import { useFocusTrap } from '@/hooks/use-focus-trap';
 import { usePlayerProfile } from '@/hooks/use-player-profile';
 import { EmptyState } from './empty-state';
 import { Skeleton } from './skeleton';
+import { useTranslations } from './i18n/locale-provider';
+
+type Translate = (key: string) => string;
 
 interface PlayerDrawerProps {
   /** Tag du joueur a inspecter, `null` = panneau ferme. */
@@ -19,7 +21,7 @@ interface PlayerDrawerProps {
   onClose: () => void;
 }
 
-function CardsGrid({ deck }: { deck: PlayerProfile['deck'] }) {
+function CardsGrid({ deck, t }: { deck: PlayerProfile['deck']; t: Translate }) {
   if (deck.length === 0) {
     return (
       <EmptyState
@@ -28,8 +30,8 @@ function CardsGrid({ deck }: { deck: PlayerProfile['deck'] }) {
             <rect x="6" y="2" width="12" height="18" rx="2" />
           </svg>
         }
-        title="Deck indisponible"
-        description="Ni deck actuel ni carte favorite dans ce profil."
+        title={t('playerDrawer.deckUnavailableTitle')}
+        description={t('playerDrawer.deckUnavailableDescription')}
         tone="light"
       />
     );
@@ -60,10 +62,10 @@ function CardsGrid({ deck }: { deck: PlayerProfile['deck'] }) {
   );
 }
 
-function DrawerSkeleton() {
+function DrawerSkeleton({ t }: { t: Translate }) {
   return (
     <div className="mt-6 space-y-4" data-testid="drawer-skeleton">
-      <Skeleton className="h-6 w-40" label="Chargement du profil joueur" />
+      <Skeleton className="h-6 w-40" label={t('playerDrawer.loadingLabel')} />
       <Skeleton className="h-3 w-24" />
       <div className="grid grid-cols-2 gap-3">
         <Skeleton className="h-10 w-full" />
@@ -80,7 +82,7 @@ function DrawerSkeleton() {
   );
 }
 
-function ProfileContent({ profile }: { profile: PlayerProfile }) {
+function ProfileContent({ profile, t }: { profile: PlayerProfile; t: Translate }) {
   return (
     <div className="mt-6 space-y-5">
       <div>
@@ -90,30 +92,37 @@ function ProfileContent({ profile }: { profile: PlayerProfile }) {
 
       <dl className="grid grid-cols-2 gap-3 text-sm">
         <div>
-          <dt className="text-xs text-slate-500 uppercase">Role</dt>
+          <dt className="text-xs text-slate-500 uppercase">{t('playerDrawer.role')}</dt>
           <dd className="font-semibold text-slate-900">
-            {profile.role !== null ? ROLE_LABELS[profile.role] : 'Hors clan'}
+            {profile.role !== null
+              ? t(`roles.${profile.role}`)
+              : t('playerDrawer.outOfClan')}
           </dd>
         </div>
         <div>
-          <dt className="text-xs text-slate-500 uppercase">Niveau</dt>
+          <dt className="text-xs text-slate-500 uppercase">{t('playerDrawer.level')}</dt>
           <dd className="font-semibold text-slate-900">{profile.expLevel}</dd>
         </div>
         <div className="col-span-2">
-          <dt className="text-xs text-slate-500 uppercase">Total de dons</dt>
+          <dt className="text-xs text-slate-500 uppercase">
+            {t('playerDrawer.totalDonations')}
+          </dt>
           <dd className="font-semibold text-slate-900">{profile.donations}</dd>
         </div>
       </dl>
 
       <div>
-        <h3 className="mb-2 text-xs text-slate-500 uppercase">Deck</h3>
-        <CardsGrid deck={profile.deck} />
+        <h3 className="mb-2 text-xs text-slate-500 uppercase">
+          {t('playerDrawer.deck')}
+        </h3>
+        <CardsGrid deck={profile.deck} t={t} />
       </div>
     </div>
   );
 }
 
 export function PlayerDrawer({ tag, onClose }: PlayerDrawerProps) {
+  const { t } = useTranslations();
   const isOpen = tag !== null;
   const resource = usePlayerProfile(tag);
   // Boite de dialogue modale accessible (US 14.3) : focus initial dans le
@@ -147,25 +156,27 @@ export function PlayerDrawer({ tag, onClose }: PlayerDrawerProps) {
             id="player-drawer-title"
             className="font-display text-lg tracking-wide text-slate-900"
           >
-            Profil joueur
+            {t('playerDrawer.title')}
           </h2>
           <button
             type="button"
             onClick={onClose}
-            aria-label="Fermer le panneau"
+            aria-label={t('playerDrawer.close')}
             className="text-xl leading-none text-slate-500 hover:text-slate-900"
           >
             &times;
           </button>
         </div>
 
-        {resource.status === 'loading' && <DrawerSkeleton />}
+        {resource.status === 'loading' && <DrawerSkeleton t={t} />}
         {resource.status === 'error' && (
           <p role="alert" className="text-cr-red mt-6">
             {resource.message}
           </p>
         )}
-        {resource.status === 'success' && <ProfileContent profile={resource.profile} />}
+        {resource.status === 'success' && (
+          <ProfileContent profile={resource.profile} t={t} />
+        )}
       </aside>
     </>
   );

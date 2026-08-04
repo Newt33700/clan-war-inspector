@@ -1,11 +1,15 @@
+'use client';
+
 /**
  * Mini-courbe SVG pure (US 12, "Consistency Trend") : pas de librairie de
  * graphiques (Recharts, Chart.js...), trop lourd pour une simple
- * miniature d'historique. Purement presentationnel (aucun etat, aucun
- * effet), comme `player-progress-bar.tsx`.
+ * miniature d'historique. Purement presentationnel (aucun etat local,
+ * aucun effet) : la directive 'use client' vient uniquement de
+ * `useTranslations`, comme `player-progress-bar.tsx`.
  */
 
 import { BATTLES_PER_WAR_WEEK } from '@/domain/war/war-history';
+import { useTranslations } from './i18n/locale-provider';
 
 interface SparklineProps {
   /** Valeurs a tracer, dans l'ordre chronologique (la plus ancienne en premier). */
@@ -38,6 +42,8 @@ export function Sparkline({
   height = 30,
   max = BATTLES_PER_WAR_WEEK,
 }: SparklineProps) {
+  const { t } = useTranslations();
+
   if (values.length === 0) {
     return null;
   }
@@ -53,7 +59,11 @@ export function Sparkline({
       height={height}
       viewBox={`0 0 ${width} ${height}`}
       role="img"
-      aria-label={`Historique des ${values.length} dernieres semaines : ${values.join(', ')} combats sur ${max}`}
+      aria-label={t('sparkline.ariaLabel', {
+        count: values.length,
+        values: values.join(', '),
+        max,
+      })}
     >
       <polyline
         data-testid="sparkline-line"

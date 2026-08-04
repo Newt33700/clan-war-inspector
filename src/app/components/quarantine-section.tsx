@@ -17,7 +17,6 @@ import { findNewMembers } from '@/domain/clan/new-members';
 import { parseClanMembers, type ClanMember } from '@/domain/clan/members';
 import {
   computeReliabilityLevel,
-  RELIABILITY_LABELS,
   type ReliabilityLevel,
 } from '@/domain/player/reliability';
 import { parseRiverRaceLog } from '@/domain/war/war-history';
@@ -31,6 +30,9 @@ import { CopyButton } from './copy-button';
 import { EmptyState } from './empty-state';
 import { TrophyIcon } from './section-icons';
 import { Skeleton } from './skeleton';
+import { useTranslations } from './i18n/locale-provider';
+
+type Translate = (key: string, vars?: Record<string, string | number>) => string;
 
 interface QuarantineSectionProps {
   clanTag: string;
@@ -57,10 +59,10 @@ function PlayerIcon() {
   );
 }
 
-function CardSkeleton() {
+function CardSkeleton({ t }: { t: Translate }) {
   return (
     <div className="space-y-2">
-      <Skeleton className="h-4 w-full" label="Analyse du profil en cours..." />
+      <Skeleton className="h-4 w-full" label={t('quarantine.analyzing')} />
       <Skeleton className="h-4 w-2/3" />
       <Skeleton className="h-8 w-1/2" />
     </div>
@@ -70,9 +72,11 @@ function CardSkeleton() {
 function QuarantineCard({
   member,
   resource,
+  t,
 }: {
   member: ClanMember;
   resource: ReliabilityResource | undefined;
+  t: Translate;
 }) {
   const level =
     resource?.status === 'success' ? computeReliabilityLevel(resource.stats) : null;
@@ -107,13 +111,17 @@ function QuarantineCard({
         {resource?.status === 'success' && (
           <dl className="grid grid-cols-2 gap-3 text-sm">
             <div>
-              <dt className="text-xs text-slate-500 uppercase">Combats totaux</dt>
+              <dt className="text-xs text-slate-500 uppercase">
+                {t('quarantine.totalBattles')}
+              </dt>
               <dd className="font-display font-semibold text-slate-900 tabular-nums">
                 {resource.stats.battleCount}
               </dd>
             </div>
             <div>
-              <dt className="text-xs text-slate-500 uppercase">Victoires GDC (vie)</dt>
+              <dt className="text-xs text-slate-500 uppercase">
+                {t('quarantine.clanWarWins')}
+              </dt>
               <dd className="font-display font-semibold text-slate-900 tabular-nums">
                 {resource.stats.clanWarWins}
               </dd>
@@ -122,7 +130,9 @@ function QuarantineCard({
         )}
       </Accordion>
 
-      {(resource === undefined || resource.status === 'loading') && <CardSkeleton />}
+      {(resource === undefined || resource.status === 'loading') && (
+        <CardSkeleton t={t} />
+      )}
 
       {resource?.status === 'error' && (
         <p role="alert" className="text-cr-red text-sm">
@@ -135,10 +145,10 @@ function QuarantineCard({
           <span
             className={`inline-block rounded-full px-3 py-1 text-xs font-bold uppercase ${LEVEL_BADGE_CLASSES[level]}`}
           >
-            {RELIABILITY_LABELS[level]}
+            {t(`reliabilityLevels.${level}`)}
           </span>
           {KICKABLE_LEVELS.includes(level) && (
-            <CopyButton text={member.tag} label="Copier Tag pour Kick" />
+            <CopyButton text={member.tag} label={t('quarantine.copyKick')} />
           )}
         </div>
       )}
@@ -151,6 +161,7 @@ export function QuarantineSection({
   clanState,
   logState,
 }: QuarantineSectionProps) {
+  const { t } = useTranslations();
   const ready = clanState.status === 'success' && logState.status === 'success';
   const loading = clanState.status === 'loading' || logState.status === 'loading';
 
@@ -183,20 +194,20 @@ export function QuarantineSection({
         id="quarantine-title"
         className="cr-wood-header text-cr-title font-display rounded-lg text-xl tracking-wide"
       >
-        Sas de quarantaine
+        {t('quarantine.title')}
       </h2>
 
       {!ready ? (
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-          <Skeleton className="h-40 w-full" label="Recherche des nouveaux membres..." />
+          <Skeleton className="h-40 w-full" label={t('quarantine.searching')} />
           <Skeleton className="h-40 w-full" />
           <Skeleton className="h-40 w-full" />
         </div>
       ) : newMembers.length === 0 ? (
         <EmptyState
           icon={<PlayerIcon />}
-          title="Aucun nouveau membre"
-          description="Tous les membres actuels ont deja un historique de guerre chez nous."
+          title={t('quarantine.emptyTitle')}
+          description={t('quarantine.emptyDescription')}
         />
       ) : (
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -205,6 +216,7 @@ export function QuarantineSection({
               key={member.tag}
               member={member}
               resource={profiles.get(member.tag)}
+              t={t}
             />
           ))}
         </div>

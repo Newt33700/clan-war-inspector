@@ -4,7 +4,7 @@
  * premiere colonne fixee au defilement horizontal (US-11).
  */
 
-import { fireEvent, render, screen, within } from '@testing-library/react';
+import { fireEvent, render, screen, within } from '@/test-utils';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it } from 'vitest';
 import type { ApiResource } from '@/hooks/use-api-resource';
@@ -33,7 +33,7 @@ describe('WarHistorySection', () => {
       <WarHistorySection logState={loading} clanTag="#20PP" currentMemberTags={[]} />,
     );
     expect(
-      screen.getByRole('status', { name: /chargement de l historique/i }),
+      screen.getByRole('status', { name: /chargement de l.historique/i }),
     ).toBeInTheDocument();
   });
 
@@ -48,7 +48,7 @@ describe('WarHistorySection', () => {
     expect(screen.getByText('Complet')).toBeInTheDocument();
     expect(screen.getByText('Incomplet')).toBeInTheDocument();
     expect(screen.getByText('Critique')).toBeInTheDocument();
-    expect(screen.getByText(/non membre cette semaine-la/i)).toBeInTheDocument();
+    expect(screen.getByText(/non membre cette semaine-là/i)).toBeInTheDocument();
   });
 
   it('fixe la colonne Joueur (en-tete et lignes) au defilement horizontal', () => {

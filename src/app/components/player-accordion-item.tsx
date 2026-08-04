@@ -14,8 +14,9 @@
  */
 
 import { useState } from 'react';
-import { ROLE_LABELS, type ClanMember } from '@/domain/clan/members';
+import type { ClanMember } from '@/domain/clan/members';
 import { TrophyIcon } from './section-icons';
+import { useTranslations } from './i18n/locale-provider';
 
 /** Asset RoyaleAPI : icone de dons a cote du decompte. */
 const DONATION_ICON_URL = 'https://cdn.royaleapi.com/static/img/ui/cards.png';
@@ -39,6 +40,7 @@ export function PlayerAccordionItem({
   onSelectMember,
 }: PlayerAccordionItemProps) {
   const [isOpen, setIsOpen] = useState(false);
+  const { t } = useTranslations();
 
   return (
     <li data-testid="member-card" className="cr-pill-row overflow-hidden">
@@ -61,7 +63,7 @@ export function PlayerAccordionItem({
           <span
             className={`mt-0.5 inline-block rounded px-2 py-0.5 text-[10px] font-semibold uppercase ${ROLE_BADGE_CLASSES[member.role]}`}
           >
-            {ROLE_LABELS[member.role]}
+            {t(`roles.${member.role}`)}
           </span>
         </span>
         <span
@@ -81,18 +83,18 @@ export function PlayerAccordionItem({
           {isOpen && (
             <div className="grid grid-cols-3 gap-2 border-t border-black/10 bg-slate-200 px-4 py-3 text-center text-xs">
               <div>
-                <p className="text-slate-500 uppercase">Tag</p>
+                <p className="text-slate-500 uppercase">{t('membersTable.tag')}</p>
                 <p className="text-slate-900">{member.tag}</p>
               </div>
               <div>
-                <p className="text-slate-500 uppercase">Trophees</p>
+                <p className="text-slate-500 uppercase">{t('membersTable.trophies')}</p>
                 <p className="font-display flex items-center justify-center gap-1 text-slate-900 tabular-nums">
                   <TrophyIcon className="text-cr-gold h-4 w-4" />
                   {member.trophies}
                 </p>
               </div>
               <div>
-                <p className="text-slate-500 uppercase">Dons</p>
+                <p className="text-slate-500 uppercase">{t('membersTable.donations')}</p>
                 <p className="font-display flex items-center justify-center gap-1 text-slate-900 tabular-nums">
                   <img
                     src={DONATION_ICON_URL}
@@ -112,7 +114,7 @@ export function PlayerAccordionItem({
                   }}
                   className="font-display text-cr-blue text-xs font-semibold hover:underline"
                 >
-                  Voir le profil complet →
+                  {t('membersTable.viewProfile')}
                 </button>
               </div>
             </div>

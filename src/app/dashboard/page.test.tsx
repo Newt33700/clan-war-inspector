@@ -8,7 +8,7 @@
  * utilise par les rechargements cote client (`refetch`).
  */
 
-import { render, screen, waitFor, within } from '@testing-library/react';
+import { render, screen, waitFor, within } from '@/test-utils';
 import userEvent from '@testing-library/user-event';
 import { http, HttpResponse } from 'msw';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -114,7 +114,7 @@ describe('DashboardPage', () => {
     // Le reessai relance un vrai fetch cote client, via le proxy interne.
     setMockResponse('clan', FIXTURE_FULL_CLAN);
     const user = userEvent.setup();
-    await user.click(screen.getByRole('button', { name: /reessayer/i }));
+    await user.click(screen.getByRole('button', { name: /réessayer/i }));
 
     expect(await screen.findAllByTestId('member-row')).toHaveLength(3);
   });
@@ -155,7 +155,7 @@ describe('DashboardPage', () => {
       .closest('section')!;
     await waitFor(() => {
       expect(
-        within(warSection).getByText(/n est pas en guerre actuellement/i),
+        within(warSection).getByText(/n.est pas en guerre actuellement/i),
       ).toBeInTheDocument();
     });
   });

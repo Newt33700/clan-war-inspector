@@ -1,11 +1,24 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen } from '@/test-utils';
+import userEvent from '@testing-library/user-event';
 import { describe, expect, it } from 'vitest';
 
 import { Footer } from './footer';
 
 describe('Footer', () => {
-  it('affiche la mention legale de non-affiliation a Supercell', () => {
+  it('replie la mention legale par defaut derriere un lien "Licence"', () => {
     render(<Footer />);
+
+    expect(screen.getByRole('button', { name: /licence/i })).toBeInTheDocument();
+    expect(
+      screen.queryByText(/n'est pas affilié, soutenu, sponsorisé/i),
+    ).not.toBeInTheDocument();
+  });
+
+  it('affiche la mention legale de non-affiliation a Supercell au clic sur "Licence"', async () => {
+    const user = userEvent.setup();
+    render(<Footer />);
+
+    await user.click(screen.getByRole('button', { name: /licence/i }));
 
     expect(
       screen.getByText(
@@ -14,8 +27,10 @@ describe('Footer', () => {
     ).toBeInTheDocument();
   });
 
-  it('affiche un lien cliquable vers la politique de contenus de fans, ouvert dans un nouvel onglet', () => {
+  it('affiche un lien cliquable vers la politique de contenus de fans, ouvert dans un nouvel onglet', async () => {
+    const user = userEvent.setup();
     render(<Footer />);
+    await user.click(screen.getByRole('button', { name: /licence/i }));
 
     const link = screen.getByRole('link', { name: /fan-content-policy/i });
     expect(link).toHaveAttribute('href', 'https://www.supercell.com/fan-content-policy');

@@ -8,11 +8,13 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { useTranslations } from '../i18n/locale-provider';
 import { BrandMark } from './brand-mark';
 import { isNavItemActive, NAV_ITEMS } from './nav-items';
 
 export function DesktopHeader() {
   const pathname = usePathname();
+  const { t } = useTranslations();
 
   return (
     <header className="bg-cr-bg-blue/95 border-royale-blue-800 sticky top-0 z-50 hidden border-b backdrop-blur md:block">
@@ -22,9 +24,9 @@ export function DesktopHeader() {
           className="text-royale-gold-400 font-display flex items-center gap-2 text-lg tracking-wide"
         >
           <BrandMark className="h-8 w-8" />
-          Clan War Inspector
+          {t('nav.brand')}
         </Link>
-        <nav aria-label="Navigation principale" className="flex items-center gap-1">
+        <nav aria-label={t('nav.ariaLabel')} className="flex items-center gap-1">
           {NAV_ITEMS.map((item) => {
             const active = isNavItemActive(pathname, item.href);
             return (
@@ -38,7 +40,7 @@ export function DesktopHeader() {
                     : 'text-slate-300 hover:text-white'
                 }`}
               >
-                {item.label}
+                {t(item.labelKey)}
               </Link>
             );
           })}

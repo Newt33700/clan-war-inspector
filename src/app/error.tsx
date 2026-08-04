@@ -7,23 +7,24 @@
  * par les sections du dashboard.
  */
 
+import { useTranslations } from './components/i18n/locale-provider';
+
 export default function GlobalError({ reset }: { error: Error; reset: () => void }) {
+  const { t } = useTranslations();
+
   return (
     <main className="mx-auto flex min-h-screen max-w-2xl flex-col items-center justify-center gap-6 px-6 text-center">
-      <p className="font-display text-royale-red-700 text-5xl">Defaite !</p>
+      <p className="font-display text-royale-red-700 text-5xl">{t('errorPage.title')}</p>
       <h1 className="text-royale-parchment font-display text-2xl tracking-wide">
-        Une erreur inattendue a fait tomber la tour
+        {t('errorPage.heading')}
       </h1>
-      <p className="text-royale-parchment-dim">
-        Rien de definitif : relancez la partie. Si l erreur persiste, verifiez la
-        configuration du serveur (cle API Supercell).
-      </p>
+      <p className="text-royale-parchment-dim">{t('errorPage.description')}</p>
       <button
         type="button"
         onClick={reset}
         className="bg-royale-gold-400 text-royale-navy-950 rounded-md px-4 py-2 font-semibold"
       >
-        Reessayer
+        {t('common.retry')}
       </button>
     </main>
   );

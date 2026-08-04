@@ -3,7 +3,7 @@
  * dashboard/page.test.tsx pour le detail du choix de mock.
  */
 
-import { render, screen, within } from '@testing-library/react';
+import { render, screen, within } from '@/test-utils';
 import { http, HttpResponse } from 'msw';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { SUPERCELL_API_BASE_URL } from '@/app/api/_lib/supercell';
@@ -61,7 +61,7 @@ describe('RhPage', () => {
     await renderPage({ clan: '#20PP' });
 
     const purgeSection = screen
-      .getByRole('heading', { name: /^a expulser$/i })
+      .getByRole('heading', { name: /^à expulser$/i })
       .closest('section')!;
     // Joueur 3 (role member, 5/16 combats) est sous le seuil par defaut (8).
     expect(within(purgeSection).getByText('Joueur 3')).toBeInTheDocument();

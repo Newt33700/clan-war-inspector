@@ -20,6 +20,7 @@ import {
 import { ClanStatusMessage } from '../components/clan/clan-status-message';
 import { HrAssistantSection } from '../components/hr-assistant-section';
 import { PurgeSection } from '../components/purge-section';
+import { useTranslations } from '../components/i18n/locale-provider';
 
 // Seuil par defaut de combats sur la semaine en cours (regle produit du
 // 2026-08-02), partage entre "A expulser" et "Sur la sellette".
@@ -33,6 +34,7 @@ interface RhViewProps {
 }
 
 export function RhView({ tag, clanSeed, warSeed, logSeed }: RhViewProps) {
+  const { t } = useTranslations();
   const clanPath = `/api/clans/${toApiTagSegment(tag)}`;
   const [minWeeklyBattles, setMinWeeklyBattles] = useState(
     () => readStoredPurgeSettings()?.minWeeklyBattles ?? DEFAULT_MIN_WEEKLY_BATTLES,
@@ -67,10 +69,7 @@ export function RhView({ tag, clanSeed, warSeed, logSeed }: RhViewProps) {
 
   return (
     <div className="space-y-10">
-      <ClanStatusMessage
-        state={clanState}
-        idleMessage="Saisissez le tag ou le nom de votre clan pour afficher l assistant RH."
-      />
+      <ClanStatusMessage state={clanState} idleMessage={t('pages.rhIdle')} />
 
       {clanState.status === 'success' && (
         <>

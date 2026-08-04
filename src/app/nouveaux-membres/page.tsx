@@ -1,5 +1,6 @@
 import { fetchClanResource, type ServerResourceResult } from '@/lib/server-clan-resource';
 import { resolveActiveClanTag } from '@/lib/resolve-clan-tag';
+import { getServerTranslator } from '@/i18n/get-translator';
 import { ClanSearchForm } from '../components/clan/clan-search-form';
 import { NouveauxMembresView } from './nouveaux-membres-view';
 
@@ -12,17 +13,16 @@ export default async function NouveauxMembresPage({
   searchParams,
 }: NouveauxMembresPageProps) {
   const tag = await resolveActiveClanTag(await searchParams);
+  const t = await getServerTranslator();
 
   if (tag === null) {
     return (
       <div className="space-y-6">
         <h1 className="text-royale-parchment font-display text-2xl tracking-wide">
-          Sas de quarantaine
+          {t('pages.nouveauxMembresTitle')}
         </h1>
-        <ClanSearchForm />
-        <p className="text-royale-parchment-dim">
-          Saisissez le tag ou le nom de votre clan pour afficher le sas de quarantaine.
-        </p>
+        <ClanSearchForm hasActiveClan={false} />
+        <p className="text-royale-parchment-dim">{t('pages.nouveauxMembresIdle')}</p>
       </div>
     );
   }
@@ -36,9 +36,9 @@ export default async function NouveauxMembresPage({
   return (
     <div className="space-y-6">
       <h1 className="text-royale-parchment font-display text-2xl tracking-wide">
-        Sas de quarantaine
+        {t('pages.nouveauxMembresTitle')}
       </h1>
-      <ClanSearchForm />
+      <ClanSearchForm hasActiveClan={true} />
       <NouveauxMembresView tag={tag} clanSeed={clanResult} logSeed={logResult} />
     </div>
   );

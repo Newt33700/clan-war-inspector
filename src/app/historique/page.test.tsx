@@ -4,7 +4,7 @@
  * amont plutot que `setMockResponse`, reserve au rechargement client).
  */
 
-import { render, screen } from '@testing-library/react';
+import { render, screen } from '@/test-utils';
 import { http, HttpResponse } from 'msw';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { SUPERCELL_API_BASE_URL } from '@/app/api/_lib/supercell';

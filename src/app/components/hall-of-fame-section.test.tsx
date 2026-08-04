@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen } from '@/test-utils';
 import { describe, expect, it } from 'vitest';
 import { FIXTURE_RIVER_RACE_LOG } from '@/mocks/fixtures';
 import { HallOfFameSection } from './hall-of-fame-section';

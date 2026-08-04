@@ -5,7 +5,7 @@
  * que demander une navigation, il ne rend plus lui-meme le dashboard.
  */
 
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor } from '@/test-utils';
 import userEvent from '@testing-library/user-event';
 import { http, HttpResponse } from 'msw';
 import { afterEach, describe, expect, it, vi } from 'vitest';
@@ -129,7 +129,7 @@ describe('ClanSearchForm', () => {
       await typeQuery('Introuvable');
 
       expect(
-        await screen.findByText(/aucun clan ne correspond a « introuvable »/i),
+        await screen.findByText(/aucun clan ne correspond à « introuvable »/i),
       ).toBeInTheDocument();
     });
 
@@ -146,7 +146,7 @@ describe('ClanSearchForm', () => {
       await typeQuery('ab');
 
       expect(
-        await screen.findByText(/continuez a taper \(3 caracteres minimum\)/i),
+        await screen.findByText(/continuez à taper \(3 caractères minimum\)/i),
       ).toBeInTheDocument();
       await new Promise((resolve) => setTimeout(resolve, 500));
       expect(upstreamCalls).toHaveLength(0);
@@ -160,6 +160,72 @@ describe('ClanSearchForm', () => {
       await user.click(screen.getByRole('button', { name: /inspecter/i }));
 
       expect(screen.queryByTestId('clan-search-candidate')).not.toBeInTheDocument();
+    });
+  });
+
+  describe('repli quand un clan est deja actif (retour utilisateur du 2026-08-04)', () => {
+    it('affiche le formulaire complet quand aucun clan n est actif', () => {
+      render(<ClanSearchForm hasActiveClan={false} />);
+
+      expect(screen.getByLabelText(/tag ou nom du clan/i)).toBeInTheDocument();
+      expect(
+        screen.queryByRole('button', { name: /changer de clan/i }),
+      ).not.toBeInTheDocument();
+    });
+
+    it('replie le formulaire derriere "Changer de clan" quand un clan est actif', () => {
+      render(<ClanSearchForm hasActiveClan={true} />);
+
+      expect(
+        screen.getByRole('button', { name: /changer de clan/i }),
+      ).toBeInTheDocument();
+      expect(screen.queryByLabelText(/tag ou nom du clan/i)).not.toBeInTheDocument();
+    });
+
+    it('deplie le formulaire au clic sur "Changer de clan"', async () => {
+      const user = userEvent.setup();
+      render(<ClanSearchForm hasActiveClan={true} />);
+
+      await user.click(screen.getByRole('button', { name: /changer de clan/i }));
+
+      expect(screen.getByLabelText(/tag ou nom du clan/i)).toBeInTheDocument();
+    });
+  });
+
+  describe('memoire des clans recents (retour utilisateur du 2026-08-04, limite 10)', () => {
+    it('n affiche aucune liste tant qu aucun clan n a ete inspecte', () => {
+      render(<ClanSearchForm />);
+
+      expect(screen.queryByText(/clans récents/i)).not.toBeInTheDocument();
+    });
+
+    it('memorise le clan charge et propose un raccourci au prochain rendu', async () => {
+      const first = render(<ClanSearchForm />);
+      const user = userEvent.setup();
+
+      await user.type(screen.getByLabelText(/tag ou nom du clan/i), '#20PP');
+      await user.click(screen.getByRole('button', { name: /inspecter/i }));
+      expect(replaceMock).toHaveBeenCalledWith('/dashboard?clan=%2320PP');
+      first.unmount();
+
+      render(<ClanSearchForm />);
+
+      expect(await screen.findByTestId('recent-clan')).toHaveTextContent('#20PP');
+    });
+
+    it('charge directement le clan recent au clic', async () => {
+      const first = render(<ClanSearchForm />);
+      const user = userEvent.setup();
+      await user.type(screen.getByLabelText(/tag ou nom du clan/i), '#20PP');
+      await user.click(screen.getByRole('button', { name: /inspecter/i }));
+      replaceMock.mockClear();
+      first.unmount();
+
+      render(<ClanSearchForm />);
+      const recent = await screen.findByTestId('recent-clan');
+      await user.click(recent);
+
+      expect(replaceMock).toHaveBeenCalledWith('/dashboard?clan=%2320PP');
     });
   });
 });

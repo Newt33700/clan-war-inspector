@@ -10,15 +10,17 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { useTranslations } from '../i18n/locale-provider';
 import { isNavItemActive, NAV_ITEMS } from './nav-items';
 import { NAV_ICONS } from './nav-icons';
 
 export function MobileTabBar() {
   const pathname = usePathname();
+  const { t } = useTranslations();
 
   return (
     <nav
-      aria-label="Navigation principale"
+      aria-label={t('nav.ariaLabel')}
       className="border-royale-blue-800 bg-cr-bg-blue/95 fixed bottom-0 z-50 flex h-16 w-full flex-row items-center justify-around border-t pb-[env(safe-area-inset-bottom)] backdrop-blur-md md:hidden"
     >
       {NAV_ITEMS.map((item) => {
@@ -36,7 +38,7 @@ export function MobileTabBar() {
             }`}
           >
             {Icon !== undefined && <Icon className="h-6 w-6" />}
-            {item.label}
+            {t(item.labelKey)}
           </Link>
         );
       })}
