@@ -64,4 +64,30 @@ describe('Contraste des tokens du theme (AA >= 4.5:1)', () => {
     expect(contrastRatio('#166534', canvas)).toBeGreaterThanOrEqual(4.5); // text-green-800
     expect(contrastRatio('#92400e', canvas)).toBeGreaterThanOrEqual(4.5); // text-amber-800
   });
+
+  const BACKDROP_ROUTES = ['blue', 'purple', 'teal', 'gold', 'sky'];
+  // Meme jeu que `textOnCanvas` ci-dessus, plus les teintes Tailwind
+  // hors tokens (verifiees separement au-dessus) : le texte courant peut
+  // s'afficher directement sur n'importe lequel des 5 damiers de
+  // `PageBackdrop` (page-backdrop.tsx), pas seulement sur `canvas`.
+  const TEXT_ON_BACKDROP = [
+    ['parchment', tokens['parchment']],
+    ['parchment-dim', tokens['parchment-dim']],
+    ['red-700', tokens['red-700']],
+    ['green-800 (Tailwind)', '#166534'],
+    ['amber-800 (Tailwind)', '#92400e'],
+  ] as const;
+
+  it.each(BACKDROP_ROUTES)(
+    "le damier '%s' (tuile la plus sombre) reste lisible pour tout le texte courant",
+    (route) => {
+      // Tuile sombre = le pire cas des deux tons du damier (verifie
+      // contre elle suffit a couvrir la tuile claire aussi).
+      const darkTile = tokens[`backdrop-${route}-dark`];
+      expect(darkTile).toBeDefined();
+      for (const [, textColor] of TEXT_ON_BACKDROP) {
+        expect(contrastRatio(textColor!, darkTile!)).toBeGreaterThanOrEqual(4.5);
+      }
+    },
+  );
 });

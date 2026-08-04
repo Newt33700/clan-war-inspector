@@ -50,6 +50,24 @@
   --color-royale-parchment: #1b2540;
   --color-royale-parchment-dim: #4b5875;
 
+  /* Damiers en losange par onglet (2026-08-04, calques sur les teintes
+     effectivement releves aux pixels sur des captures de
+     store.supercell.com/clash-royale, puis eclaircis a niveau egal (melange
+     blanc 80%) pour rester lisibles avec du texte encre par-dessus, cf.
+     theme-contrast.test.ts). Nouveaux membres/Meteo n'avaient pas de
+     section correspondante dans les captures fournies : meme formule de
+     melange, teinte cohérente avec les 3 autres. */
+  --color-royale-backdrop-blue-light: #d6dfec;
+  --color-royale-backdrop-blue-dark: #d2d9e6;
+  --color-royale-backdrop-purple-light: #dcd2e9;
+  --color-royale-backdrop-purple-dark: #d9cfe6;
+  --color-royale-backdrop-teal-light: #dce6e9;
+  --color-royale-backdrop-teal-dark: #d6e2e2;
+  --color-royale-backdrop-gold-light: #f4ead2;
+  --color-royale-backdrop-gold-dark: #eee3cf;
+  --color-royale-backdrop-sky-light: #d9e9f5;
+  --color-royale-backdrop-sky-dark: #d2e2ef;
+
   --font-sans: var(--font-body-family), ui-sans-serif, system-ui, sans-serif;
   --font-display: var(--font-display-family), ui-sans-serif, system-ui, sans-serif;
 
@@ -99,59 +117,106 @@
 /* Fonds "damier" en losange (2026-08-04, cf. store.supercell.com/clash
    royale) : un ton par onglet (`PageBackdrop`, pilote par la route
    active), pour distinguer les pages sans renoncer au canevas clair.
-   Meme geometrie pour les 5, seule la teinte change ; les deux tons de
-   chaque paire restent tres clairs (contraste texte verifie par
-   theme-contrast.test.ts) pour que le texte encre et les cartes a bordure
-   noire continuent de se detacher normalement par-dessus. */
+   Deux degrades diagonaux CROISES (135deg + 45deg) : un seul sens ne
+   dessine que des bandes, il faut les deux pour decouper de vrais
+   losanges (verifie visuellement avant integration - la 1ere version,
+   un seul sens duplique et decale, ne rendait qu'un damier de carres
+   droits). Grands carreaux (120px) pour rester visibles comme sur la
+   reference, pas un semis fin. */
 @utility bg-backdrop-blue {
-  background-color: #eef3fc;
+  background-color: var(--color-royale-backdrop-blue-light);
   background-image:
-    linear-gradient(45deg, #dde9f9 25%, transparent 25%, transparent 75%, #dde9f9 75%, #dde9f9),
-    linear-gradient(45deg, #dde9f9 25%, transparent 25%, transparent 75%, #dde9f9 75%, #dde9f9);
-  background-size: 56px 56px;
-  background-position:
-    0 0,
-    28px 28px;
+    linear-gradient(
+      135deg,
+      var(--color-royale-backdrop-blue-dark) 25%,
+      transparent 25%,
+      transparent 75%,
+      var(--color-royale-backdrop-blue-dark) 75%
+    ),
+    linear-gradient(
+      45deg,
+      var(--color-royale-backdrop-blue-dark) 25%,
+      transparent 25%,
+      transparent 75%,
+      var(--color-royale-backdrop-blue-dark) 75%
+    );
+  background-size: 120px 120px;
 }
 @utility bg-backdrop-purple {
-  background-color: #f4eefc;
+  background-color: var(--color-royale-backdrop-purple-light);
   background-image:
-    linear-gradient(45deg, #e7daf6 25%, transparent 25%, transparent 75%, #e7daf6 75%, #e7daf6),
-    linear-gradient(45deg, #e7daf6 25%, transparent 25%, transparent 75%, #e7daf6 75%, #e7daf6);
-  background-size: 56px 56px;
-  background-position:
-    0 0,
-    28px 28px;
+    linear-gradient(
+      135deg,
+      var(--color-royale-backdrop-purple-dark) 25%,
+      transparent 25%,
+      transparent 75%,
+      var(--color-royale-backdrop-purple-dark) 75%
+    ),
+    linear-gradient(
+      45deg,
+      var(--color-royale-backdrop-purple-dark) 25%,
+      transparent 25%,
+      transparent 75%,
+      var(--color-royale-backdrop-purple-dark) 75%
+    );
+  background-size: 120px 120px;
 }
 @utility bg-backdrop-teal {
-  background-color: #eaf7f3;
+  background-color: var(--color-royale-backdrop-teal-light);
   background-image:
-    linear-gradient(45deg, #d3efe4 25%, transparent 25%, transparent 75%, #d3efe4 75%, #d3efe4),
-    linear-gradient(45deg, #d3efe4 25%, transparent 25%, transparent 75%, #d3efe4 75%, #d3efe4);
-  background-size: 56px 56px;
-  background-position:
-    0 0,
-    28px 28px;
+    linear-gradient(
+      135deg,
+      var(--color-royale-backdrop-teal-dark) 25%,
+      transparent 25%,
+      transparent 75%,
+      var(--color-royale-backdrop-teal-dark) 75%
+    ),
+    linear-gradient(
+      45deg,
+      var(--color-royale-backdrop-teal-dark) 25%,
+      transparent 25%,
+      transparent 75%,
+      var(--color-royale-backdrop-teal-dark) 75%
+    );
+  background-size: 120px 120px;
 }
 @utility bg-backdrop-gold {
-  background-color: #fdf6e8;
+  background-color: var(--color-royale-backdrop-gold-light);
   background-image:
-    linear-gradient(45deg, #f8e9c2 25%, transparent 25%, transparent 75%, #f8e9c2 75%, #f8e9c2),
-    linear-gradient(45deg, #f8e9c2 25%, transparent 25%, transparent 75%, #f8e9c2 75%, #f8e9c2);
-  background-size: 56px 56px;
-  background-position:
-    0 0,
-    28px 28px;
+    linear-gradient(
+      135deg,
+      var(--color-royale-backdrop-gold-dark) 25%,
+      transparent 25%,
+      transparent 75%,
+      var(--color-royale-backdrop-gold-dark) 75%
+    ),
+    linear-gradient(
+      45deg,
+      var(--color-royale-backdrop-gold-dark) 25%,
+      transparent 25%,
+      transparent 75%,
+      var(--color-royale-backdrop-gold-dark) 75%
+    );
+  background-size: 120px 120px;
 }
 @utility bg-backdrop-sky {
-  background-color: #eaf6fc;
+  background-color: var(--color-royale-backdrop-sky-light);
   background-image:
-    linear-gradient(45deg, #d3edf8 25%, transparent 25%, transparent 75%, #d3edf8 75%, #d3edf8),
-    linear-gradient(45deg, #d3edf8 25%, transparent 25%, transparent 75%, #d3edf8 75%, #d3edf8);
-  background-size: 56px 56px;
-  background-position:
-    0 0,
-    28px 28px;
+    linear-gradient(
+      135deg,
+      var(--color-royale-backdrop-sky-dark) 25%,
+      transparent 25%,
+      transparent 75%,
+      var(--color-royale-backdrop-sky-dark) 75%
+    ),
+    linear-gradient(
+      45deg,
+      var(--color-royale-backdrop-sky-dark) 25%,
+      transparent 25%,
+      transparent 75%,
+      var(--color-royale-backdrop-sky-dark) 75%
+    );
+  background-size: 120px 120px;
 }
 
 @keyframes fade-in {
