@@ -1,4 +1,4 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import type { ReactNode } from 'react';
 import { Lilita_One, Nunito } from 'next/font/google';
 
@@ -37,6 +37,14 @@ export const metadata: Metadata = {
     type: 'website',
     locale: 'fr_FR',
   },
+};
+
+// Theme clair uniquement (pas de variante sombre codee) : evite que les
+// navigateurs (Brave, Chrome Android...) repeignent la page via leur
+// "dark mode force" faute de savoir qu'elle est deja pensee pour un fond
+// clair.
+export const viewport: Viewport = {
+  colorScheme: 'light',
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {
