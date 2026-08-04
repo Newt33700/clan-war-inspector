@@ -46,6 +46,11 @@
      definit ici comme les autres tokens du theme. */
   --animate-fade-in: fade-in 0.3s ease-out both;
 
+  /* Rebond du 1er au Hall of Fame (Refonte Podium) : meme intention que
+     fade-in, avec un leger overshoot pour marquer la victoire, comme
+     l'ecran de fin de combat du jeu. */
+  --animate-bounce-in: bounce-in 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+
   /* Degagement sous la MobileTabBar fixe (US 13.4/14.7, Epique 13/14) :
      hauteur de la barre (h-16 = 4rem) + zone sure iOS (encoche/barre de
      geste), pour qu'aucun contenu de bas de page ne soit masque dessous.
@@ -87,6 +92,21 @@
   to {
     opacity: 1;
     transform: translateY(0);
+  }
+}
+
+@keyframes bounce-in {
+  0% {
+    opacity: 0;
+    transform: scale(0.3) translateY(10px);
+  }
+  60% {
+    opacity: 1;
+    transform: scale(1.08) translateY(-4px);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
   }
 }
 
@@ -153,6 +173,9 @@
   .btn-cr-red,
   .btn-cr-gold {
     @apply font-display inline-flex items-center justify-center gap-2 rounded-lg border-2 border-black px-4 py-2 text-white;
+    /* Detache le texte du fond dore/colore, comme le rendu de police du
+       jeu (Refonte des boutons "Chunky"). */
+    text-shadow: 0 2px 0px rgba(0, 0, 0, 0.5);
     box-shadow:
       inset 0 3px 0 rgba(255, 255, 255, 0.4),
       0 4px 0 black;

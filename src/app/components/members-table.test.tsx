@@ -65,7 +65,7 @@ describe('MembersTable', () => {
       },
     ];
 
-    it('affiche une carte par membre avec nom, tag, role, trophees et dons', () => {
+    it('affiche uniquement le pseudo et le role tant que la carte est fermee', () => {
       render(
         <MembersTable
           members={members}
@@ -79,13 +79,34 @@ describe('MembersTable', () => {
 
       const card = screen.getByTestId('member-card');
       expect(within(card).getByText('Alice')).toBeInTheDocument();
-      expect(within(card).getByText('#A')).toBeInTheDocument();
       expect(within(card).getByText('Chef')).toBeInTheDocument();
+      expect(within(card).queryByText('#A')).not.toBeInTheDocument();
+      expect(within(card).queryByText('6000')).not.toBeInTheDocument();
+      expect(within(card).queryByText('100')).not.toBeInTheDocument();
+    });
+
+    it('deplie le tag, les trophees et les dons au tap sur la carte', async () => {
+      const user = userEvent.setup();
+      render(
+        <MembersTable
+          members={members}
+          sortKey="name"
+          direction="asc"
+          onSortChange={() => undefined}
+          onSortSelect={() => undefined}
+          onSelectMember={() => undefined}
+        />,
+      );
+
+      const card = screen.getByTestId('member-card');
+      await user.click(within(card).getByRole('button', { name: /alice/i }));
+
+      expect(within(card).getByText('#A')).toBeInTheDocument();
       expect(within(card).getByText('6000')).toBeInTheDocument();
       expect(within(card).getByText('100')).toBeInTheDocument();
     });
 
-    it('ouvre le panneau joueur au clic sur une carte', async () => {
+    it('ouvre le panneau joueur via "Voir le profil complet" dans la carte depliee', async () => {
       const user = userEvent.setup();
       const onSelectMember = vi.fn();
       render(
@@ -99,7 +120,11 @@ describe('MembersTable', () => {
         />,
       );
 
-      await user.click(screen.getByTestId('member-card'));
+      const card = screen.getByTestId('member-card');
+      await user.click(within(card).getByRole('button', { name: /alice/i }));
+      await user.click(
+        within(card).getByRole('button', { name: /voir le profil complet/i }),
+      );
 
       expect(onSelectMember).toHaveBeenCalledExactlyOnceWith('#A');
     });

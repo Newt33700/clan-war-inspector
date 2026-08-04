@@ -80,7 +80,7 @@ describe('HrAssistantSection', () => {
     expect(screen.getByText(/personne sur la sellette/i)).toBeInTheDocument();
   });
 
-  it('affiche une carte meritant avec le badge de promotion et le tag', () => {
+  it('affiche une carte meritant avec le badge de promotion visible, le tag deplie au tap', () => {
     const candidate = member({
       tag: '#A',
       name: 'Alice',
@@ -98,8 +98,12 @@ describe('HrAssistantSection', () => {
     );
     const card = screen.getByTestId('merit-card');
     expect(within(card).getByText('Alice')).toBeInTheDocument();
-    expect(within(card).getByText('#A')).toBeInTheDocument();
     expect(within(card).getByText(/promotion suggeree/i)).toBeInTheDocument();
+    expect(within(card).queryByText('#A')).not.toBeInTheDocument();
+
+    fireEvent.click(within(card).getByRole('button'));
+
+    expect(within(card).getByText('#A')).toBeInTheDocument();
     expect(
       within(card).getByRole('button', { name: /copier le tag/i }),
     ).toBeInTheDocument();

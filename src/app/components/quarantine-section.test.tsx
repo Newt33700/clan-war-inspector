@@ -4,7 +4,7 @@
  * via /players/{tag} (indice de fiabilite).
  */
 
-import { render, screen, waitFor, within } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { http, HttpResponse } from 'msw';
 import { describe, expect, it } from 'vitest';
 import { mockServer } from '@/mocks/server';
@@ -129,14 +129,19 @@ describe('QuarantineSection', () => {
     const card = (await screen.findByText('Nouveau 1')).closest(
       '[data-testid="quarantine-card"]',
     ) as HTMLElement;
+    // Le verdict (badge + kick) reste visible sans interaction : c'est la
+    // raison d'etre de la section. Seules les stats brutes se deplient.
     await waitFor(() => {
       expect(within(card).getByText(/a risque/i)).toBeInTheDocument();
     });
-    expect(within(card).getByText('5000')).toBeInTheDocument();
-    expect(within(card).getByText('0')).toBeInTheDocument();
     expect(
       within(card).getByRole('button', { name: /copier tag pour kick/i }),
     ).toBeInTheDocument();
+
+    fireEvent.click(within(card).getAllByRole('button')[0]!);
+
+    expect(within(card).getByText('5000')).toBeInTheDocument();
+    expect(within(card).getByText('0')).toBeInTheDocument();
   });
 
   it('feu vert : badge "Bon profil" sans bouton de kick', async () => {
