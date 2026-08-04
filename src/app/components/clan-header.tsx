@@ -19,8 +19,45 @@ import { useTranslations } from './i18n/locale-provider';
 
 const CLAN_MAX_MEMBERS = 50;
 
+/**
+ * Icone de trophee reelle (retour utilisateur 2026-08-04, inspiration
+ * StatsRoyale) : meme CDN communautaire deja utilise pour l'icone de dons
+ * (`player-accordion-item.tsx`), pas d'asset officiel Supercell equivalent.
+ */
+const TROPHY_ICON_URL = 'https://cdn.royaleapi.com/static/img/ui/trophy.png';
+
 interface ClanHeaderProps {
   summary: ClanSummary;
+}
+
+function TrophyPill({
+  value,
+  ariaLabel,
+  tone,
+}: {
+  value: number;
+  ariaLabel: string;
+  tone: 'score' | 'war';
+}) {
+  return (
+    <span
+      aria-label={ariaLabel}
+      className="border-royale-gold-400/50 flex items-center gap-1.5 rounded-full border bg-black/25 px-2.5 py-1"
+    >
+      <img
+        src={TROPHY_ICON_URL}
+        alt=""
+        aria-hidden="true"
+        className="h-4 w-4"
+        style={
+          tone === 'war' ? { filter: 'hue-rotate(220deg) saturate(1.6)' } : undefined
+        }
+      />
+      <span aria-hidden="true" className="text-sm font-semibold text-white tabular-nums">
+        {value}
+      </span>
+    </span>
+  );
 }
 
 export function ClanHeader({ summary }: ClanHeaderProps) {
@@ -39,25 +76,37 @@ export function ClanHeader({ summary }: ClanHeaderProps) {
         <Image
           src={summary.badgeUrl}
           alt=""
-          width={48}
-          height={48}
-          className="border-royale-gold-400 h-12 w-12 rounded-full border-2"
+          width={80}
+          height={80}
+          className="h-20 w-20 object-contain drop-shadow-md"
           aria-hidden="true"
         />
       )}
-      <div>
+      <div className="space-y-1.5">
         <p className="text-cr-title font-display text-lg tracking-wide">
           {summary.name}
           <span className="ml-2 text-sm font-normal text-slate-200">{summary.tag}</span>
         </p>
         <p className="text-sm text-slate-200">
-          {t('clanHeader.stats', {
+          {t('clanHeader.memberCount', {
             count: summary.memberCount,
             max: CLAN_MAX_MEMBERS,
-            score: summary.clanScore,
-            trophies: summary.warTrophies,
           })}
         </p>
+        <div className="flex flex-wrap gap-2">
+          <TrophyPill
+            value={summary.clanScore}
+            ariaLabel={t('clanHeader.scoreAriaLabel', { score: summary.clanScore })}
+            tone="score"
+          />
+          <TrophyPill
+            value={summary.warTrophies}
+            ariaLabel={t('clanHeader.warTrophiesAriaLabel', {
+              trophies: summary.warTrophies,
+            })}
+            tone="war"
+          />
+        </div>
       </div>
     </div>
   );

@@ -42,7 +42,9 @@ const it = {
     loadingLabel: 'Caricamento del clan',
   },
   clanHeader: {
-    stats: '{count}/{max} membri · Punteggio {score} · Trofei di guerra {trophies}',
+    memberCount: '{count}/{max} membri',
+    scoreAriaLabel: 'Punteggio del clan: {score}',
+    warTrophiesAriaLabel: 'Trofei di guerra: {trophies}',
   },
   errorPage: {
     title: 'Sconfitta!',
