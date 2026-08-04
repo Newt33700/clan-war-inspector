@@ -14,6 +14,7 @@ export interface PlayerDeckCard {
   level: number;
   /** Niveau maximum de la carte (echelle propre a sa rarete). */
   maxLevel: number;
+  elixirCost: number;
 }
 
 export interface PlayerProfile {
@@ -27,6 +28,13 @@ export interface PlayerProfile {
   deck: PlayerDeckCard[];
   /** Toutes les cartes debloquees par le joueur (`cards`), retour utilisateur 2026-08-04. */
   cards: PlayerDeckCard[];
+  /** Statistiques de carriere (retour utilisateur 2026-08-04, inspiration StatsRoyale). */
+  wins: number;
+  losses: number;
+  battleCount: number;
+  threeCrownWins: number;
+  /** Dons cumules a vie (distinct de `donations`, la semaine en cours). */
+  totalDonations: number;
 }
 
 type UnknownRecord = Record<string, unknown>;
@@ -60,6 +68,7 @@ function toCard(candidate: unknown): PlayerDeckCard | null {
     iconUrl,
     level: toSafeCount(candidate.level),
     maxLevel: toSafeCount(candidate.maxLevel),
+    elixirCost: toSafeCount(candidate.elixirCost),
   };
 }
 
@@ -104,5 +113,10 @@ export function parsePlayerProfile(raw: unknown): PlayerProfile | null {
     donations: toSafeCount(raw.donations),
     deck: toDeck(raw),
     cards: toCards(raw),
+    wins: toSafeCount(raw.wins),
+    losses: toSafeCount(raw.losses),
+    battleCount: toSafeCount(raw.battleCount),
+    threeCrownWins: toSafeCount(raw.threeCrownWins),
+    totalDonations: toSafeCount(raw.totalDonations),
   };
 }

@@ -12,6 +12,7 @@ import { mockServer } from '@/mocks/server';
 import {
   proxyClanResource,
   proxyClanSearch,
+  proxyPlayerBattlelog,
   proxyPlayerResource,
   SUPERCELL_API_BASE_URL,
   type ProxyErrorBody,
@@ -350,6 +351,50 @@ describe('proxyPlayerResource (US 9)', () => {
 
     expect(response.status).toBe(502);
     expect(body.error.code).toBe('API_KEY_REJECTED');
+  });
+});
+
+describe('proxyPlayerBattlelog (retour utilisateur 2026-08-04)', () => {
+  beforeEach(() => {
+    vi.stubEnv('CLASH_ROYALE_API_TOKEN', '');
+  });
+
+  afterEach(() => {
+    vi.unstubAllEnvs();
+  });
+
+  it('rejette un tag inexploitable en 400 sans appeler Supercell', async () => {
+    const upstream = stubPlayerUpstream(() => HttpResponse.json([]));
+
+    const response = await proxyPlayerBattlelog('   ', TOKEN_OPTIONS);
+    const body = await readError(response);
+
+    expect(response.status).toBe(400);
+    expect(body.error.code).toBe('INVALID_TAG');
+    expect(upstream.requests).toHaveLength(0);
+  });
+
+  it('appelle /players/{tag}/battlelog et retransmet le JSON de Supercell', async () => {
+    const payload = [{ type: 'PvP' }];
+    const upstream = stubPlayerUpstream(() => HttpResponse.json(payload));
+
+    const response = await proxyPlayerBattlelog('#P1', TOKEN_OPTIONS);
+
+    expect(upstream.requests[0]?.url).toBe(
+      `${SUPERCELL_API_BASE_URL}/players/%23P1/battlelog`,
+    );
+    expect(response.status).toBe(200);
+    expect(await response.json()).toEqual(payload);
+  });
+
+  it('mappe 404 vers PLAYER_NOT_FOUND', async () => {
+    stubPlayerUpstream(() => new HttpResponse(null, { status: 404 }));
+
+    const response = await proxyPlayerBattlelog('#P1', TOKEN_OPTIONS);
+    const body = await readError(response);
+
+    expect(response.status).toBe(404);
+    expect(body.error.code).toBe('PLAYER_NOT_FOUND');
   });
 });
 

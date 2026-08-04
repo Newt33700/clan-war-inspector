@@ -218,6 +218,7 @@ const it = {
     level: 'Livello',
     totalDonations: 'Donazioni totali',
     deck: 'Mazzo',
+    deckAverageElixir: 'Elisir medio: {average}',
     deckUnavailableTitle: 'Mazzo non disponibile',
     deckUnavailableDescription:
       'Nessun mazzo attuale né carta preferita in questo profilo.',
@@ -228,6 +229,20 @@ const it = {
     cardCollectionUnavailableTitle: 'Collezione non disponibile',
     cardCollectionUnavailableDescription:
       'Questo profilo non espone alcuna carta posseduta.',
+    careerStatsTitle: 'Statistiche',
+    careerWins: 'Vittorie',
+    careerLosses: 'Sconfitte',
+    careerBattlesPlayed: 'Partite giocate',
+    careerThreeCrownWins: 'Vittorie a 3 corone',
+    careerTotalDonations: 'Donazioni totali (storico)',
+    recentBattlesTitle: 'Combattimenti recenti',
+    recentBattlesSummary: '{wins} vittorie · {losses} sconfitte · {draws} pareggi',
+    recentBattlesUnavailableTitle: 'Combattimenti non disponibili',
+    recentBattlesUnavailableDescription:
+      'Nessun combattimento recente disponibile per questo profilo.',
+    battleResultWin: 'Vittoria',
+    battleResultLoss: 'Sconfitta',
+    battleResultDraw: 'Pareggio',
     loadingLabel: 'Caricamento del profilo giocatore',
   },
   copyButton: {

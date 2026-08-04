@@ -72,6 +72,7 @@ export interface PlayerProfileCard {
   level: number;
   maxLevel: number;
   iconUrls: { medium: string };
+  elixirCost?: number;
 }
 
 /** Forme (partielle) de GET /players/{tag} utile a l'inspection (US 9). */
@@ -91,6 +92,18 @@ export interface PlayerProfileInfo {
   battleCount?: number;
   /** Contient le badge `ClanWarWins` (US 11, "le hack des badges"). */
   badges?: { name: string; progress: number }[];
+  /** Statistiques de carriere (retour utilisateur 2026-08-04, inspiration StatsRoyale). */
+  wins?: number;
+  losses?: number;
+  threeCrownWins?: number;
+  totalDonations?: number;
+}
+
+/** Forme (partielle) d'une entree de GET /players/{tag}/battlelog. */
+export interface PlayerBattleLogEntry {
+  type: string;
+  team: { crowns: number }[];
+  opponent: { crowns: number }[];
 }
 
 export interface RiverRace {

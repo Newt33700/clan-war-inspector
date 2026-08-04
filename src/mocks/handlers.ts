@@ -13,6 +13,7 @@ type StubResolver =
   | PlayerProfileInfo
   | { items: unknown[] }
   | { error: string }
+  | unknown[]
   | null
   | undefined;
 
@@ -25,6 +26,7 @@ const mockResponses: Record<string, StubResolver> = {
   currentRiverRace: null,
   riverRaceLog: null,
   playerProfile: null,
+  playerBattlelog: null,
   clanSearch: null,
 };
 
@@ -44,6 +46,7 @@ export function resetMockResponses(): void {
   mockResponses.currentRiverRace = null;
   mockResponses.riverRaceLog = null;
   mockResponses.playerProfile = null;
+  mockResponses.playerBattlelog = null;
   mockResponses.clanSearch = null;
 }
 
@@ -159,6 +162,30 @@ export const handlers = [
     }
 
     if (typeof response === 'object' && 'error' in response) {
+      return new HttpResponse(JSON.stringify(response), {
+        status: 500,
+        headers: { 'content-type': 'application/json' },
+      });
+    }
+
+    return HttpResponse.json(response);
+  }),
+
+  /**
+   * GET /api/players/{playerTag}/battlelog
+   * Combats recents d'un joueur (retour utilisateur 2026-08-04).
+   */
+  http.get('*/api/players/:playerTag/battlelog', () => {
+    const response = getMockResponse('playerBattlelog');
+
+    if (response === null) {
+      return new HttpResponse(JSON.stringify({ reason: 'notFound' }), {
+        status: 404,
+        headers: { 'content-type': 'application/json' },
+      });
+    }
+
+    if (typeof response === 'object' && !Array.isArray(response) && 'error' in response) {
       return new HttpResponse(JSON.stringify(response), {
         status: 500,
         headers: { 'content-type': 'application/json' },

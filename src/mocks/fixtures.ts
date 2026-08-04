@@ -3,7 +3,13 @@
  * Basées sur les structures d'API Supercell Clash Royale.
  */
 
-import type { ClanInfo, PlayerProfileInfo, RiverRaceLog, RiverRace } from './types';
+import type {
+  ClanInfo,
+  PlayerBattleLogEntry,
+  PlayerProfileInfo,
+  RiverRaceLog,
+  RiverRace,
+} from './types';
 
 /** Clan complet avec membres. */
 export const FIXTURE_FULL_CLAN: ClanInfo = {
@@ -227,11 +233,19 @@ export const FIXTURE_PLAYER_PROFILE: PlayerProfileInfo = {
   role: 'leader',
   donations: 500,
   clan: { tag: '#20PP', name: 'Test Clan' },
-  currentDeck: Array.from({ length: 8 }, (_, index) => ({
+  /** Statistiques de carriere (retour utilisateur 2026-08-04, inspiration StatsRoyale). */
+  wins: 8027,
+  losses: 6557,
+  battleCount: 14584,
+  threeCrownWins: 5573,
+  totalDonations: 292052,
+  /** Couts en elixir choisis pour une moyenne de 3.8 (cf. deck-stats.test.ts). */
+  currentDeck: [3, 6, 5, 4, 3, 1, 4, 4].map((elixirCost, index) => ({
     name: `Carte ${index + 1}`,
     id: 1000 + index,
     level: 11,
     maxLevel: 14,
+    elixirCost,
     iconUrls: { medium: `https://example.com/cards/${index + 1}.png` },
   })),
   /** Collection complete (US carte/niveau, retour 2026-08-04) : 8 cartes sur 4 niveaux. */
@@ -241,6 +255,7 @@ export const FIXTURE_PLAYER_PROFILE: PlayerProfileInfo = {
       id: 2000,
       level: 11,
       maxLevel: 14,
+      elixirCost: 3,
       iconUrls: { medium: 'https://example.com/cards/knight.png' },
     },
     {
@@ -248,6 +263,7 @@ export const FIXTURE_PLAYER_PROFILE: PlayerProfileInfo = {
       id: 2001,
       level: 11,
       maxLevel: 14,
+      elixirCost: 3,
       iconUrls: { medium: 'https://example.com/cards/archers.png' },
     },
     {
@@ -255,6 +271,7 @@ export const FIXTURE_PLAYER_PROFILE: PlayerProfileInfo = {
       id: 2002,
       level: 9,
       maxLevel: 13,
+      elixirCost: 5,
       iconUrls: { medium: 'https://example.com/cards/giant.png' },
     },
     {
@@ -262,6 +279,7 @@ export const FIXTURE_PLAYER_PROFILE: PlayerProfileInfo = {
       id: 2003,
       level: 9,
       maxLevel: 13,
+      elixirCost: 4,
       iconUrls: { medium: 'https://example.com/cards/fireball.png' },
     },
     {
@@ -269,6 +287,7 @@ export const FIXTURE_PLAYER_PROFILE: PlayerProfileInfo = {
       id: 2004,
       level: 9,
       maxLevel: 13,
+      elixirCost: 4,
       iconUrls: { medium: 'https://example.com/cards/musketeer.png' },
     },
     {
@@ -276,6 +295,7 @@ export const FIXTURE_PLAYER_PROFILE: PlayerProfileInfo = {
       id: 2005,
       level: 6,
       maxLevel: 11,
+      elixirCost: 4,
       iconUrls: { medium: 'https://example.com/cards/mini-pekka.png' },
     },
     {
@@ -283,6 +303,7 @@ export const FIXTURE_PLAYER_PROFILE: PlayerProfileInfo = {
       id: 2006,
       level: 6,
       maxLevel: 11,
+      elixirCost: 5,
       iconUrls: { medium: 'https://example.com/cards/balloon.png' },
     },
     {
@@ -290,10 +311,27 @@ export const FIXTURE_PLAYER_PROFILE: PlayerProfileInfo = {
       id: 2007,
       level: 14,
       maxLevel: 15,
+      elixirCost: 1,
       iconUrls: { medium: 'https://example.com/cards/skeletons.png' },
     },
   ],
 };
+
+/**
+ * Combats recents (retour utilisateur 2026-08-04, inspiration StatsRoyale
+ * "Combats recents") : 5 victoires, 3 defaites, 1 match nul.
+ */
+export const FIXTURE_PLAYER_BATTLELOG: PlayerBattleLogEntry[] = [
+  { type: 'PvP', team: [{ crowns: 3 }], opponent: [{ crowns: 0 }] },
+  { type: 'PvP', team: [{ crowns: 2 }], opponent: [{ crowns: 1 }] },
+  { type: 'riverRacePvP', team: [{ crowns: 0 }], opponent: [{ crowns: 2 }] },
+  { type: 'PvP', team: [{ crowns: 1 }], opponent: [{ crowns: 1 }] },
+  { type: 'PvP', team: [{ crowns: 3 }], opponent: [{ crowns: 2 }] },
+  { type: 'PvP', team: [{ crowns: 0 }], opponent: [{ crowns: 3 }] },
+  { type: 'riverRacePvP', team: [{ crowns: 2 }], opponent: [{ crowns: 0 }] },
+  { type: 'PvP', team: [{ crowns: 1 }], opponent: [{ crowns: 3 }] },
+  { type: 'PvP', team: [{ crowns: 3 }], opponent: [{ crowns: 1 }] },
+];
 
 /**
  * Clan pour le "Sas de Quarantaine" (US 11) : 3 anciens membres (avec
