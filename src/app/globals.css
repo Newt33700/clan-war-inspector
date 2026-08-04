@@ -2,8 +2,10 @@
 
 /*
  * Design tokens - theme Clash Royale.
- * Bleu profond pour le fond (l'ecran de clan du jeu), or pour la valeur et le
- * titrage, rouge pour l'alerte, vert reserve au seul succes qui compte : 16/16.
+ * Canevas clair (2026-08-04, retour "theme sombre illisible / pas terrible" -
+ * rapproche du support Supercell, propre et lumineux) : fond quasi blanc,
+ * texte encre marine, accents or/bleu/rouge/vert reserves aux badges,
+ * boutons et bandeaux "bois" plutot qu'au fond de page.
  */
 @theme {
   --color-royale-navy-950: #071233;
@@ -17,7 +19,9 @@
 
   /* #e65b4a plutot que #e2432f d'origine : 5.21:1 sur fond navy-950 (US 6.8),
      l'original etait a 4.44:1, sous le seuil AA de 4.5:1 pour du texte
-     normal. Verifie par src/lib/theme-contrast.test.ts. */
+     normal. Verifie par src/lib/theme-contrast.test.ts. Reste utilise pour
+     les badges/boutons a fond colore ; le texte d'alerte direct sur le
+     canevas clair utilise desormais red-700 (contraste insuffisant sinon). */
   --color-royale-red-500: #e65b4a;
   --color-royale-red-700: #9e1f14;
 
@@ -25,18 +29,26 @@
 
   /* Violet des panneaux "Social"/"Guerre de clans" du jeu (identite
      visuelle, 2026-08-03) : reserve aux badges et bandeaux d'accent, pas
-     au texte courant. Contraste verifie (src/lib/theme-contrast.test.ts) :
-     parchment sur purple-700 = 9.32:1, gold-400 sur purple-700 = 7.23:1. */
+     au texte courant. */
   --color-royale-purple-700: #4c1d95;
   --color-royale-purple-500: #7c3aed;
   --color-royale-purple-300: #c4b5fd;
 
-  /* Textes remplaces (2026-08-03, retour "fond bleu nuit illisible / date") :
-     l'ancien ton "parchemin" beige/sepia lisait daté sur le nouveau fond en
-     degrade. Blanc casse + gris-bleu froid, plus contemporains, contraste
-     encore renforce (verifie par theme-contrast.test.ts). */
-  --color-royale-parchment: #f8fafc;
-  --color-royale-parchment-dim: #cbd5e1;
+  /* Canevas de page (2026-08-04) : quasi blanc, legerement teinte bleu,
+     pour se rapprocher du support Supercell plutot que d'un ecran de jeu
+     nocturne. Les panneaux `cr-panel-light` (#e4eaf1, inchange) restent
+     legerement plus sombres que ce canevas : la carte se detache toujours
+     du fond sans qu'il faille toucher a chaque composant. */
+  --color-royale-canvas: #f5f7fb;
+
+  /* Texte par defaut (2026-08-04) : encre marine sur le nouveau canevas
+     clair, a la place de l'ancien blanc casse pense pour un fond sombre.
+     Contraste verifie par theme-contrast.test.ts. Attention : les quelques
+     endroits ou ce texte reste affiche sur un bandeau/badge sombre local
+     (bannière clan, badges de guerre, avatar) utilisent une couleur claire
+     litterale (text-white/text-slate-200) plutot que ces tokens. */
+  --color-royale-parchment: #1b2540;
+  --color-royale-parchment-dim: #4b5875;
 
   --font-sans: var(--font-body-family), ui-sans-serif, system-ui, sans-serif;
   --font-display: var(--font-display-family), ui-sans-serif, system-ui, sans-serif;
@@ -111,18 +123,18 @@
 }
 
 @layer base {
-  /* Fond du site (retour 2026-08-03 : "fond bleu nuit moche") : un
-     aplat uni lisait plat et date. Degrade + halo subtil en haut (comme
-     l'eclairage de stade des ecrans de guerre de clan du jeu), fixe pour
-     ne pas se re-generer au scroll. */
+  /* Fond du site (retour 2026-08-04 : "theme sombre, ca rend pas bien") :
+     canevas clair (support Supercell) plutot que l'ecran de guerre de clan
+     nocturne. Leger halo bleu en haut, comme seule trace de l'ancien
+     degrade, fixe pour ne pas se re-generer au scroll. */
   body {
     background:
       radial-gradient(
-        ellipse 120% 50% at 50% -10%,
-        rgba(54, 138, 250, 0.28),
+        ellipse 120% 40% at 50% -10%,
+        rgba(54, 138, 250, 0.12),
         transparent 60%
       ),
-      linear-gradient(180deg, #1b2c56 0%, var(--color-cr-bg-blue) 40%, #0a1428 100%);
+      var(--color-royale-canvas);
     background-attachment: fixed;
   }
 
@@ -218,10 +230,9 @@
     @apply rounded-xl border border-black bg-gradient-to-b from-white to-slate-100 text-slate-900;
   }
 
-  /* Verre depoli (retour 2026-08-03) : pour les elements restes sur le
-     fond sombre (champs de saisie, badges) plutot qu'un aplat navy plein,
-     plus dans l'air du temps et coherent avec le nouveau fond en degrade. */
+  /* Verre depoli clair (2026-08-04, canevas clair) : champs de saisie
+     legerement detaches du fond, sans repasser par un aplat blanc plein. */
   .cr-glass {
-    @apply rounded-md border border-white/15 bg-white/10 backdrop-blur-sm;
+    @apply border-royale-blue-800/20 rounded-md border bg-white/70 backdrop-blur-sm;
   }
 }

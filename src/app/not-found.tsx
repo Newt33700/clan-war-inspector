@@ -3,7 +3,7 @@ import Link from 'next/link';
 export default function NotFound() {
   return (
     <main className="mx-auto flex min-h-screen max-w-2xl flex-col items-center justify-center gap-6 px-6 text-center">
-      <p className="text-royale-gold-400 font-display text-7xl">404</p>
+      <p className="font-display text-7xl text-amber-800">404</p>
       <h1 className="text-royale-parchment font-display text-2xl tracking-wide">
         Cette page a deserte le champ de bataille
       </h1>

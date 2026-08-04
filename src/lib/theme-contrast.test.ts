@@ -4,6 +4,14 @@
  * diverger) et verifie que chaque paire texte/fond effectivement utilisee
  * dans l'app respecte le niveau AA (>= 4.5:1 pour du texte de taille
  * normale).
+ *
+ * Canevas clair (2026-08-04) : le fond de page par defaut est desormais
+ * `canvas` (quasi blanc), plus `navy-950`. `gold-400`/`green-500`/`red-500`
+ * restent utilises comme fonds de badges/boutons (texte blanc ou
+ * navy-950 dessus, ailleurs dans ce fichier) mais plus comme couleur de
+ * texte directement sur le canevas : les endroits qui en avaient besoin
+ * (confirmations, alertes, "404") sont passes a des teintes plus foncees
+ * (red-700, ou des tons Tailwind vert/or fonces) verifiees ci-dessous.
  */
 
 import { readFileSync } from 'node:fs';
@@ -29,30 +37,31 @@ describe('Contraste des tokens du theme (AA >= 4.5:1)', () => {
     expect(Object.keys(tokens).length).toBeGreaterThan(5);
   });
 
-  const textOnNavy950: [string, string][] = [
+  const textOnCanvas: [string, string][] = [
     ['parchment', 'parchment'],
     ['parchment-dim', 'parchment-dim'],
-    ['gold-400', 'gold-400'],
-    ['green-500', 'green-500'],
-    // Texte d'alerte/critique (messages d'erreur, decks a 0, historique
-    // critique) : toujours affiche sur le fond principal navy-950.
-    ['red-500', 'red-500'],
+    // Texte d'alerte/critique (messages d'erreur) affiche directement sur
+    // le canevas : red-500 (2.8:1 environ) n'y suffit plus, red-700 si.
+    ['red-700', 'red-700'],
   ];
 
-  it.each(textOnNavy950)(
-    '%s sur navy-950 atteint au moins 4.5:1',
-    (_label, tokenName) => {
-      const textColor = tokens[tokenName];
-      const background = tokens['navy-950'];
-      expect(textColor).toBeDefined();
-      expect(background).toBeDefined();
-      expect(contrastRatio(textColor!, background!)).toBeGreaterThanOrEqual(4.5);
-    },
-  );
+  it.each(textOnCanvas)('%s sur le canevas clair atteint au moins 4.5:1', (_label, tokenName) => {
+    const textColor = tokens[tokenName];
+    const background = tokens['canvas'];
+    expect(textColor).toBeDefined();
+    expect(background).toBeDefined();
+    expect(contrastRatio(textColor!, background!)).toBeGreaterThanOrEqual(4.5);
+  });
 
   it('parchment sur les boutons dores (navy-950 texte sur gold-400) reste lisible', () => {
     expect(
       contrastRatio(tokens['navy-950']!, tokens['gold-400']!),
     ).toBeGreaterThanOrEqual(4.5);
+  });
+
+  it('vert/or fonces (classes Tailwind hors design tokens) utilises comme texte direct sur le canevas restent lisibles', () => {
+    const canvas = tokens['canvas']!;
+    expect(contrastRatio('#166534', canvas)).toBeGreaterThanOrEqual(4.5); // text-green-800
+    expect(contrastRatio('#92400e', canvas)).toBeGreaterThanOrEqual(4.5); // text-amber-800
   });
 });

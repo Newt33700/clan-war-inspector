@@ -14,7 +14,7 @@ export function Skeleton({ className = 'h-4 w-full', label }: SkeletonProps) {
     <span
       role={label !== undefined ? 'status' : undefined}
       aria-label={label}
-      className={`block animate-pulse rounded bg-slate-800 ${className}`}
+      className={`block animate-pulse rounded bg-slate-200 ${className}`}
     />
   );
 }

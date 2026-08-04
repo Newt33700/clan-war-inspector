@@ -71,7 +71,7 @@ function WarParticipantCard({ participant }: { participant: AnnotatedWarParticip
 function periodBadge(isTrainingDay: boolean, periodType: string) {
   if (isTrainingDay) {
     return (
-      <span className="bg-royale-blue-800 text-royale-parchment rounded-full px-3 py-1 text-xs font-semibold uppercase">
+      <span className="bg-royale-blue-800 rounded-full px-3 py-1 text-xs font-semibold text-white uppercase">
         Jour d entrainement
       </span>
     );
@@ -80,7 +80,7 @@ function periodBadge(isTrainingDay: boolean, periodType: string) {
     return null;
   }
   return (
-    <span className="bg-royale-red-700 text-royale-parchment rounded-full px-3 py-1 text-xs font-semibold uppercase">
+    <span className="bg-royale-red-700 rounded-full px-3 py-1 text-xs font-semibold text-white uppercase">
       Jour de bataille
     </span>
   );
@@ -175,7 +175,7 @@ export function CurrentWarSection({ warState, memberTags }: CurrentWarSectionPro
 
       {warState.status === 'error' && (
         <div className="space-y-2">
-          <p role="alert" className="text-royale-red-500">
+          <p role="alert" className="text-royale-red-700">
             {warState.message}
           </p>
           <button

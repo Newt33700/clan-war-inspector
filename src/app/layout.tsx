@@ -47,7 +47,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
             guerres", "Assistant RH" -- pour rester utile a la navigation
             au clavier/lecteur d'ecran plutot que de repeter le nom du
             produit sur toutes les pages). */}
-        <p className="text-royale-gold-400 px-6 pt-8 pb-2 text-xs font-semibold tracking-[0.35em] uppercase md:hidden">
+        <p className="px-6 pt-8 pb-2 text-xs font-semibold tracking-[0.35em] text-amber-800 uppercase md:hidden">
           Clan War Inspector
         </p>
         {/* pb-tab-bar (US 14.7) : garde le contenu au-dessus de la

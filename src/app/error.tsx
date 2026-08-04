@@ -10,7 +10,7 @@
 export default function GlobalError({ reset }: { error: Error; reset: () => void }) {
   return (
     <main className="mx-auto flex min-h-screen max-w-2xl flex-col items-center justify-center gap-6 px-6 text-center">
-      <p className="text-royale-red-500 font-display text-5xl">Defaite !</p>
+      <p className="font-display text-royale-red-700 text-5xl">Defaite !</p>
       <h1 className="text-royale-parchment font-display text-2xl tracking-wide">
         Une erreur inattendue a fait tomber la tour
       </h1>

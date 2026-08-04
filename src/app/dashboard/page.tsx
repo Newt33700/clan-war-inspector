@@ -22,7 +22,7 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
     return (
       <div className="space-y-6">
         <h1 className="text-royale-parchment font-display flex items-center gap-2 text-2xl tracking-wide">
-          <SwordsIcon className="text-royale-red-500 h-6 w-6" />
+          <SwordsIcon className="text-royale-red-700 h-6 w-6" />
           Dashboard
         </h1>
         <ClanSearchForm />

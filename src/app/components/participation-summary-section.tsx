@@ -92,7 +92,7 @@ function ParticipationDonut({
             r={RADIUS}
             fill="none"
             strokeWidth="10"
-            className="stroke-royale-navy-900"
+            className="stroke-slate-200"
           />
           <circle
             cx="50"

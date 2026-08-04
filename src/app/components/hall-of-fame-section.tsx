@@ -85,7 +85,7 @@ function PodiumCard({ entry, rank }: { entry: HallOfFameEntry; rank: Rank }) {
         {entry.name}
       </p>
       <p className="text-royale-parchment-dim flex items-center gap-1 text-xs">
-        <TrophyIcon className="text-royale-gold-400 h-4 w-4" />
+        <TrophyIcon className="h-4 w-4 text-amber-800" />
         {entry.fame} fame
       </p>
     </div>

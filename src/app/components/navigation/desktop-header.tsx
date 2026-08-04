@@ -33,7 +33,7 @@ export function DesktopHeader() {
                 className={`rounded-md px-3 py-2 text-sm font-semibold tracking-wide uppercase transition-transform ${
                   active
                     ? 'bg-royale-gold-400 text-royale-navy-950 border-cr-wood-dark -translate-y-0.5 border-2 shadow-[0_2px_0_rgba(0,0,0,0.4)]'
-                    : 'text-royale-parchment-dim hover:text-royale-parchment'
+                    : 'text-slate-300 hover:text-white'
                 }`}
               >
                 {item.label}

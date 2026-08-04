@@ -120,7 +120,7 @@ export function ClanSearchForm() {
           ecran du clan) ou directement son nom.
         </p>
         {showFormatError && (
-          <p className="text-royale-red-500 w-full text-sm">
+          <p className="text-royale-red-700 w-full text-sm">
             Tag invalide : caracteres autorises 0289PYLQGRJCUV, longueur 3 a 14.
           </p>
         )}
@@ -141,7 +141,7 @@ export function ClanSearchForm() {
 
       {searchPath !== null && searchState.status === 'error' && (
         <div className="space-y-2">
-          <p role="alert" className="text-royale-red-500">
+          <p role="alert" className="text-royale-red-700">
             {searchState.message}
           </p>
           <button
