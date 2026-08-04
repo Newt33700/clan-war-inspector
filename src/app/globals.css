@@ -246,6 +246,14 @@
 }
 
 @layer base {
+  /* Site volontairement clair uniquement (pas de variante sombre codee) :
+     sans ca, le "dark mode force" des navigateurs (Brave, Chrome Android...)
+     repeint la page en sombre faute de savoir qu'elle est deja pensee
+     pour un fond clair. */
+  html {
+    color-scheme: light;
+  }
+
   /* Fond de secours (retour 2026-08-04 : "theme sombre, ca rend pas
      bien") : canevas clair uni, le temps que `PageBackdrop` (damier
      colore par onglet, cf. plus bas) prenne le relais cote client. */
