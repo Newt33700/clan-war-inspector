@@ -20,6 +20,13 @@ import { useTranslations } from './i18n/locale-provider';
 
 type Translate = (key: string, vars?: Record<string, string | number>) => string;
 
+/**
+ * Icone d'elixir reelle (retour utilisateur 2026-08-04, "P0" logos Clash) :
+ * meme CDN communautaire deja utilise pour l'icone de dons et les trophees
+ * de l'en-tete du clan, pas d'asset officiel Supercell equivalent.
+ */
+const ELIXIR_ICON_URL = 'https://cdn.royaleapi.com/static/img/ui/elixir.png';
+
 interface PlayerDrawerProps {
   /** Tag du joueur a inspecter, `null` = panneau ferme. */
   tag: string | null;
@@ -298,8 +305,14 @@ function ProfileContent({ profile, t }: { profile: PlayerProfile; t: Translate }
           {profile.deck.length > 0 && (
             <span
               data-testid="deck-average-elixir"
-              className="text-royale-blue-800 normal-case"
+              className="text-royale-blue-800 flex items-center gap-1 normal-case"
             >
+              <img
+                src={ELIXIR_ICON_URL}
+                alt=""
+                aria-hidden="true"
+                className="h-3.5 w-3.5"
+              />
               {t('playerDrawer.deckAverageElixir', {
                 average: averageElixirCost(profile.deck),
               })}
