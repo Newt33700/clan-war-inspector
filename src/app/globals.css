@@ -96,6 +96,64 @@
   text-shadow: 0px 3px 0px rgba(0, 0, 0, 0.7);
 }
 
+/* Fonds "damier" en losange (2026-08-04, cf. store.supercell.com/clash
+   royale) : un ton par onglet (`PageBackdrop`, pilote par la route
+   active), pour distinguer les pages sans renoncer au canevas clair.
+   Meme geometrie pour les 5, seule la teinte change ; les deux tons de
+   chaque paire restent tres clairs (contraste texte verifie par
+   theme-contrast.test.ts) pour que le texte encre et les cartes a bordure
+   noire continuent de se detacher normalement par-dessus. */
+@utility bg-backdrop-blue {
+  background-color: #eef3fc;
+  background-image:
+    linear-gradient(45deg, #dde9f9 25%, transparent 25%, transparent 75%, #dde9f9 75%, #dde9f9),
+    linear-gradient(45deg, #dde9f9 25%, transparent 25%, transparent 75%, #dde9f9 75%, #dde9f9);
+  background-size: 56px 56px;
+  background-position:
+    0 0,
+    28px 28px;
+}
+@utility bg-backdrop-purple {
+  background-color: #f4eefc;
+  background-image:
+    linear-gradient(45deg, #e7daf6 25%, transparent 25%, transparent 75%, #e7daf6 75%, #e7daf6),
+    linear-gradient(45deg, #e7daf6 25%, transparent 25%, transparent 75%, #e7daf6 75%, #e7daf6);
+  background-size: 56px 56px;
+  background-position:
+    0 0,
+    28px 28px;
+}
+@utility bg-backdrop-teal {
+  background-color: #eaf7f3;
+  background-image:
+    linear-gradient(45deg, #d3efe4 25%, transparent 25%, transparent 75%, #d3efe4 75%, #d3efe4),
+    linear-gradient(45deg, #d3efe4 25%, transparent 25%, transparent 75%, #d3efe4 75%, #d3efe4);
+  background-size: 56px 56px;
+  background-position:
+    0 0,
+    28px 28px;
+}
+@utility bg-backdrop-gold {
+  background-color: #fdf6e8;
+  background-image:
+    linear-gradient(45deg, #f8e9c2 25%, transparent 25%, transparent 75%, #f8e9c2 75%, #f8e9c2),
+    linear-gradient(45deg, #f8e9c2 25%, transparent 25%, transparent 75%, #f8e9c2 75%, #f8e9c2);
+  background-size: 56px 56px;
+  background-position:
+    0 0,
+    28px 28px;
+}
+@utility bg-backdrop-sky {
+  background-color: #eaf6fc;
+  background-image:
+    linear-gradient(45deg, #d3edf8 25%, transparent 25%, transparent 75%, #d3edf8 75%, #d3edf8),
+    linear-gradient(45deg, #d3edf8 25%, transparent 25%, transparent 75%, #d3edf8 75%, #d3edf8);
+  background-size: 56px 56px;
+  background-position:
+    0 0,
+    28px 28px;
+}
+
 @keyframes fade-in {
   from {
     opacity: 0;
@@ -123,19 +181,11 @@
 }
 
 @layer base {
-  /* Fond du site (retour 2026-08-04 : "theme sombre, ca rend pas bien") :
-     canevas clair (support Supercell) plutot que l'ecran de guerre de clan
-     nocturne. Leger halo bleu en haut, comme seule trace de l'ancien
-     degrade, fixe pour ne pas se re-generer au scroll. */
+  /* Fond de secours (retour 2026-08-04 : "theme sombre, ca rend pas
+     bien") : canevas clair uni, le temps que `PageBackdrop` (damier
+     colore par onglet, cf. plus bas) prenne le relais cote client. */
   body {
-    background:
-      radial-gradient(
-        ellipse 120% 40% at 50% -10%,
-        rgba(54, 138, 250, 0.12),
-        transparent 60%
-      ),
-      var(--color-royale-canvas);
-    background-attachment: fixed;
+    background: var(--color-royale-canvas);
   }
 
   :focus-visible {

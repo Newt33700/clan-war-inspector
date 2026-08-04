@@ -8,6 +8,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { BrandMark } from './brand-mark';
 import { isNavItemActive, NAV_ITEMS } from './nav-items';
 
 export function DesktopHeader() {
@@ -18,8 +19,9 @@ export function DesktopHeader() {
       <div className="mx-auto flex max-w-4xl items-center justify-between px-6 py-3">
         <Link
           href="/dashboard"
-          className="text-royale-gold-400 font-display text-lg tracking-wide"
+          className="text-royale-gold-400 font-display flex items-center gap-2 text-lg tracking-wide"
         >
+          <BrandMark className="h-8 w-8" />
           Clan War Inspector
         </Link>
         <nav aria-label="Navigation principale" className="flex items-center gap-1">
