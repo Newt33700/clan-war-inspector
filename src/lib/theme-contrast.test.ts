@@ -45,13 +45,16 @@ describe('Contraste des tokens du theme (AA >= 4.5:1)', () => {
     ['red-700', 'red-700'],
   ];
 
-  it.each(textOnCanvas)('%s sur le canevas clair atteint au moins 4.5:1', (_label, tokenName) => {
-    const textColor = tokens[tokenName];
-    const background = tokens['canvas'];
-    expect(textColor).toBeDefined();
-    expect(background).toBeDefined();
-    expect(contrastRatio(textColor!, background!)).toBeGreaterThanOrEqual(4.5);
-  });
+  it.each(textOnCanvas)(
+    '%s sur le canevas clair atteint au moins 4.5:1',
+    (_label, tokenName) => {
+      const textColor = tokens[tokenName];
+      const background = tokens['canvas'];
+      expect(textColor).toBeDefined();
+      expect(background).toBeDefined();
+      expect(contrastRatio(textColor!, background!)).toBeGreaterThanOrEqual(4.5);
+    },
+  );
 
   it('parchment sur les boutons dores (navy-950 texte sur gold-400) reste lisible', () => {
     expect(
