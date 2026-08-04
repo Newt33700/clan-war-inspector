@@ -16,21 +16,15 @@ export function DashboardIcon({ className = 'h-6 w-6' }: NavIconProps) {
   );
 }
 
+/**
+ * Sablier plein (retour utilisateur 2026-08-04, "P1" logos Clash) : remplace
+ * l'ancienne horloge en traits fins, pour le meme poids visuel "chunky" que
+ * les autres icones de navigation (formes pleines, pas de contour fin).
+ */
 export function HistoryIcon({ className = 'h-6 w-6' }: NavIconProps) {
   return (
-    <svg
-      viewBox="0 0 24 24"
-      className={className}
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden="true"
-    >
-      <path d="M3 12a9 9 0 1 0 3-6.7" />
-      <path d="M3 4v5h5" />
-      <path d="M12 7v5l4 2" />
+    <svg viewBox="0 0 24 24" className={`fill-current ${className}`} aria-hidden="true">
+      <path d="M6 2h12v2.2c0 1.9-1 3.6-3 5.3 2 1.7 3 3.4 3 5.3V22H6v-2.2c0-1.9 1-3.6 3-5.3-2-1.7-3-3.4-3-5.3V2Zm2 2.6C8 5.9 8.9 7 10.5 8.2h3C15.1 7 16 5.9 16 4.6V4H8v.6Zm0 14.8V20h8v-.6c0-1.3-.9-2.4-2.5-3.6h-3C8.9 17 8 18.1 8 19.4Z" />
     </svg>
   );
 }

@@ -24,4 +24,16 @@ describe('DesktopHeader', () => {
     expect(screen.getByRole('link', { name: /nouveaux/i })).toBeInTheDocument();
     expect(screen.getByRole('link', { name: /météo/i })).toBeInTheDocument();
   });
+
+  it('affiche une icone a cote de chaque route (retour utilisateur 2026-08-04)', () => {
+    usePathnameMock.mockReturnValue('/rh');
+    render(<DesktopHeader />);
+
+    expect(
+      screen.getByRole('link', { name: /^rh$/i }).querySelector('svg'),
+    ).not.toBeNull();
+    expect(
+      screen.getByRole('link', { name: /dashboard/i }).querySelector('svg'),
+    ).not.toBeNull();
+  });
 });
