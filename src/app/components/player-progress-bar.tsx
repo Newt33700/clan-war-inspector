@@ -17,6 +17,7 @@ import {
   type AttendanceLevel,
 } from '@/domain/war/attendance-level';
 import { BATTLES_PER_WAR_WEEK } from '@/domain/war/war-history';
+import { SwordsIcon } from './section-icons';
 
 /** Couleurs partagees : reutilisees par la legende de l'historique. */
 export const LEVEL_TEXT_CLASSES: Record<AttendanceLevel, string> = {
@@ -42,10 +43,6 @@ const LEVEL_BAR_GRADIENT_CLASSES: Record<AttendanceLevel, string> = {
   warning: 'bg-gradient-to-b from-orange-400 to-orange-700',
   critical: 'bg-gradient-to-b from-royale-red-500 to-royale-red-700',
 };
-
-/** Assets RoyaleAPI : epee de guerre a la place de la croix "office" pour
- *  signaler un score critique. */
-const WAR_SWORD_ICON_URL = 'https://cdn.royaleapi.com/static/img/ui/cw2-battle.png';
 
 /** Nombre de blocs visuels de la jauge (les 4 jours de guerre). */
 const SEGMENT_COUNT = 4;
@@ -76,7 +73,7 @@ export function PlayerProgressBar({
       >
         {score}/{max}
         {level === 'critical' ? (
-          <img src={WAR_SWORD_ICON_URL} alt="" aria-hidden="true" className="h-4 w-4" />
+          <SwordsIcon className="h-4 w-4" />
         ) : (
           <span aria-hidden="true">{LEVEL_SYMBOLS[level]}</span>
         )}
