@@ -23,16 +23,23 @@ interface HallOfFameSectionProps {
 
 type Rank = 1 | 2 | 3;
 
+/** Assets RoyaleAPI (Refonte Podium "Hall of Fame") : pas d'avatar joueur
+ *  expose par l'API Supercell, mais le jeu recompense toujours la victoire
+ *  par des visuels riches (couronne, badge de ligue) plutot qu'un flat
+ *  design - on reprend ces memes assets ici. */
+const CROWN_IMAGE_URL = 'https://cdn.royaleapi.com/static/img/ui/crown.png';
+const LEAGUE_BADGE_IMAGE_URL = 'https://cdn.royaleapi.com/static/img/ui/league-8.png';
+
 const RANK_STYLE: Record<
   Rank,
   { border: string; shadow: string; crown: string; order: string; size: string }
 > = {
   1: {
     border: 'border-yellow-400',
-    shadow: 'shadow-[0_0_15px_rgba(250,204,21,0.5)]',
+    shadow: 'shadow-[0_0_30px_rgba(250,204,21,0.8)]',
     crown: 'text-yellow-400',
     order: 'md:order-2',
-    size: 'h-28 w-28 text-3xl',
+    size: 'h-32 w-32 text-3xl',
   },
   2: {
     border: 'border-slate-300',
@@ -60,13 +67,26 @@ function CrownIcon({ className }: { className: string }) {
 
 function PodiumCard({ entry, rank }: { entry: HallOfFameEntry; rank: Rank }) {
   const style = RANK_STYLE[rank];
+  // Le 1er merite l'entree "ecran de fin de combat" (rebond) ; 2eme/3eme
+  // gardent le fade-in existant, plus discret.
+  const isChampion = rank === 1;
   return (
     <div
       data-testid="podium-card"
       data-rank={rank}
-      className={`animate-fade-in flex flex-col items-center gap-2 transition-transform duration-300 hover:scale-105 ${style.order}`}
+      className={`flex flex-col items-center gap-2 transition-transform duration-300 hover:scale-105 ${
+        isChampion ? 'animate-bounce-in' : 'animate-fade-in'
+      } ${style.order}`}
     >
-      <CrownIcon className={`h-6 w-6 ${style.crown}`} />
+      {isChampion ? (
+        <img
+          src={CROWN_IMAGE_URL}
+          alt="Couronne du 1er"
+          className="h-10 w-10 drop-shadow-[0_2px_2px_rgba(0,0,0,0.6)]"
+        />
+      ) : (
+        <CrownIcon className={`h-6 w-6 ${style.crown}`} />
+      )}
       <div
         className={`bg-royale-navy-900 font-display text-royale-gold-400 flex items-center justify-center rounded-full border-4 font-bold ${style.border} ${style.shadow} ${style.size}`}
       >
@@ -75,7 +95,10 @@ function PodiumCard({ entry, rank }: { entry: HallOfFameEntry; rank: Rank }) {
       <p className="text-royale-parchment max-w-[8rem] truncate text-center font-bold">
         {entry.name}
       </p>
-      <p className="text-royale-parchment-dim text-xs">{entry.fame} fame</p>
+      <p className="text-royale-parchment-dim flex items-center gap-1 text-xs">
+        <img src={LEAGUE_BADGE_IMAGE_URL} alt="" aria-hidden="true" className="h-4 w-4" />
+        {entry.fame} fame
+      </p>
     </div>
   );
 }

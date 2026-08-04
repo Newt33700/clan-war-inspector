@@ -66,6 +66,11 @@ export function PurgeSection({
   }, [copyState]);
 
   async function handleCopy() {
+    // Micro-vibration sur mobile si supporte, pour marquer l'action de
+    // copie (retour tactile, comme le jeu).
+    if (typeof window !== 'undefined' && window.navigator.vibrate) {
+      window.navigator.vibrate(50);
+    }
     try {
       await navigator.clipboard.writeText(
         formatModerationReportForClipboard(candidates, minWeeklyBattles),

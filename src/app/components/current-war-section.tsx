@@ -24,6 +24,7 @@ import {
 import { BATTLES_PER_WAR_WEEK } from '@/domain/war/war-history';
 import type { ApiResource } from '@/hooks/use-api-resource';
 import { formatTimeOfDay } from '@/lib/format-time';
+import { ActionButton } from './action-button';
 import { PlayerProgressBar } from './player-progress-bar';
 import { SwordsIcon } from './section-icons';
 import { Skeleton } from './skeleton';
@@ -148,14 +149,14 @@ export function CurrentWarSection({ warState, memberTags }: CurrentWarSectionPro
             <span className="text-royale-parchment-dim text-xs">
               Mise a jour a {formatTimeOfDay(updatedAt)}
             </span>
-            <button
-              type="button"
+            <ActionButton
               onClick={warState.refetch}
               disabled={warState.status === 'loading'}
-              className="btn-cr-blue px-3 py-1 text-xs disabled:opacity-40"
+              variant="blue"
+              className="px-3 py-1 text-xs"
             >
               Actualiser
-            </button>
+            </ActionButton>
           </div>
         )}
       </div>

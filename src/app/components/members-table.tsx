@@ -13,6 +13,7 @@ import {
   type SortDirection,
 } from '@/domain/clan/members';
 
+import { PlayerAccordionItem } from './player-accordion-item';
 import { TrophyIcon } from './section-icons';
 
 const COLUMNS: { key: MemberSortKey; label: string; numeric: boolean }[] = [
@@ -58,49 +59,6 @@ interface MembersTableProps {
   onSelectMember: (tag: string) => void;
 }
 
-function MemberCard({
-  member,
-  onSelectMember,
-}: {
-  member: ClanMember;
-  onSelectMember: (tag: string) => void;
-}) {
-  return (
-    <li>
-      <button
-        type="button"
-        data-testid="member-card"
-        onClick={() => onSelectMember(member.tag)}
-        className="cr-pill-row flex w-full flex-col gap-2 p-4 text-left"
-      >
-        <div>
-          <p className="font-display font-semibold text-slate-900">{member.name}</p>
-          <p className="text-xs text-slate-500">{member.tag}</p>
-        </div>
-        <dl className="grid grid-cols-3 gap-2 text-center text-xs">
-          <div>
-            <dt className="text-slate-500 uppercase">Role</dt>
-            <dd className="text-slate-900">{ROLE_LABELS[member.role]}</dd>
-          </div>
-          <div>
-            <dt className="text-slate-500 uppercase">Trophees</dt>
-            <dd className="font-display flex items-center justify-center gap-1 text-slate-900 tabular-nums">
-              <TrophyIcon className="text-cr-gold h-4 w-4" />
-              {member.trophies}
-            </dd>
-          </div>
-          <div>
-            <dt className="text-slate-500 uppercase">Dons</dt>
-            <dd className="font-display text-slate-900 tabular-nums">
-              {member.donations}
-            </dd>
-          </div>
-        </dl>
-      </button>
-    </li>
-  );
-}
-
 export function MembersTable({
   members,
   sortKey,
@@ -142,7 +100,7 @@ export function MembersTable({
         </label>
         <ul className="space-y-3">
           {members.map((member) => (
-            <MemberCard
+            <PlayerAccordionItem
               key={member.tag}
               member={member}
               onSelectMember={onSelectMember}
