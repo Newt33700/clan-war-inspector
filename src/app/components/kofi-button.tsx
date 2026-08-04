@@ -1,56 +1,23 @@
-'use client';
-
-import { useEffect, useId } from 'react';
-
 /**
- * Widget officiel Ko-fi (Widget_2.js). Le script expose un objet global
- * `kofiwidget2` qui dessine le bouton dans un conteneur donne -- on evite le
- * `document.write` par defaut du script en lui passant l'id du conteneur, ce
- * qui le rend compatible avec le rendu React/SSR de Next.js et utilisable a
- * plusieurs endroits de la page (header + footer) sans conflit.
+ * Lien vers la page Ko-fi du projet, style sobre plutot que le widget
+ * script officiel (Widget_2.js) : ce dernier injecte son bouton via
+ * `document.write`, ce qui efface toute la page une fois appele apres le
+ * chargement initial -- systematique sur une SPA React/Next.js ou le script
+ * ne se charge qu'apres l'hydratation. Un simple lien evite ce risque.
  */
 
-const KOFI_SCRIPT_ID = 'kofi-widget-script';
-const KOFI_SCRIPT_SRC = 'https://storage.ko-fi.com/cdn/widget/Widget_2.js';
-const KOFI_USERNAME = 'clanwarinspector';
-const KOFI_LABEL = 'Faire un don';
-const KOFI_BUTTON_COLOR = '#d2900b';
+const KOFI_URL = 'https://ko-fi.com/clanwarinspector';
 
-declare global {
-  interface Window {
-    kofiwidget2?: {
-      init: (label: string, color: string, kofiId: string) => void;
-      draw: (containerId?: string) => void;
-    };
-  }
-}
-
-function drawKofiButton(containerId: string) {
-  window.kofiwidget2?.init(KOFI_LABEL, KOFI_BUTTON_COLOR, KOFI_USERNAME);
-  window.kofiwidget2?.draw(containerId);
-}
-
-export function KofiButton({ className }: { className?: string }) {
-  const containerId = `kofi-widget-${useId().replace(/:/g, '')}`;
-
-  useEffect(() => {
-    if (window.kofiwidget2) {
-      drawKofiButton(containerId);
-      return;
-    }
-
-    let script = document.getElementById(KOFI_SCRIPT_ID) as HTMLScriptElement | null;
-    if (!script) {
-      script = document.createElement('script');
-      script.id = KOFI_SCRIPT_ID;
-      script.src = KOFI_SCRIPT_SRC;
-      document.body.appendChild(script);
-    }
-
-    const handleLoad = () => drawKofiButton(containerId);
-    script.addEventListener('load', handleLoad);
-    return () => script?.removeEventListener('load', handleLoad);
-  }, [containerId]);
-
-  return <div id={containerId} className={className} />;
+export function KofiButton({ className = '' }: { className?: string }) {
+  return (
+    <a
+      href={KOFI_URL}
+      target="_blank"
+      rel="noopener noreferrer"
+      className={`inline-flex items-center gap-1.5 rounded-md border border-amber-700/40 bg-amber-800/20 px-3 py-1.5 text-xs font-semibold text-amber-300 transition-colors hover:bg-amber-800/40 ${className}`}
+    >
+      <span aria-hidden="true">☕</span>
+      Faire un don sur Ko-fi
+    </a>
+  );
 }
