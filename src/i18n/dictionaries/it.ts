@@ -42,7 +42,9 @@ const it = {
     loadingLabel: 'Caricamento del clan',
   },
   clanHeader: {
-    stats: '{count}/{max} membri · Punteggio {score} · Trofei di guerra {trophies}',
+    memberCount: '{count}/{max} membri',
+    scoreAriaLabel: 'Punteggio del clan: {score}',
+    warTrophiesAriaLabel: 'Trofei di guerra: {trophies}',
   },
   errorPage: {
     title: 'Sconfitta!',
@@ -218,9 +220,31 @@ const it = {
     level: 'Livello',
     totalDonations: 'Donazioni totali',
     deck: 'Mazzo',
+    deckAverageElixir: 'Elisir medio: {average}',
     deckUnavailableTitle: 'Mazzo non disponibile',
     deckUnavailableDescription:
       'Nessun mazzo attuale né carta preferita in questo profilo.',
+    cardLevel: 'Liv. {level}',
+    cardCollectionTitle: 'Collezione di carte',
+    cardsObtained: '{count} carte ottenute',
+    cardLevelRow: 'Livello {level}',
+    cardCollectionUnavailableTitle: 'Collezione non disponibile',
+    cardCollectionUnavailableDescription:
+      'Questo profilo non espone alcuna carta posseduta.',
+    careerStatsTitle: 'Statistiche',
+    careerWins: 'Vittorie',
+    careerLosses: 'Sconfitte',
+    careerBattlesPlayed: 'Partite giocate',
+    careerThreeCrownWins: 'Vittorie a 3 corone',
+    careerTotalDonations: 'Donazioni totali (storico)',
+    recentBattlesTitle: 'Combattimenti recenti',
+    recentBattlesSummary: '{wins} vittorie · {losses} sconfitte · {draws} pareggi',
+    recentBattlesUnavailableTitle: 'Combattimenti non disponibili',
+    recentBattlesUnavailableDescription:
+      'Nessun combattimento recente disponibile per questo profilo.',
+    battleResultWin: 'Vittoria',
+    battleResultLoss: 'Sconfitta',
+    battleResultDraw: 'Pareggio',
     loadingLabel: 'Caricamento del profilo giocatore',
   },
   copyButton: {

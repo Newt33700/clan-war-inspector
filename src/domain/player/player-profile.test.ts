@@ -22,7 +22,33 @@ describe('parsePlayerProfile', () => {
       name: 'Carte 1',
       iconUrl: 'https://example.com/cards/1.png',
       level: 11,
+      maxLevel: 14,
+      elixirCost: 3,
     });
+  });
+
+  it('extrait les statistiques de carriere (retour utilisateur 2026-08-04)', () => {
+    const profile = parsePlayerProfile(FIXTURE_PLAYER_PROFILE);
+    expect(profile).toMatchObject({
+      wins: 8027,
+      losses: 6557,
+      battleCount: 14584,
+      threeCrownWins: 5573,
+      totalDonations: 292052,
+    });
+  });
+
+  it('borne les statistiques de carriere manquantes ou aberrantes a 0', () => {
+    expect(parsePlayerProfile({ tag: '#A' })).toMatchObject({
+      wins: 0,
+      losses: 0,
+      battleCount: 0,
+      threeCrownWins: 0,
+      totalDonations: 0,
+    });
+    expect(
+      parsePlayerProfile({ tag: '#A', wins: 'oops', totalDonations: -5 }),
+    ).toMatchObject({ wins: 0, totalDonations: 0 });
   });
 
   it('replie sur currentFavouriteCard quand currentDeck est absent', () => {
@@ -32,8 +58,27 @@ describe('parsePlayerProfile', () => {
         name: 'Carte Favorite',
         iconUrl: 'https://example.com/cards/favorite.png',
         level: 9,
+        maxLevel: 14,
+        elixirCost: 0,
       },
     ]);
+  });
+
+  it('extrait la collection complete de cartes (cards)', () => {
+    const profile = parsePlayerProfile(FIXTURE_PLAYER_PROFILE);
+    expect(profile?.cards.length).toBeGreaterThan(0);
+    expect(profile?.cards[0]).toEqual({
+      name: 'Knight',
+      iconUrl: 'https://example.com/cards/knight.png',
+      level: 11,
+      maxLevel: 14,
+      elixirCost: 3,
+    });
+  });
+
+  it('collection vide quand cards est absent ou inexploitable', () => {
+    expect(parsePlayerProfile({ tag: '#A' })?.cards).toEqual([]);
+    expect(parsePlayerProfile({ tag: '#A', cards: 'oops' })?.cards).toEqual([]);
   });
 
   it.each([
@@ -90,7 +135,9 @@ describe('parsePlayerProfile', () => {
       tag: '#A',
       currentDeck: ['oops', null, { name: 'Valide', id: 1, level: 5, maxLevel: 14 }],
     });
-    expect(profile?.deck).toEqual([{ name: 'Valide', iconUrl: '', level: 5 }]);
+    expect(profile?.deck).toEqual([
+      { name: 'Valide', iconUrl: '', level: 5, maxLevel: 14, elixirCost: 0 },
+    ]);
   });
 
   it('borne le niveau d une carte manquant a 0 et l icone a vide', () => {
@@ -98,11 +145,15 @@ describe('parsePlayerProfile', () => {
       tag: '#A',
       currentDeck: [{ name: 'Sans niveau' }],
     });
-    expect(profile?.deck).toEqual([{ name: 'Sans niveau', iconUrl: '', level: 0 }]);
+    expect(profile?.deck).toEqual([
+      { name: 'Sans niveau', iconUrl: '', level: 0, maxLevel: 0, elixirCost: 0 },
+    ]);
   });
 
   it('remplace un nom de carte manquant par une chaine vide', () => {
     const profile = parsePlayerProfile({ tag: '#A', currentDeck: [{ level: 5 }] });
-    expect(profile?.deck).toEqual([{ name: '', iconUrl: '', level: 5 }]);
+    expect(profile?.deck).toEqual([
+      { name: '', iconUrl: '', level: 5, maxLevel: 0, elixirCost: 0 },
+    ]);
   });
 });

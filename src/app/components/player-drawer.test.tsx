@@ -4,7 +4,11 @@ import userEvent from '@testing-library/user-event';
 import { http, HttpResponse } from 'msw';
 import { describe, expect, it, vi } from 'vitest';
 import { mockServer } from '@/mocks/server';
-import { FIXTURE_PLAYER_PROFILE, FIXTURE_PLAYER_PROFILE_NO_DECK } from '@/mocks/fixtures';
+import {
+  FIXTURE_PLAYER_BATTLELOG,
+  FIXTURE_PLAYER_PROFILE,
+  FIXTURE_PLAYER_PROFILE_NO_DECK,
+} from '@/mocks/fixtures';
 import { PlayerDrawer } from './player-drawer';
 
 describe('PlayerDrawer', () => {
@@ -49,6 +53,86 @@ describe('PlayerDrawer', () => {
     expect(screen.getByText('13')).toBeInTheDocument();
     expect(screen.getByText('500')).toBeInTheDocument();
     expect(screen.getAllByTestId('deck-card')).toHaveLength(8);
+    expect(screen.getAllByTestId('deck-card-level')[0]).toHaveTextContent('Niv. 11');
+  });
+
+  it('affiche le total de cartes obtenues et la repartition par niveau', async () => {
+    mockServer.use(
+      http.get('*/api/players/:playerTag', () =>
+        HttpResponse.json(FIXTURE_PLAYER_PROFILE),
+      ),
+    );
+    render(<PlayerDrawer tag="#PLAYER1" onClose={vi.fn()} />);
+
+    expect(await screen.findByTestId('cards-obtained-total')).toHaveTextContent(
+      '8 cartes obtenues',
+    );
+    const rows = screen.getAllByTestId('card-level-row');
+    expect(rows).toHaveLength(4);
+    expect(rows[0]).toHaveTextContent('Niveau 14');
+    expect(rows[0]).toHaveTextContent('1');
+    expect(rows[3]).toHaveTextContent('Niveau 6');
+    expect(rows[3]).toHaveTextContent('2');
+  });
+
+  it('affiche les statistiques de carriere et l elixir moyen du deck', async () => {
+    mockServer.use(
+      http.get('*/api/players/:playerTag', () =>
+        HttpResponse.json(FIXTURE_PLAYER_PROFILE),
+      ),
+    );
+    render(<PlayerDrawer tag="#PLAYER1" onClose={vi.fn()} />);
+
+    const stats = await screen.findByTestId('career-stats');
+    expect(stats).toHaveTextContent('8027');
+    expect(stats).toHaveTextContent('6557');
+    expect(stats).toHaveTextContent('14584');
+    expect(stats).toHaveTextContent('5573');
+    expect(stats).toHaveTextContent('292052');
+    expect(screen.getByTestId('deck-average-elixir')).toHaveTextContent('3.8');
+  });
+
+  it('affiche le resume et la grille des combats recents', async () => {
+    mockServer.use(
+      http.get('*/api/players/:playerTag', () =>
+        HttpResponse.json(FIXTURE_PLAYER_PROFILE),
+      ),
+      http.get('*/api/players/:playerTag/battlelog', () =>
+        HttpResponse.json(FIXTURE_PLAYER_BATTLELOG),
+      ),
+    );
+    render(<PlayerDrawer tag="#PLAYER1" onClose={vi.fn()} />);
+
+    expect(await screen.findByTestId('recent-battles-summary')).toHaveTextContent(
+      '5 victoires · 3 défaites · 1 nuls',
+    );
+    expect(screen.getAllByTestId('recent-battle-cell')).toHaveLength(9);
+  });
+
+  it('affiche un etat vide illustre quand aucun combat recent n est disponible', async () => {
+    mockServer.use(
+      http.get('*/api/players/:playerTag', () =>
+        HttpResponse.json(FIXTURE_PLAYER_PROFILE),
+      ),
+      http.get(
+        '*/api/players/:playerTag/battlelog',
+        () => new HttpResponse(null, { status: 404 }),
+      ),
+    );
+    render(<PlayerDrawer tag="#PLAYER1" onClose={vi.fn()} />);
+
+    expect(await screen.findByText(/combats indisponibles/i)).toBeInTheDocument();
+  });
+
+  it('affiche un etat vide illustre quand aucune carte n est exploitable dans la collection', async () => {
+    mockServer.use(
+      http.get('*/api/players/:playerTag', () =>
+        HttpResponse.json({ tag: '#P5', name: 'Joueur 5' }),
+      ),
+    );
+    render(<PlayerDrawer tag="#P5" onClose={vi.fn()} />);
+
+    expect(await screen.findByText(/collection indisponible/i)).toBeInTheDocument();
   });
 
   it('replie sur currentFavouriteCard quand currentDeck est absent', async () => {

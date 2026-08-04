@@ -184,6 +184,27 @@ export async function proxyPlayerResource(
 }
 
 /**
+ * Relaye les combats recents d'un joueur (retour utilisateur 2026-08-04,
+ * inspiration StatsRoyale "Combats recents"). Meme contrat d'erreurs que
+ * `proxyPlayerResource`.
+ */
+export async function proxyPlayerBattlelog(
+  rawTag: string,
+  options: ProxyOptions = {},
+): Promise<Response> {
+  const tagSegment = toApiPlayerTagSegment(rawTag);
+  if (tagSegment === null) {
+    return errorResponse('INVALID_TAG', `Tag joueur invalide : "${rawTag}".`);
+  }
+
+  return relaySupercellPath(
+    `/players/${tagSegment}/battlelog`,
+    options,
+    'PLAYER_NOT_FOUND',
+  );
+}
+
+/**
  * Relaye une recherche de clan par nom de l'API Supercell (US 10.1) :
  * la zone de saisie du dashboard accepte desormais un tag ou un nom.
  * Une requete trop courte est rejetee sans appel reseau (l'API Supercell
