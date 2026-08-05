@@ -55,6 +55,32 @@ function toRole(value: unknown): ClanRole | null {
   return null;
 }
 
+/**
+ * L'API Supercell renvoie un niveau de carte relatif a sa rarete (1 =
+ * niveau minimum obtenable pour cette carte), pas le niveau affiche dans
+ * le jeu sur l'echelle unifiee : sans cet offset, toute carte non commune
+ * (rare/epique/legendaire/championne) affiche un niveau bien trop bas
+ * (retour utilisateur 2026-08-05, capture d'ecran in-game vs API a
+ * l'appui). Applique aussi bien a `level` qu'a `maxLevel` : les deux
+ * viennent de la meme echelle brute, sinon `level` peut depasser
+ * `maxLevel` une fois seul `level` corrige. Verifie sur donnees reelles
+ * (joueur #8U9QRQ8C) : Balloon (epique) niveau API 11 -> niveau affiche
+ * 16 (+5) ; Miner (legendaire) niveau API 7 -> niveau affiche 15 (+8).
+ */
+const RARITY_LEVEL_OFFSET: Record<string, number> = {
+  common: 0,
+  rare: 2,
+  epic: 5,
+  legendary: 8,
+  champion: 10,
+};
+
+function rarityOffset(rarity: unknown): number {
+  return typeof rarity === 'string'
+    ? (RARITY_LEVEL_OFFSET[rarity.toLowerCase()] ?? 0)
+    : 0;
+}
+
 function toCard(candidate: unknown): PlayerDeckCard | null {
   if (!isRecord(candidate)) {
     return null;
@@ -63,11 +89,12 @@ function toCard(candidate: unknown): PlayerDeckCard | null {
   const iconUrls = candidate.iconUrls;
   const iconUrl =
     isRecord(iconUrls) && typeof iconUrls.medium === 'string' ? iconUrls.medium : '';
+  const offset = rarityOffset(candidate.rarity);
   return {
     name,
     iconUrl,
-    level: toSafeCount(candidate.level),
-    maxLevel: toSafeCount(candidate.maxLevel),
+    level: toSafeCount(candidate.level) + offset,
+    maxLevel: toSafeCount(candidate.maxLevel) + offset,
     elixirCost: toSafeCount(candidate.elixirCost),
   };
 }
