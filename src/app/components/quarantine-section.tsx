@@ -28,6 +28,7 @@ import type { ApiResource } from '@/hooks/use-api-resource';
 import { Accordion } from './accordion';
 import { CopyButton } from './copy-button';
 import { EmptyState } from './empty-state';
+import { PlayerTagButton } from './player-tag-button';
 import { TrophyIcon } from './section-icons';
 import { Skeleton } from './skeleton';
 import { useTranslations } from './i18n/locale-provider';
@@ -107,7 +108,9 @@ function QuarantineCard({
         }
         detailClassName="space-y-2 pt-3"
       >
-        <p className="text-xs text-slate-500">{member.tag}</p>
+        <PlayerTagButton tag={member.tag} className="block text-xs text-slate-500">
+          {member.tag}
+        </PlayerTagButton>
         {resource?.status === 'success' && (
           <dl className="grid grid-cols-2 gap-3 text-sm">
             <div>

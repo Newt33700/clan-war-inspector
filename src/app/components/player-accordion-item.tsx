@@ -86,7 +86,16 @@ export function PlayerAccordionItem({
             <div className="grid grid-cols-3 gap-2 border-t border-black/10 bg-slate-200 px-4 py-3 text-center text-xs">
               <div>
                 <p className="text-slate-500 uppercase">{t('membersTable.tag')}</p>
-                <p className="text-slate-900">{member.tag}</p>
+                <button
+                  type="button"
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    onSelectMember(member.tag);
+                  }}
+                  className="text-slate-900 hover:underline focus-visible:underline"
+                >
+                  {member.tag}
+                </button>
               </div>
               <div>
                 <p className="text-slate-500 uppercase">{t('membersTable.trophies')}</p>

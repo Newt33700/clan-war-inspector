@@ -14,6 +14,7 @@ import { findPurgeCandidates } from '@/domain/clan/purge';
 import { parseCurrentWar } from '@/domain/war/current-war';
 import { formatModerationReportForClipboard } from '@/lib/purge-export';
 import type { ApiResource } from '@/hooks/use-api-resource';
+import { PlayerTagButton } from './player-tag-button';
 import { useTranslations } from './i18n/locale-provider';
 
 const COPY_CONFIRMATION_MS = 2000;
@@ -160,9 +161,12 @@ export function PurgeSection({
                     <div>
                       <p className="font-display font-semibold text-slate-900">
                         {candidate.member.name}
-                        <span className="ml-2 text-xs font-normal text-slate-500">
+                        <PlayerTagButton
+                          tag={candidate.member.tag}
+                          className="ml-2 inline text-xs font-normal text-slate-500"
+                        >
                           {candidate.member.tag}
-                        </span>
+                        </PlayerTagButton>
                       </p>
                       <p className="text-xs text-slate-500">
                         {t('purge.battlesThisWeek', {

@@ -27,7 +27,7 @@ import { CurrentWarSection } from '../components/current-war-section';
 import { HallOfFameSection } from '../components/hall-of-fame-section';
 import { MembersTable } from '../components/members-table';
 import { ParticipationSummarySection } from '../components/participation-summary-section';
-import { PlayerDrawer } from '../components/player-drawer';
+import { usePlayerDrawer } from '../components/player-drawer-provider';
 import { MembersIcon } from '../components/section-icons';
 import { useTranslations } from '../components/i18n/locale-provider';
 
@@ -44,7 +44,7 @@ export function DashboardView({ tag, clanSeed, warSeed, logSeed }: DashboardView
   const [sortKey, setSortKey] = useState<MemberSortKey>('role');
   const [direction, setDirection] = useState<SortDirection>('desc');
   const [memberQuery, setMemberQuery] = useState('');
-  const [selectedPlayerTag, setSelectedPlayerTag] = useState<string | null>(null);
+  const { openPlayer } = usePlayerDrawer();
 
   const clanState = useApiResource<unknown>(clanPath, clanSeed);
   // La guerre en cours et l'historique ne sont charges qu'une fois le clan
@@ -147,14 +147,12 @@ export function DashboardView({ tag, clanSeed, warSeed, logSeed }: DashboardView
                 direction={direction}
                 onSortChange={handleSortChange}
                 onSortSelect={handleSortSelect}
-                onSelectMember={setSelectedPlayerTag}
+                onSelectMember={openPlayer}
               />
             )}
           </section>
         </>
       )}
-
-      <PlayerDrawer tag={selectedPlayerTag} onClose={() => setSelectedPlayerTag(null)} />
     </div>
   );
 }

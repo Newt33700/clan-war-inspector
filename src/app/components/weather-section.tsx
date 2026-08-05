@@ -18,6 +18,7 @@ import {
 import { parseRiverRaceLog } from '@/domain/war/war-history';
 import type { ApiResource } from '@/hooks/use-api-resource';
 import { EmptyState } from './empty-state';
+import { PlayerTagButton } from './player-tag-button';
 import { Skeleton } from './skeleton';
 import { Sparkline } from './sparkline';
 import { useTranslations } from './i18n/locale-provider';
@@ -123,8 +124,10 @@ export function WeatherSection({ clanTag, clanState, logState }: WeatherSectionP
                   className="bg-gradient-to-b from-white to-slate-100 text-slate-900"
                 >
                   <td className="rounded-l-xl border-y-2 border-l-2 border-black px-3 py-2">
-                    <p className="font-display font-semibold">{trend.name}</p>
-                    <p className="text-xs text-slate-500">{trend.tag}</p>
+                    <PlayerTagButton tag={trend.tag}>
+                      <p className="font-display font-semibold">{trend.name}</p>
+                      <p className="text-xs text-slate-500">{trend.tag}</p>
+                    </PlayerTagButton>
                   </td>
                   <td className="border-y-2 border-black px-3 py-2">
                     <Sparkline

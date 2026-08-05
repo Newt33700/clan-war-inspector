@@ -4,10 +4,13 @@
  * guerre en cours.
  */
 
-import { fireEvent, render, screen, waitFor } from '@/test-utils';
+import { fireEvent, render, screen, waitFor, within } from '@/test-utils';
+import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 import type { ClanMember } from '@/domain/clan/members';
 import type { ApiResource } from '@/hooks/use-api-resource';
+import { setMockResponse } from '@/mocks/handlers';
+import { FIXTURE_PLAYER_PROFILE } from '@/mocks/fixtures';
 import { PurgeSection } from './purge-section';
 
 function member(overrides: Partial<ClanMember>): ClanMember {
@@ -222,5 +225,29 @@ describe('PurgeSection', () => {
       ),
     );
     expect(await screen.findByText('Copié ! ✅')).toBeInTheDocument();
+  });
+
+  it('ouvre la fiche joueur au clic sur le code du joueur', async () => {
+    setMockResponse('playerProfile', { ...FIXTURE_PLAYER_PROFILE, tag: '#A' });
+    const candidate = member({ tag: '#A', name: 'Alice', role: 'member' });
+    render(
+      <PurgeSection
+        members={[candidate]}
+        warState={warSuccess([{ tag: '#A', decksUsed: 2 }])}
+        minWeeklyBattles={8}
+        onMinWeeklyBattlesChange={noop}
+        ready
+      />,
+    );
+    const user = userEvent.setup();
+
+    const row = screen.getByTestId('purge-row');
+    await user.click(within(row).getByRole('button', { name: '#A' }));
+
+    const drawer = screen
+      .getByRole('heading', { name: /profil joueur/i })
+      .closest('aside')!;
+    expect(drawer).toHaveAttribute('aria-hidden', 'false');
+    await within(drawer).findByText('500');
   });
 });

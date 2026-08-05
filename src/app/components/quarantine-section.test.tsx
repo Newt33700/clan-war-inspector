@@ -5,9 +5,11 @@
  */
 
 import { fireEvent, render, screen, waitFor, within } from '@/test-utils';
+import userEvent from '@testing-library/user-event';
 import { http, HttpResponse } from 'msw';
 import { describe, expect, it } from 'vitest';
 import { mockServer } from '@/mocks/server';
+import { FIXTURE_PLAYER_PROFILE } from '@/mocks/fixtures';
 import type { ApiResource } from '@/hooks/use-api-resource';
 import { QuarantineSection } from './quarantine-section';
 
@@ -212,5 +214,34 @@ describe('QuarantineSection', () => {
     );
     expect(screen.getByText('6000')).toBeInTheDocument();
     expect(screen.getByText('4500')).toBeInTheDocument();
+  });
+
+  it('ouvre la fiche joueur au clic sur le code du joueur', async () => {
+    mockServer.use(
+      http.get('*/api/players/:playerTag', () =>
+        HttpResponse.json({ ...FIXTURE_PLAYER_PROFILE, tag: '#NEW1' }),
+      ),
+    );
+    render(
+      <QuarantineSection
+        clanTag="#20PP"
+        clanState={success(CLAN)}
+        logState={success(LOG)}
+      />,
+    );
+    const user = userEvent.setup();
+
+    const card = (await screen.findByText('Nouveau 1')).closest(
+      '[data-testid="quarantine-card"]',
+    ) as HTMLElement;
+    // Le tag n'est visible qu'une fois la carte deplie (accordeon).
+    await user.click(within(card).getByRole('button', { name: /nouveau 1/i }));
+    await user.click(within(card).getByRole('button', { name: '#NEW1' }));
+
+    const drawer = screen
+      .getByRole('heading', { name: /profil joueur/i })
+      .closest('aside')!;
+    expect(drawer).toHaveAttribute('aria-hidden', 'false');
+    await within(drawer).findByText('500');
   });
 });

@@ -26,6 +26,7 @@ import type { ApiResource } from '@/hooks/use-api-resource';
 import { formatTimeOfDay } from '@/lib/format-time';
 import { ActionButton } from './action-button';
 import { PlayerProgressBar } from './player-progress-bar';
+import { PlayerTagButton } from './player-tag-button';
 import { SwordsIcon } from './section-icons';
 import { Skeleton } from './skeleton';
 import { useTranslations } from './i18n/locale-provider';
@@ -52,8 +53,12 @@ function WarParticipantCard({
     >
       <div className="flex items-start justify-between gap-3">
         <div>
-          <p className="font-display font-semibold text-slate-900">{participant.name}</p>
-          <p className="text-xs text-slate-500">{participant.tag}</p>
+          <PlayerTagButton tag={participant.tag} className="block">
+            <p className="font-display font-semibold text-slate-900">
+              {participant.name}
+            </p>
+            <p className="text-xs text-slate-500">{participant.tag}</p>
+          </PlayerTagButton>
           {!participant.stillInClan && (
             <span className="bg-cr-red mt-1 inline-block rounded px-2 py-0.5 text-xs text-white">
               {t('currentWar.leftClan')}
@@ -264,10 +269,12 @@ export function CurrentWarSection({ warState, memberTags }: CurrentWarSectionPro
                           scope="row"
                           className="rounded-l-xl border-y-2 border-l-2 border-black px-3 py-2 text-left font-normal"
                         >
-                          {participant.name}
-                          <span className="block text-xs text-slate-500">
-                            {participant.tag}
-                          </span>
+                          <PlayerTagButton tag={participant.tag} className="font-display">
+                            {participant.name}
+                            <span className="block text-xs font-normal text-slate-500">
+                              {participant.tag}
+                            </span>
+                          </PlayerTagButton>
                           {!participant.stillInClan && (
                             <span className="bg-cr-red mt-1 inline-block rounded px-2 py-0.5 text-xs text-white">
                               {t('currentWar.leftClan')}
