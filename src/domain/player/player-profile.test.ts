@@ -24,6 +24,7 @@ describe('parsePlayerProfile', () => {
       level: 11,
       maxLevel: 14,
       elixirCost: 3,
+      isEvolved: false,
     });
   });
 
@@ -60,6 +61,7 @@ describe('parsePlayerProfile', () => {
         level: 9,
         maxLevel: 14,
         elixirCost: 0,
+        isEvolved: false,
       },
     ]);
   });
@@ -73,6 +75,7 @@ describe('parsePlayerProfile', () => {
       level: 11,
       maxLevel: 14,
       elixirCost: 3,
+      isEvolved: false,
     });
   });
 
@@ -136,7 +139,14 @@ describe('parsePlayerProfile', () => {
       currentDeck: ['oops', null, { name: 'Valide', id: 1, level: 5, maxLevel: 14 }],
     });
     expect(profile?.deck).toEqual([
-      { name: 'Valide', iconUrl: '', level: 5, maxLevel: 14, elixirCost: 0 },
+      {
+        name: 'Valide',
+        iconUrl: '',
+        level: 5,
+        maxLevel: 14,
+        elixirCost: 0,
+        isEvolved: false,
+      },
     ]);
   });
 
@@ -146,14 +156,21 @@ describe('parsePlayerProfile', () => {
       currentDeck: [{ name: 'Sans niveau' }],
     });
     expect(profile?.deck).toEqual([
-      { name: 'Sans niveau', iconUrl: '', level: 0, maxLevel: 0, elixirCost: 0 },
+      {
+        name: 'Sans niveau',
+        iconUrl: '',
+        level: 0,
+        maxLevel: 0,
+        elixirCost: 0,
+        isEvolved: false,
+      },
     ]);
   });
 
   it('remplace un nom de carte manquant par une chaine vide', () => {
     const profile = parsePlayerProfile({ tag: '#A', currentDeck: [{ level: 5 }] });
     expect(profile?.deck).toEqual([
-      { name: '', iconUrl: '', level: 5, maxLevel: 0, elixirCost: 0 },
+      { name: '', iconUrl: '', level: 5, maxLevel: 0, elixirCost: 0, isEvolved: false },
     ]);
   });
 
@@ -226,6 +243,113 @@ describe('parsePlayerProfile', () => {
         cards: [{ name: 'Miner', level: 7, maxLevel: 8, rarity: 'legendary' }],
       });
       expect(profile?.cards[0]).toMatchObject({ level: 15, maxLevel: 16 });
+    });
+  });
+
+  describe('artwork evolue (retour utilisateur 2026-08-05)', () => {
+    // L'API expose evolutionLevel (niveau d'evolution actuellement
+    // equipe) et une image dediee iconUrls.evolutionMedium. Verifie sur
+    // donnees reelles du joueur #908PCVUU : Minion Horde (evolutionLevel
+    // 1) et Baby Dragon (evolutionLevel 1) exposent bien ce champ.
+    it('utilise l artwork evolue quand evolutionLevel est superieur a 0', () => {
+      const profile = parsePlayerProfile({
+        tag: '#A',
+        currentDeck: [
+          {
+            name: 'Minion Horde',
+            level: 16,
+            evolutionLevel: 1,
+            iconUrls: {
+              medium: 'https://example.com/minion-horde.png',
+              evolutionMedium: 'https://example.com/minion-horde-evo.png',
+            },
+          },
+        ],
+      });
+      expect(profile?.deck[0]).toMatchObject({
+        iconUrl: 'https://example.com/minion-horde-evo.png',
+        isEvolved: true,
+      });
+    });
+
+    it.each([
+      ['absent', {}],
+      ['a 0', { evolutionLevel: 0 }],
+      ['negatif', { evolutionLevel: -1 }],
+      ['non-numerique', { evolutionLevel: 'oops' }],
+    ] as const)('artwork standard quand evolutionLevel est %s', (_label, extra) => {
+      const profile = parsePlayerProfile({
+        tag: '#A',
+        currentDeck: [
+          {
+            name: 'Carte',
+            level: 5,
+            ...extra,
+            iconUrls: {
+              medium: 'https://example.com/standard.png',
+              evolutionMedium: 'https://example.com/evo.png',
+            },
+          },
+        ],
+      });
+      expect(profile?.deck[0]).toMatchObject({
+        iconUrl: 'https://example.com/standard.png',
+        isEvolved: false,
+      });
+    });
+
+    it('repli sur l artwork standard si evolue mais evolutionMedium absent', () => {
+      const profile = parsePlayerProfile({
+        tag: '#A',
+        currentDeck: [
+          {
+            name: 'Carte',
+            level: 5,
+            evolutionLevel: 1,
+            iconUrls: { medium: 'https://example.com/standard.png' },
+          },
+        ],
+      });
+      expect(profile?.deck[0]).toMatchObject({
+        iconUrl: 'https://example.com/standard.png',
+        isEvolved: true,
+      });
+    });
+
+    it('icone vide si iconUrls est absent ou inexploitable, evoluee ou non', () => {
+      expect(
+        parsePlayerProfile({
+          tag: '#A',
+          currentDeck: [{ name: 'Carte', level: 5, evolutionLevel: 1 }],
+        })?.deck[0],
+      ).toMatchObject({ iconUrl: '', isEvolved: true });
+      expect(
+        parsePlayerProfile({
+          tag: '#A',
+          currentDeck: [{ name: 'Carte', level: 5, iconUrls: 'oops' }],
+        })?.deck[0],
+      ).toMatchObject({ iconUrl: '', isEvolved: false });
+    });
+
+    it('evolution prise en compte aussi dans la collection complete (cards)', () => {
+      const profile = parsePlayerProfile({
+        tag: '#A',
+        cards: [
+          {
+            name: 'Baby Dragon',
+            level: 11,
+            evolutionLevel: 1,
+            iconUrls: {
+              medium: 'https://example.com/baby-dragon.png',
+              evolutionMedium: 'https://example.com/baby-dragon-evo.png',
+            },
+          },
+        ],
+      });
+      expect(profile?.cards[0]).toMatchObject({
+        iconUrl: 'https://example.com/baby-dragon-evo.png',
+        isEvolved: true,
+      });
     });
   });
 });

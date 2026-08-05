@@ -71,8 +71,11 @@ export interface PlayerProfileCard {
   id: number;
   level: number;
   maxLevel: number;
-  iconUrls: { medium: string };
+  iconUrls: { medium: string; evolutionMedium?: string };
   elixirCost?: number;
+  rarity?: string;
+  /** Niveau d'evolution actuellement equipe (0/absent = pas evoluee). */
+  evolutionLevel?: number;
 }
 
 /** Forme (partielle) de GET /players/{tag} utile a l'inspection (US 9). */

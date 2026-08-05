@@ -10,11 +10,14 @@ import { toSafeCount } from '../shared/numeric';
 
 export interface PlayerDeckCard {
   name: string;
+  /** Artwork "evolue" (`iconUrls.evolutionMedium`) si `isEvolved`, sinon l'artwork standard. */
   iconUrl: string;
   level: number;
   /** Niveau maximum de la carte (echelle propre a sa rarete). */
   maxLevel: number;
   elixirCost: number;
+  /** Vrai si le joueur a actuellement equipe l'evolution de cette carte. */
+  isEvolved: boolean;
 }
 
 export interface PlayerProfile {
@@ -81,21 +84,37 @@ function rarityOffset(rarity: unknown): number {
     : 0;
 }
 
+/**
+ * Artwork a afficher pour une carte : l'API expose une image dediee
+ * `iconUrls.evolutionMedium` (aura speciale) pour toute carte dont
+ * l'evolution est actuellement equipee (`evolutionLevel > 0`) -- sinon
+ * repli sur l'artwork standard `iconUrls.medium` (retour utilisateur
+ * 2026-08-05).
+ */
+function toIconUrl(iconUrls: unknown, isEvolved: boolean): string {
+  if (!isRecord(iconUrls)) {
+    return '';
+  }
+  if (isEvolved && typeof iconUrls.evolutionMedium === 'string') {
+    return iconUrls.evolutionMedium;
+  }
+  return typeof iconUrls.medium === 'string' ? iconUrls.medium : '';
+}
+
 function toCard(candidate: unknown): PlayerDeckCard | null {
   if (!isRecord(candidate)) {
     return null;
   }
   const name = typeof candidate.name === 'string' ? candidate.name : '';
-  const iconUrls = candidate.iconUrls;
-  const iconUrl =
-    isRecord(iconUrls) && typeof iconUrls.medium === 'string' ? iconUrls.medium : '';
+  const isEvolved = toSafeCount(candidate.evolutionLevel) > 0;
   const offset = rarityOffset(candidate.rarity);
   return {
     name,
-    iconUrl,
+    iconUrl: toIconUrl(candidate.iconUrls, isEvolved),
     level: toSafeCount(candidate.level) + offset,
     maxLevel: toSafeCount(candidate.maxLevel) + offset,
     elixirCost: toSafeCount(candidate.elixirCost),
+    isEvolved,
   };
 }
 

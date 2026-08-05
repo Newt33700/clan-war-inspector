@@ -228,6 +228,7 @@ const fr = {
     deckUnavailableTitle: 'Deck indisponible',
     deckUnavailableDescription: 'Ni deck actuel ni carte favorite dans ce profil.',
     cardLevel: 'Niv. {level}',
+    evolvedBadge: 'Évoluée',
     cardCollectionTitle: 'Collection de cartes',
     cardsObtained: '{count} cartes obtenues',
     cardLevelRow: 'Niveau {level}',

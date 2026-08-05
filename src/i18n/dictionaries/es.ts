@@ -222,6 +222,7 @@ const es = {
     deckUnavailableTitle: 'Mazo no disponible',
     deckUnavailableDescription: 'Ni mazo actual ni carta favorita en este perfil.',
     cardLevel: 'Niv. {level}',
+    evolvedBadge: 'Evolucionada',
     cardCollectionTitle: 'Colección de cartas',
     cardsObtained: '{count} cartas obtenidas',
     cardLevelRow: 'Nivel {level}',

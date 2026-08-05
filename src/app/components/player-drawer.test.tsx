@@ -56,6 +56,51 @@ describe('PlayerDrawer', () => {
     expect(screen.getAllByTestId('deck-card-level')[0]).toHaveTextContent('Niv. 11');
   });
 
+  it('signale une carte evoluee (ring dore + badge accessible, retour 2026-08-05)', async () => {
+    mockServer.use(
+      http.get('*/api/players/:playerTag', () =>
+        HttpResponse.json({
+          tag: '#PLAYER1',
+          name: 'Joueur 1',
+          currentDeck: [
+            {
+              name: 'Minion Horde',
+              level: 16,
+              evolutionLevel: 1,
+              iconUrls: {
+                medium: 'https://example.com/minion-horde.png',
+                evolutionMedium: 'https://example.com/minion-horde-evo.png',
+              },
+            },
+          ],
+        }),
+      ),
+    );
+    render(<PlayerDrawer tag="#PLAYER1" onClose={vi.fn()} />);
+
+    const level = await screen.findByTestId('deck-card-level');
+    expect(level).toHaveTextContent('Niv. 16');
+    expect(level).toHaveTextContent(/évoluée/i);
+    expect(screen.getByRole('img', { name: 'Minion Horde' })).toHaveAttribute(
+      'src',
+      'https://example.com/minion-horde-evo.png',
+    );
+  });
+
+  it('n affiche pas de badge d evolution pour une carte non evoluee', async () => {
+    mockServer.use(
+      http.get('*/api/players/:playerTag', () =>
+        HttpResponse.json(FIXTURE_PLAYER_PROFILE),
+      ),
+    );
+    render(<PlayerDrawer tag="#PLAYER1" onClose={vi.fn()} />);
+
+    const levels = await screen.findAllByTestId('deck-card-level');
+    for (const level of levels) {
+      expect(level).not.toHaveTextContent(/évoluée/i);
+    }
+  });
+
   it('affiche le total de cartes obtenues et la repartition par niveau', async () => {
     mockServer.use(
       http.get('*/api/players/:playerTag', () =>
