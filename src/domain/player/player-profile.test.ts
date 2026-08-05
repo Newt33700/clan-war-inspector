@@ -329,6 +329,12 @@ describe('parsePlayerProfile', () => {
           currentDeck: [{ name: 'Carte', level: 5, iconUrls: 'oops' }],
         })?.deck[0],
       ).toMatchObject({ iconUrl: '', isEvolved: false });
+      expect(
+        parsePlayerProfile({
+          tag: '#A',
+          currentDeck: [{ name: 'Carte', level: 5, iconUrls: { small: 'x' } }],
+        })?.deck[0],
+      ).toMatchObject({ iconUrl: '', isEvolved: false });
     });
 
     it('evolution prise en compte aussi dans la collection complete (cards)', () => {
