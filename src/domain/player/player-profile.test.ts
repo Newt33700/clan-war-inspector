@@ -156,4 +156,76 @@ describe('parsePlayerProfile', () => {
       { name: '', iconUrl: '', level: 5, maxLevel: 0, elixirCost: 0 },
     ]);
   });
+
+  describe('offset de niveau selon la rarete (bug niveau errone, retour 2026-08-05)', () => {
+    // L'API Supercell renvoie un niveau relatif a la rarete (1 = minimum
+    // obtenable pour cette carte), pas le niveau affiche en jeu. Valeurs
+    // verifiees sur donnees reelles du joueur #8U9QRQ8C (capture d'ecran
+    // in-game vs API) : Barbarians (commune) niveau API 15/maxLevel 16 =
+    // affiche 15 ; Balloon (epique) niveau API 11/maxLevel 11 = affiche
+    // 16 ; Miner (legendaire) niveau API 7/maxLevel 8 = affiche 15.
+    it.each([
+      ['common', 15, 16, 15, 16],
+      ['rare', 10, 12, 12, 14],
+      ['epic', 11, 11, 16, 16],
+      ['legendary', 7, 8, 15, 16],
+      ['legendary', 8, 8, 16, 16],
+      ['champion', 6, 6, 16, 16],
+    ] as const)(
+      'rarete %s : niveau/max API %i/%i -> niveau/max affiche %i/%i',
+      (rarity, apiLevel, apiMax, expectedLevel, expectedMax) => {
+        const profile = parsePlayerProfile({
+          tag: '#A',
+          currentDeck: [{ name: 'Carte', level: apiLevel, maxLevel: apiMax, rarity }],
+        });
+        expect(profile?.deck[0]).toMatchObject({
+          level: expectedLevel,
+          maxLevel: expectedMax,
+        });
+      },
+    );
+
+    it('rarete inconnue ou absente : aucun offset applique', () => {
+      expect(
+        parsePlayerProfile({
+          tag: '#A',
+          currentDeck: [{ name: 'Sans rarete', level: 9, maxLevel: 14 }],
+        })?.deck[0],
+      ).toMatchObject({ level: 9, maxLevel: 14 });
+      expect(
+        parsePlayerProfile({
+          tag: '#A',
+          currentDeck: [
+            { name: 'Rarete inconnue', level: 9, maxLevel: 14, rarity: 'mythic' },
+          ],
+        })?.deck[0],
+      ).toMatchObject({ level: 9, maxLevel: 14 });
+    });
+
+    it('rarete non-chaine : aucun offset applique (pas de plantage)', () => {
+      expect(
+        parsePlayerProfile({
+          tag: '#A',
+          currentDeck: [{ name: 'Rarete invalide', level: 9, rarity: 42 }],
+        })?.deck[0]?.level,
+      ).toBe(9);
+    });
+
+    it('rarete en majuscules reconnue comme en minuscules', () => {
+      expect(
+        parsePlayerProfile({
+          tag: '#A',
+          currentDeck: [{ name: 'Legendaire', level: 7, rarity: 'LEGENDARY' }],
+        })?.deck[0]?.level,
+      ).toBe(15);
+    });
+
+    it('offset applique aussi a la collection complete (cards)', () => {
+      const profile = parsePlayerProfile({
+        tag: '#A',
+        cards: [{ name: 'Miner', level: 7, maxLevel: 8, rarity: 'legendary' }],
+      });
+      expect(profile?.cards[0]).toMatchObject({ level: 15, maxLevel: 16 });
+    });
+  });
 });

@@ -1601,6 +1601,22 @@ Critères d'acceptation :
   (verre dépoli : fond translucide + flou) appliqué aux derniers champs de
   saisie et à la barre d'onglets mobile restés en aplat plein sur le
   canevas sombre, pour rester cohérent avec le reste de la refonte.
+- ✅ **Bug corrigé — niveau de carte errone dans la fiche joueur**
+  (2026-08-05, retour utilisateur avec capture d'écran in-game a
+  l'appui) : `/players/{tag}` renvoie un `level`/`maxLevel` de carte
+  relatif a la rarete (1 = minimum obtenable pour cette carte precise),
+  pas le niveau affiche en jeu sur l'echelle unifiee — les cartes
+  communes lisaient juste par coincidence (offset 0), mais toute carte
+  rare/epique/legendaire/championne affichait un niveau bien trop bas
+  (ex. Miner legendaire : API 7 affiche a tort "Niveau 7" au lieu de
+  "Niveau 15"). `domain/player/player-profile.ts` applique desormais un
+  offset par rarete (commune +0, rare +2, epique +5, legendaire +8,
+  championne +10) a `level` ET `maxLevel` (les deux viennent de la meme
+  echelle brute), verifie sur donnees reelles de deux joueurs du clan
+  `#20J20QG` (capture d'ecran in-game vs reponse API brute). Corrige a la
+  fois le deck affiche et la repartition « Collection de cartes » par
+  niveau (`summarizeCardsByLevel`), qui consomment la meme fonction de
+  parsing.
 
 ### Dette de test assumée (à reprendre par la passe testing)
 
