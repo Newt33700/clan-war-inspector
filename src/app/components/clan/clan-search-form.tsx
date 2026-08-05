@@ -196,7 +196,12 @@ export function ClanSearchForm({ hasActiveClan = false }: ClanSearchFormProps) {
                 className="cr-pill-row px-3 py-1 text-xs text-slate-900"
               >
                 {clan.name}
-                <span className="ml-1 text-slate-500">{clan.tag}</span>
+                {/* Nom de repli identique au tag (US 13.3, clan charge par
+                    tag direct avant que son vrai nom soit connu) : ne pas
+                    repeter le tag deux fois. */}
+                {clan.name !== clan.tag && (
+                  <span className="ml-1 text-slate-500">{clan.tag}</span>
+                )}
               </button>
             ))}
           </div>

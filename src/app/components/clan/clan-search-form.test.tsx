@@ -213,6 +213,21 @@ describe('ClanSearchForm', () => {
       expect(await screen.findByTestId('recent-clan')).toHaveTextContent('#20PP');
     });
 
+    it('n affiche pas le tag en double quand un tag est charge sans nom connu', async () => {
+      const first = render(<ClanSearchForm />);
+      const user = userEvent.setup();
+
+      await user.type(screen.getByLabelText(/tag ou nom du clan/i), '#20PP');
+      await user.click(screen.getByRole('button', { name: /inspecter/i }));
+      first.unmount();
+
+      render(<ClanSearchForm />);
+
+      // Repli sans nom connu (US 13.3) : le tag sert de nom d'affichage,
+      // il ne doit donc pas etre repete une seconde fois a cote.
+      expect((await screen.findByTestId('recent-clan')).textContent).toBe('#20PP');
+    });
+
     it('charge directement le clan recent au clic', async () => {
       const first = render(<ClanSearchForm />);
       const user = userEvent.setup();
