@@ -1,8 +1,15 @@
 # Pipeline de validation (US 2.1).
 #
-# Chaque etape est BLOQUANTE : les seuils de couverture (80 % global,
-# 100 % sur src/domain) et de mutation (90 %) font sortir les commandes
-# en erreur, donc le job echoue et la merge request n'est pas mergeable.
+# Chaque etape reste BLOQUANTE : les seuils de couverture (80 % global,
+# 100 % sur src/domain) et de mutation (90 %) font echouer leur job, donc la
+# merge request n'est pas mergeable.
+#
+# Le pipeline est parallelise : les controles statiques, les tests, le build et
+# le mutation testing sont independants, donc le temps de la CI est celui du
+# job le plus long et non la somme des etapes. Le mutation testing, qui pesait
+# 91 % du temps total, est lui-meme reparti sur plusieurs jobs (cf.
+# scripts/mutation.mjs) et son seuil est evalue une seule fois, sur l'union des
+# rapports (cf. scripts/mutation-report.mjs).
 name: CI
 
 on:
@@ -10,38 +17,43 @@ on:
     branches: [main]
   pull_request:
 
+# Un nouveau push sur une PR annule le run precedent, devenu obsolete.
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 jobs:
-  quality:
-    name: Lint, types, tests, mutation
+  static:
+    name: Format, lint, types
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js 22
-        uses: actions/setup-node@v4
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: 22
           cache: npm
-
-      - name: Install dependencies
-        run: npm ci
-
+      - run: npm ci
       - name: Prettier
         run: npm run format:check
-
       - name: ESLint
         run: npm run lint
-
       - name: TypeScript
         run: npm run typecheck
+      - name: Perimetres de mutation exhaustifs
+        run: npm run test:mutation:verify
 
+  test:
+    name: Tests unitaires + couverture
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
       - name: Tests unitaires + couverture (seuil 80 % / domaine 100 %)
         run: npm run test:coverage
-
-      - name: Mutation testing Stryker (seuil 90 %)
-        run: npm run test:mutation
-
       - name: Publier le rapport de couverture
         if: always()
         uses: actions/upload-artifact@v4
@@ -50,13 +62,73 @@ jobs:
           path: coverage/
           if-no-files-found: ignore
 
-      - name: Publier le rapport de mutation
+  build:
+    name: Build Next.js
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+
+  mutation:
+    name: Mutation ${{ matrix.name }}
+    runs-on: ubuntu-latest
+    strategy:
+      # Un shard rouge ne doit pas masquer le score des autres : on veut le
+      # rapport complet pour pouvoir fusionner et diagnostiquer.
+      fail-fast: false
+      matrix:
+        # Repartition calee sur le temps mesure de chaque perimetre (domaine
+        # ~77 s, hooks ~104 s, api ~26 s en execution seule sur 4 vCPU).
+        # Ajouter un shard = ajouter une ligne : le decoupage des fichiers est
+        # recalcule automatiquement par scripts/mutation.mjs.
+        include:
+          - { name: domain-1, scope: domain, shard: 1/2 }
+          - { name: domain-2, scope: domain, shard: 2/2 }
+          - { name: hooks-1, scope: hooks, shard: 1/2 }
+          - { name: hooks-2, scope: hooks, shard: 2/2 }
+          - { name: api, scope: api, shard: 1/1 }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Mutation testing (${{ matrix.scope }}, shard ${{ matrix.shard }})
+        run: node scripts/mutation.mjs --scope ${{ matrix.scope }} --shard ${{ matrix.shard }}
+      - name: Publier le rapport du shard
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: mutation-report-${{ matrix.name }}
+          path: reports/mutation/
+          if-no-files-found: error
+
+  mutation-gate:
+    name: Seuil de mutation (90 %)
+    runs-on: ubuntu-latest
+    needs: mutation
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Recuperer les rapports des shards
+        uses: actions/download-artifact@v4
+        with:
+          pattern: mutation-report-*
+          path: reports/mutation
+      - name: Fusionner et appliquer le seuil
+        run: node scripts/mutation-report.mjs
+      - name: Publier le rapport fusionne
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: mutation-report
           path: reports/mutation/
           if-no-files-found: ignore
-
-      - name: Build Next.js
-        run: npm run build
