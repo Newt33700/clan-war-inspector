@@ -385,7 +385,12 @@ export function PlayerDrawer({ tag, onClose }: PlayerDrawerProps) {
         aria-hidden={!isOpen}
         aria-labelledby="player-drawer-title"
         tabIndex={-1}
-        className={`bg-cr-panel-light fixed inset-y-0 right-0 z-50 w-full overflow-y-auto border-l-2 border-black p-6 shadow-xl transition-transform duration-300 sm:w-[400px] ${
+        // pb-tab-bar (US 14.7) : ce panneau est un `fixed` independant du
+        // flux de la page, donc hors de la protection deja assuree par
+        // `<main>`/`<Footer>` -- sans elle, la derniere section (combats
+        // recents) se retrouvait tronquee par la MobileTabBar et la zone
+        // sure iOS. Neutralisee a partir de `md` (MobileTabBar masquee).
+        className={`bg-cr-panel-light pb-tab-bar fixed inset-y-0 right-0 z-50 w-full overflow-y-auto border-l-2 border-black p-6 shadow-xl transition-transform duration-300 sm:w-[400px] md:pb-6 ${
           isOpen ? 'translate-x-0' : 'pointer-events-none translate-x-full'
         }`}
       >
