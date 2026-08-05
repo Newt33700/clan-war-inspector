@@ -78,7 +78,9 @@ function CardsGrid({ deck, t }: { deck: PlayerProfile['deck']; t: Translate }) {
             <img
               src={card.iconUrl}
               alt={card.name}
-              className="h-10 w-10 object-contain"
+              className={`h-10 w-10 object-contain ${
+                card.isEvolved ? 'ring-cr-gold rounded ring-2' : ''
+              }`}
             />
           ) : (
             <div className="h-10 w-10 rounded bg-slate-300" aria-hidden="true" />
@@ -88,9 +90,18 @@ function CardsGrid({ deck, t }: { deck: PlayerProfile['deck']; t: Translate }) {
           </span>
           <span
             data-testid="deck-card-level"
-            className="text-royale-blue-800 text-[10px] font-semibold tabular-nums"
+            className={`text-[10px] font-semibold tabular-nums ${
+              card.isEvolved ? 'text-cr-gold' : 'text-royale-blue-800'
+            }`}
           >
             {t('playerDrawer.cardLevel', { level: card.level })}
+            {card.isEvolved && (
+              <>
+                {' '}
+                <span aria-hidden="true">✦</span>
+                <span className="sr-only"> {t('playerDrawer.evolvedBadge')}</span>
+              </>
+            )}
           </span>
         </div>
       ))}

@@ -225,6 +225,7 @@ const it = {
     deckUnavailableDescription:
       'Nessun mazzo attuale né carta preferita in questo profilo.',
     cardLevel: 'Liv. {level}',
+    evolvedBadge: 'Evoluta',
     cardCollectionTitle: 'Collezione di carte',
     cardsObtained: '{count} carte ottenute',
     cardLevelRow: 'Livello {level}',

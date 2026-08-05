@@ -1617,6 +1617,22 @@ Critères d'acceptation :
   fois le deck affiche et la repartition « Collection de cartes » par
   niveau (`summarizeCardsByLevel`), qui consomment la meme fonction de
   parsing.
+- ✅ **Artwork des cartes evoluees dans la fiche joueur** (2026-08-05) :
+  l'API expose `evolutionLevel`/`maxEvolutionLevel` par carte ainsi
+  qu'une image dediee `iconUrls.evolutionMedium` (aura speciale) pour
+  toute carte dont l'evolution est actuellement equipee — jusqu'ici
+  ignores, le site affichait toujours l'artwork standard.
+  `domain/player/player-profile.ts` expose desormais `isEvolved` et
+  bascule l'`iconUrl` sur l'artwork evolue quand `evolutionLevel > 0`,
+  applique au deck comme a la collection complete. Cote UI
+  (`player-drawer.tsx`), une carte evoluee gagne un liseré doré autour
+  de son icone et un symbole ✦ avec libelle accessible « Évoluée »
+  (jamais la couleur seule) a cote du niveau. Les cartes de rarete
+  « championne » (Golden Knight, Archer Queen, etc., alias « héros ») ne
+  necessitaient aucune correction : leur niveau et leur image passaient
+  deja par les memes chemins de parsing, corrects depuis le fix
+  precedent. Verifie sur un membre reel du clan `#20J20QG` ayant 4 cartes
+  evoluees actives dans son deck.
 
 ### Dette de test assumée (à reprendre par la passe testing)
 

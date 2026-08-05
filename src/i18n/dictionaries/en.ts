@@ -216,6 +216,7 @@ const en = {
     deckUnavailableTitle: 'Deck unavailable',
     deckUnavailableDescription: 'No current deck or favorite card in this profile.',
     cardLevel: 'Lvl. {level}',
+    evolvedBadge: 'Evolved',
     cardCollectionTitle: 'Card collection',
     cardsObtained: '{count} cards obtained',
     cardLevelRow: 'Level {level}',
