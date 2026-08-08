@@ -35,10 +35,9 @@ interface DashboardViewProps {
   tag: string;
   clanSeed: ServerResourceResult<unknown>;
   warSeed?: ServerResourceResult<unknown>;
-  logSeed?: ServerResourceResult<unknown>;
 }
 
-export function DashboardView({ tag, clanSeed, warSeed, logSeed }: DashboardViewProps) {
+export function DashboardView({ tag, clanSeed, warSeed }: DashboardViewProps) {
   const { t } = useTranslations();
   const clanPath = `/api/clans/${toApiTagSegment(tag)}`;
   const [sortKey, setSortKey] = useState<MemberSortKey>('role');
@@ -47,17 +46,15 @@ export function DashboardView({ tag, clanSeed, warSeed, logSeed }: DashboardView
   const { openPlayer } = usePlayerDrawer();
 
   const clanState = useApiResource<unknown>(clanPath, clanSeed);
-  // La guerre en cours et l'historique ne sont charges qu'une fois le clan
-  // confirme (US 6.3) : sinon un tag valide mais inexistant declenche des
-  // requetes vouees au 404, affichees comme des alertes redondantes.
+  // La guerre en cours n'est chargee qu'une fois le clan confirme (US 6.3) :
+  // sinon un tag valide mais inexistant declenche des requetes vouees au
+  // 404, affichees comme des alertes redondantes. Hall of Fame et
+  // Participation partagent cette meme ressource (2026-08-05) : plus
+  // besoin du fetch separe de /riverracelog sur ce tableau de bord.
   const clanConfirmed = clanState.status === 'success';
   const warState = useApiResource<unknown>(
     clanConfirmed ? `${clanPath}/currentriverrace` : null,
     warSeed,
-  );
-  const logState = useApiResource<unknown>(
-    clanConfirmed ? `${clanPath}/riverracelog` : null,
-    logSeed,
   );
 
   const summary = useMemo(
@@ -105,7 +102,7 @@ export function DashboardView({ tag, clanSeed, warSeed, logSeed }: DashboardView
         <>
           <div className="grid grid-cols-1 gap-8 md:grid-cols-[minmax(0,1fr)_2fr]">
             <ParticipationSummarySection warState={warState} memberTags={memberTags} />
-            <HallOfFameSection logState={logState} clanTag={tag} />
+            <HallOfFameSection warState={warState} />
           </div>
 
           <CurrentWarSection warState={warState} memberTags={memberTags} />

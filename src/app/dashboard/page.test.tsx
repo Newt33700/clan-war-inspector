@@ -137,15 +137,11 @@ describe('DashboardPage', () => {
 
   it('affiche la guerre en cours deja resolue cote serveur', async () => {
     mockServer.use(
-      http.get(`${SUPERCELL_API_BASE_URL}/clans/*`, ({ request }) => {
-        if (request.url.includes('currentriverrace')) {
-          return HttpResponse.json(FIXTURE_RIVER_RACE_IDLE);
-        }
-        if (request.url.includes('riverracelog')) {
-          return HttpResponse.json({ items: [] });
-        }
-        return HttpResponse.json(FIXTURE_FULL_CLAN);
-      }),
+      http.get(`${SUPERCELL_API_BASE_URL}/clans/*`, ({ request }) =>
+        request.url.includes('currentriverrace')
+          ? HttpResponse.json(FIXTURE_RIVER_RACE_IDLE)
+          : HttpResponse.json(FIXTURE_FULL_CLAN),
+      ),
     );
 
     await renderPage({ clan: '#20PP' });

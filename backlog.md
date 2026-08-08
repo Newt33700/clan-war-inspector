@@ -1633,6 +1633,37 @@ Critères d'acceptation :
   deja par les memes chemins de parsing, corrects depuis le fix
   precedent. Verifie sur un membre reel du clan `#20J20QG` ayant 4 cartes
   evoluees actives dans son deck.
+- ✅ **Deux bugs corriges — retour du clan French 4 (`#QC29VC08`)**
+  (2026-08-05) :
+  - **Participation de la semaine** : le denominateur (« combats
+    possibles ») se basait sur l'intersection des membres actuels avec
+    les participants deja inscrits a la guerre en cours
+    (`currentriverrace.clan.participants`), pas sur l'effectif reel du
+    clan. Un membre qui rejoint apres le debut de la guerre n'apparait
+    dans cette liste qu'a la guerre suivante (quirk connu de l'API
+    Supercell) : le denominateur affichait alors un effectif inferieur
+    au vrai total (`domain/war/participation.ts`,
+    `computeWeeklyParticipation`). Corrige en basant `battlesPossible`
+    sur `memberTags.length` (effectif actuel) plutot que sur les seuls
+    membres deja enregistres a la guerre. Verifie sur le clan reel :
+    50 membres actuels, jauge desormais bien sur 800 combats possibles
+    (50 × 16).
+  - **Hall of Fame** : affichait le classement par fame de la
+    **derniere semaine complete** du `riverracelog` (design initial de
+    l'US 8), pas la semaine en cours — un instantane fige plutot qu'un
+    classement vivant. `domain/war/current-war.ts` expose desormais
+    `fame` par participant (deja fourni par
+    `/currentriverrace.clan.participants`, jusqu'ici ignore).
+    `domain/clan/hall-of-fame.ts` entierement reecrit : `topByFame` est
+    une fonction pure de tri/troncature sur des participants deja
+    parses, sans plus avoir besoin de rechercher le clan cible dans un
+    log multi-clans/multi-semaines (`findWeeklyTopFame` et son parsing
+    associe supprimes). `HallOfFameSection` consomme desormais
+    `warState` (`/currentriverrace`, deja charge pour Guerre en cours
+    et Participation) au lieu de `logState`
+    (`/riverracelog`) — le Dashboard n'a donc plus besoin de fetcher
+    l'historique du tout, une requete Supercell en moins par
+    chargement de page.
 
 ### Dette de test assumée (à reprendre par la passe testing)
 

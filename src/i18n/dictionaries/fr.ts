@@ -147,7 +147,7 @@ const fr = {
     title: 'Hall of Fame',
     loadingLabel: 'Chargement du Hall of Fame',
     emptyTitle: 'Pas encore de classement',
-    emptyDescription: 'Revenez à la fin de la semaine de guerre pour voir le podium.',
+    emptyDescription: 'Le podium s affichera des que la guerre de clans commencera.',
     fame: 'fame',
   },
   participation: {

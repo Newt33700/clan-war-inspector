@@ -35,15 +35,11 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
 
   const clanResult = await fetchClanResource<unknown>(tag, '');
   let warResult: ServerResourceResult<unknown> | undefined;
-  let logResult: ServerResourceResult<unknown> | undefined;
-  // La guerre en cours et l'historique ne sont fetches qu'une fois le clan
-  // confirme (US 6.3) : un tag valide mais inexistant ne declenche qu'une
-  // seule alerte, pas trois requetes vouees au 404.
+  // La guerre en cours n'est fetchee qu'une fois le clan confirme (US 6.3) :
+  // un tag valide mais inexistant ne declenche qu'une seule alerte, pas
+  // deux requetes vouees au 404.
   if (clanResult.status === 'success') {
-    [warResult, logResult] = await Promise.all([
-      fetchClanResource<unknown>(tag, '/currentriverrace'),
-      fetchClanResource<unknown>(tag, '/riverracelog'),
-    ]);
+    warResult = await fetchClanResource<unknown>(tag, '/currentriverrace');
   }
 
   return (
@@ -52,12 +48,7 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
         {t('pages.dashboardTitle')}
       </h1>
       <ClanSearchForm hasActiveClan={true} />
-      <DashboardView
-        tag={tag}
-        clanSeed={clanResult}
-        warSeed={warResult}
-        logSeed={logResult}
-      />
+      <DashboardView tag={tag} clanSeed={clanResult} warSeed={warResult} />
     </div>
   );
 }

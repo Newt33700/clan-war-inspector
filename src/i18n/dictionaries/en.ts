@@ -140,7 +140,7 @@ const en = {
     title: 'Hall of Fame',
     loadingLabel: 'Loading Hall of Fame',
     emptyTitle: 'No rankings yet',
-    emptyDescription: 'Come back at the end of the war week to see the podium.',
+    emptyDescription: 'The podium will show up once the clan war starts.',
     fame: 'fame',
   },
   participation: {
