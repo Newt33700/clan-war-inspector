@@ -65,11 +65,13 @@ describe('parseCurrentWar', () => {
   it('delegue le parsing des participants a raw.clan', () => {
     const war = parseCurrentWar({
       clan: {
-        participants: [{ tag: '#P1', name: 'A', decksUsedToday: 2, decksUsed: 10 }],
+        participants: [
+          { tag: '#P1', name: 'A', decksUsedToday: 2, decksUsed: 10, fame: 300 },
+        ],
       },
     });
     expect(war.participants).toEqual([
-      { tag: '#P1', name: 'A', decksUsedToday: 2, decksUsed: 10 },
+      { tag: '#P1', name: 'A', decksUsedToday: 2, decksUsed: 10, fame: 300 },
     ]);
   });
 
@@ -127,20 +129,55 @@ describe('parseCurrentWar', () => {
     const war = parseCurrentWar({
       clan: {
         participants: [
-          { tag: '#P1', decksUsedToday: 1, decksUsed: 5 },
-          { tag: ' p1 ', decksUsedToday: 3, decksUsed: 2 },
+          { tag: '#P1', decksUsedToday: 1, decksUsed: 5, fame: 100 },
+          { tag: ' p1 ', decksUsedToday: 3, decksUsed: 2, fame: 300 },
         ],
       },
     });
     expect(war.participants).toHaveLength(1);
-    expect(war.participants[0]).toMatchObject({ decksUsedToday: 3, decksUsed: 5 });
+    expect(war.participants[0]).toMatchObject({
+      decksUsedToday: 3,
+      decksUsed: 5,
+      fame: 300,
+    });
+  });
+
+  it('borne une fame manquante ou aberrante a 0 (Hall of Fame, US 8)', () => {
+    const war = parseCurrentWar({
+      clan: {
+        participants: [
+          { tag: '#P1', fame: 'oops' },
+          { tag: '#P2', fame: -5 },
+        ],
+      },
+    });
+    expect(war.participants.every((p) => p.fame === 0)).toBe(true);
+  });
+
+  it('coerce une fame serialisee en chaine', () => {
+    const war = parseCurrentWar({
+      clan: { participants: [{ tag: '#P1', fame: '3200' }] },
+    });
+    expect(war.participants[0]?.fame).toBe(3200);
+  });
+
+  it('ne sous-evalue jamais la fame d un doublon deja meilleur (ordre inverse)', () => {
+    const war = parseCurrentWar({
+      clan: {
+        participants: [
+          { tag: '#P1', fame: 300 },
+          { tag: ' p1 ', fame: 100 },
+        ],
+      },
+    });
+    expect(war.participants[0]?.fame).toBe(300);
   });
 });
 
 describe('annotateWithMembership', () => {
   const participants = [
-    { tag: '#P1', name: 'A', decksUsedToday: 1, decksUsed: 1 },
-    { tag: '#P2', name: 'B', decksUsedToday: 1, decksUsed: 1 },
+    { tag: '#P1', name: 'A', decksUsedToday: 1, decksUsed: 1, fame: 0 },
+    { tag: '#P2', name: 'B', decksUsedToday: 1, decksUsed: 1, fame: 0 },
   ];
 
   it('marque stillInClan vrai pour un tag present dans memberTags', () => {
@@ -172,6 +209,7 @@ describe('sortByUrgency', () => {
       name: 'Nom',
       decksUsedToday: 0,
       decksUsed: 0,
+      fame: 0,
       stillInClan: true,
       ...overrides,
     };

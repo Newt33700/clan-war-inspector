@@ -206,10 +206,16 @@ export const FIXTURE_RIVER_RACE_IN_PROGRESS: RiverRace = {
     tag: '#20PP',
     name: 'Test Clan',
     participants: [
-      { tag: '#PLAYER1', name: 'Joueur 1', decksUsedToday: 4, decksUsed: 4 },
-      { tag: '#PLAYER2', name: 'Joueur 2', decksUsedToday: 2, decksUsed: 14 },
-      { tag: '#PLAYER3', name: 'Joueur 3', decksUsedToday: 0, decksUsed: 5 },
-      { tag: '#PLAYER9', name: 'Parti En Guerre', decksUsedToday: 0, decksUsed: 8 },
+      { tag: '#PLAYER1', name: 'Joueur 1', decksUsedToday: 4, decksUsed: 4, fame: 3200 },
+      { tag: '#PLAYER2', name: 'Joueur 2', decksUsedToday: 2, decksUsed: 14, fame: 2100 },
+      { tag: '#PLAYER3', name: 'Joueur 3', decksUsedToday: 0, decksUsed: 5, fame: 800 },
+      {
+        tag: '#PLAYER9',
+        name: 'Parti En Guerre',
+        decksUsedToday: 0,
+        decksUsed: 8,
+        fame: 0,
+      },
     ],
   },
 };

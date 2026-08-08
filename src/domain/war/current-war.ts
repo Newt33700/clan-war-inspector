@@ -3,11 +3,14 @@
  *
  * Parse la reponse brute de /currentriverrace : etat de la guerre, type de
  * jour (entrainement / bataille), et pour chaque participant les decks
- * joues aujourd'hui (sur 4) et sur la semaine (sur 16). Parsing pur et
- * defensif, comme le moteur d'historique.
+ * joues aujourd'hui (sur 4), sur la semaine (sur 16), et la fame
+ * accumulee (Hall of Fame, US 8 -- revise le 2026-08-05 pour refleter la
+ * semaine en cours plutot que la derniere semaine complete du log).
+ * Parsing pur et defensif, comme le moteur d'historique.
  */
 
 import { canonicalizePlayerTag } from '../clan/player-tag';
+import { toSafeCount } from '../shared/numeric';
 import { clampCount } from './clamp';
 import { BATTLES_PER_WAR_WEEK } from './war-history';
 
@@ -24,6 +27,8 @@ export interface CurrentWarParticipant {
   decksUsedToday: number;
   /** Decks joues sur la semaine, borne [0, 16]. */
   decksUsed: number;
+  /** Fame accumulee sur la semaine de guerre en cours (Hall of Fame, US 8). */
+  fame: number;
 }
 
 /**
@@ -73,6 +78,7 @@ function parseParticipants(raw: unknown): CurrentWarParticipant[] {
     }
     const decksUsedToday = clampCount(candidate.decksUsedToday, DECKS_PER_DAY);
     const decksUsed = clampCount(candidate.decksUsed, BATTLES_PER_WAR_WEEK);
+    const fame = toSafeCount(candidate.fame);
     const name =
       typeof candidate.name === 'string' && candidate.name.length > 0
         ? candidate.name
@@ -80,11 +86,12 @@ function parseParticipants(raw: unknown): CurrentWarParticipant[] {
 
     const existing = byTag.get(tag);
     if (existing === undefined) {
-      byTag.set(tag, { tag, name, decksUsedToday, decksUsed });
+      byTag.set(tag, { tag, name, decksUsedToday, decksUsed, fame });
     } else {
       // Doublon de tag : ne jamais sous-evaluer l'activite du joueur.
       existing.decksUsedToday = Math.max(existing.decksUsedToday, decksUsedToday);
       existing.decksUsed = Math.max(existing.decksUsed, decksUsed);
+      existing.fame = Math.max(existing.fame, fame);
     }
   }
   return [...byTag.values()];

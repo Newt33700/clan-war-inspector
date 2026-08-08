@@ -142,7 +142,7 @@ const es = {
     title: 'Hall of Fame',
     loadingLabel: 'Cargando el Hall of Fame',
     emptyTitle: 'Todavía sin clasificación',
-    emptyDescription: 'Vuelve al final de la semana de guerra para ver el podio.',
+    emptyDescription: 'El podio aparecera en cuanto comience la guerra de clanes.',
     fame: 'fama',
   },
   participation: {

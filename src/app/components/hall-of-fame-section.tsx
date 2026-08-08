@@ -1,15 +1,20 @@
 'use client';
 
 /**
- * "Hall of Fame" (US 8) : podium des 3 meilleures fames de la derniere
- * semaine de guerre complete, en Hero au sommet du dashboard.
+ * "Hall of Fame" (US 8, revise le 2026-08-05) : podium des 3 meilleures
+ * fames de la semaine de guerre EN COURS, en Hero au sommet du dashboard --
+ * retour utilisateur du clan French 4 (#QC29VC08) : la fame doit refleter
+ * l'etat actuel de la guerre, pas un instantane fige de la semaine
+ * precedente. Partage `warState` (`/currentriverrace`) avec
+ * `CurrentWarSection`, qui expose deja `fame` par participant.
  *
  * L'API Supercell n'expose pas de photo de profil joueur : l'avatar est
  * remplace par un badge de rang, comme pour l'icone d'arene de l'US 7.
  */
 
 import { useMemo } from 'react';
-import { findWeeklyTopFame, type HallOfFameEntry } from '@/domain/clan/hall-of-fame';
+import { topByFame, type HallOfFameEntry } from '@/domain/clan/hall-of-fame';
+import { parseCurrentWar } from '@/domain/war/current-war';
 import type { ApiResource } from '@/hooks/use-api-resource';
 import { EmptyState } from './empty-state';
 import { TrophyIcon } from './section-icons';
@@ -17,9 +22,8 @@ import { Skeleton } from './skeleton';
 import { useTranslations } from './i18n/locale-provider';
 
 interface HallOfFameSectionProps {
-  /** Etat du chargement de /riverracelog, pilote par le dashboard. */
-  logState: ApiResource<unknown>;
-  clanTag: string;
+  /** Etat du chargement de /currentriverrace, pilote par le dashboard. */
+  warState: ApiResource<unknown>;
 }
 
 type Rank = 1 | 2 | 3;
@@ -101,16 +105,18 @@ function PodiumCard({
   );
 }
 
-export function HallOfFameSection({ logState, clanTag }: HallOfFameSectionProps) {
+export function HallOfFameSection({ warState }: HallOfFameSectionProps) {
   const { t } = useTranslations();
   const top3 = useMemo(
     () =>
-      logState.status === 'success' ? findWeeklyTopFame(logState.data, clanTag) : [],
-    [logState, clanTag],
+      warState.status === 'success'
+        ? topByFame(parseCurrentWar(warState.data).participants)
+        : [],
+    [warState],
   );
 
-  if (logState.status === 'idle' || logState.status === 'error') {
-    // L'erreur est deja signalee par WarHistorySection sur la meme
+  if (warState.status === 'idle' || warState.status === 'error') {
+    // L'erreur est deja signalee par CurrentWarSection sur la meme
     // ressource : pas de bandeau redondant en tete de page.
     return null;
   }
@@ -125,7 +131,7 @@ export function HallOfFameSection({ logState, clanTag }: HallOfFameSectionProps)
         {t('hallOfFame.title')}
       </h2>
 
-      {logState.status === 'loading' && (
+      {warState.status === 'loading' && (
         <div
           className="flex items-end justify-center gap-6"
           role="status"
@@ -137,7 +143,7 @@ export function HallOfFameSection({ logState, clanTag }: HallOfFameSectionProps)
         </div>
       )}
 
-      {logState.status === 'success' &&
+      {warState.status === 'success' &&
         (top3.length === 0 ? (
           <EmptyState
             icon={<CrownIcon className="h-10 w-10" />}

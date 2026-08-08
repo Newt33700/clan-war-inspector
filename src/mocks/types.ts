@@ -122,6 +122,7 @@ export interface RiverRace {
       decksUsedToday?: number;
       decksUsed?: number;
       wins?: number;
+      fame?: number;
     }[];
   };
   colosseum?: {

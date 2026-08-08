@@ -1,24 +1,23 @@
 import { render, screen } from '@/test-utils';
 import { describe, expect, it } from 'vitest';
-import { FIXTURE_RIVER_RACE_LOG } from '@/mocks/fixtures';
+import {
+  FIXTURE_RIVER_RACE_IN_PROGRESS,
+  FIXTURE_RIVER_RACE_IDLE,
+} from '@/mocks/fixtures';
 import { HallOfFameSection } from './hall-of-fame-section';
 
 describe('HallOfFameSection', () => {
   it('n affiche rien tant que idle', () => {
     const { container } = render(
-      <HallOfFameSection
-        logState={{ status: 'idle', refetch: () => undefined }}
-        clanTag="#20PP"
-      />,
+      <HallOfFameSection warState={{ status: 'idle', refetch: () => undefined }} />,
     );
     expect(container).toBeEmptyDOMElement();
   });
 
-  it('n affiche rien en erreur (deja signalee par l historique)', () => {
+  it('n affiche rien en erreur (deja signalee par la guerre en cours)', () => {
     const { container } = render(
       <HallOfFameSection
-        logState={{ status: 'error', message: 'oops', refetch: () => undefined }}
-        clanTag="#20PP"
+        warState={{ status: 'error', message: 'oops', refetch: () => undefined }}
       />,
     );
     expect(container).toBeEmptyDOMElement();
@@ -26,23 +25,19 @@ describe('HallOfFameSection', () => {
 
   it('affiche un squelette pendant le chargement', () => {
     render(
-      <HallOfFameSection
-        logState={{ status: 'loading', refetch: () => undefined }}
-        clanTag="#20PP"
-      />,
+      <HallOfFameSection warState={{ status: 'loading', refetch: () => undefined }} />,
     );
     expect(screen.getByRole('status')).toBeInTheDocument();
   });
 
-  it('affiche le podium top 3 tries par rang', () => {
+  it('affiche le podium top 3 tries par rang, base sur la guerre en cours', () => {
     render(
       <HallOfFameSection
-        logState={{
+        warState={{
           status: 'success',
-          data: FIXTURE_RIVER_RACE_LOG,
+          data: FIXTURE_RIVER_RACE_IN_PROGRESS,
           refetch: () => undefined,
         }}
-        clanTag="#20PP"
       />,
     );
     const cards = screen.getAllByTestId('podium-card');
@@ -52,11 +47,14 @@ describe('HallOfFameSection', () => {
     expect(screen.getByText('3200 fame')).toBeInTheDocument();
   });
 
-  it('affiche un etat vide illustre si aucune semaine complete n est disponible', () => {
+  it('affiche un etat vide illustre quand le clan n est pas en guerre', () => {
     render(
       <HallOfFameSection
-        logState={{ status: 'success', data: { items: [] }, refetch: () => undefined }}
-        clanTag="#20PP"
+        warState={{
+          status: 'success',
+          data: FIXTURE_RIVER_RACE_IDLE,
+          refetch: () => undefined,
+        }}
       />,
     );
     expect(screen.getByText(/pas encore de classement/i)).toBeInTheDocument();
