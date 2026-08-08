@@ -132,6 +132,23 @@ le decoupage des fichiers suit tout seul.
   par taille de fichier est pourtant equilibree : `use-api-resource.ts` est intrinsequement
   couteux a muter. Le decouper davantage ne gagnerait rien, il finirait seul dans un shard.
 
+## Pop-up d'aide par page
+
+Chaque page (`dashboard`, `historique`, `rh`, `nouveaux-membres`, `meteo`) expose un
+bouton "?" a cote de son titre (`src/app/components/page-help-button.tsx`) qui ouvre une
+pop-up expliquant, en francais courant pour un utilisateur non informaticien, ce que la
+page affiche et comment en lire les donnees. Le texte vit dans `pageHelp.<page>Title` /
+`pageHelp.<page>Body` des 4 dictionnaires i18n (`src/i18n/dictionaries/{fr,en,it,es}.ts`).
+
+**Toute evolution qui change une regle produit visible doit mettre a jour le texte de la
+pop-up correspondante, dans les 4 langues.** Exemples de changements concernes : un
+seuil, la source de donnee utilisee (guerre en cours vs. log archive), une fenetre
+temporelle (ex. les 5 dernieres semaines de la Meteo), un denominateur (ex. l'effectif
+utilise par la Participation). Une pop-up qui decrit un comportement perime est pire
+qu'absente : elle induit l'utilisateur en erreur avec une fausse autorite. C'est cette
+confusion (retour du clan French 4, #QC29VC08, 2026-08-08 : "comment doit fonctionner la
+Meteo ?") qui a motive la fonctionnalite — ne la laissez pas se reproduire.
+
 ## Conventions d'ecriture
 
 - Commentaires et documentation **en francais, sans accents** (coherent avec l'existant).

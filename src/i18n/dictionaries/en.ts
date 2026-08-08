@@ -71,6 +71,25 @@ const en = {
     nouveauxMembresTitle: 'Quarantine zone',
     nouveauxMembresIdle: 'Enter your clan tag or name to display the quarantine zone.',
   },
+  pageHelp: {
+    openLabel: 'Learn more about "{title}"',
+    close: 'Close',
+    dashboardTitle: 'What is this page for?',
+    dashboardBody:
+      'The Dashboard shows the clan\'s situation right now: the full member list, and the current clan war (who has already played their battles this week, who hasn\'t yet).\n\nAt the top, "Weekly Participation" shows how many battles have been played out of the total possible (16 battles per current member). The "Hall of Fame" shows the top 3 fame scores of the ongoing war, updated live throughout the week.\n\nThis page refreshes every time you reload it: it always reflects the current situation, not a snapshot of a past week.',
+    historiqueTitle: 'What is this page for?',
+    historiqueBody:
+      "History looks back at clan wars that have already ended, week by week (up to 10 weeks back). For each current member, you can see how many battles they played in each past war.\n\nUnlike the Dashboard, this page never shows the ongoing war: it's meant to spot long-term habits (who plays regularly, who has gaps), not today's activity.",
+    rhTitle: 'What is this page for?',
+    rhBody:
+      "The HR Assistant helps you spot two kinds of members based on their war activity: those who deserve a promotion (very active and reliable) and those to watch (little to no activity in recent wars, potential candidates for removal).\n\nThis isn't an automatic decision: it's a list of suggestions, the call is yours. The thresholds used are adjustable and shown on the page.",
+    nouveauxMembresTitle: 'What is this page for?',
+    nouveauxMembresBody:
+      "The Quarantine screen isolates members who just joined and don't have any war history with you yet. For each one, a light (red / orange / green) sums up how much you can trust them, based on their overall player profile (previous clan, activity, etc.).\n\nA red or orange light doesn't mean \"remove automatically\": it's a decision aid before they take part in a war, while you form your own opinion.",
+    meteoTitle: 'What is this page for?',
+    meteoBody:
+      "Clan Weather spots drops in engagement before they become a problem. For each current member, it looks at their trend over the last 5 completed wars (not the ongoing one) and assigns a profile: The Rock (very active and steady), The Dropout (sharp drop underway), On the Rebound (strong improvement), The Tourist (chronically low activity), or Irregular.\n\nGood to know: a member who's too recent (fewer than 5 wars of history with you) doesn't show up in this table yet, while their history builds up. And since this page only looks at completed wars, it doesn't yet reflect battles from the ongoing war (already visible on the Dashboard).",
+  },
   dashboard: {
     membersTitle: 'Clan members',
     searchMemberLabel: 'Search a member',

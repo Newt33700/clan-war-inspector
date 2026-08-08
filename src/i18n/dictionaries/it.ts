@@ -75,6 +75,25 @@ const it = {
     nouveauxMembresIdle:
       'Inserisci il tag o il nome del tuo clan per visualizzare la zona di quarantena.',
   },
+  pageHelp: {
+    openLabel: 'Scopri di più su «{title}»',
+    close: 'Chiudi',
+    dashboardTitle: 'A cosa serve questa pagina?',
+    dashboardBody:
+      'La Dashboard mostra la situazione del clan in questo momento: l\'elenco completo dei membri e la guerra di clan in corso (chi ha già giocato i suoi combattimenti questa settimana, chi non ancora).\n\nIn alto, "Partecipazione della settimana" indica quanti combattimenti sono stati giocati sul totale possibile (16 combattimenti per ogni membro attuale). L\'"Hall of Fame" mostra i 3 migliori punteggi fama della guerra in corso, aggiornati in tempo reale per tutta la settimana.\n\nQuesta pagina si aggiorna a ogni ricarica: riflette sempre la situazione attuale, non una foto di una settimana passata.',
+    historiqueTitle: 'A cosa serve questa pagina?',
+    historiqueBody:
+      "Lo Storico ripercorre le guerre di clan già concluse, settimana per settimana (fino a 10 settimane indietro). Per ogni membro attuale, vedi quanti combattimenti ha giocato in ciascuna guerra passata.\n\nA differenza della Dashboard, questa pagina non mostra mai la guerra in corso: serve a individuare abitudini nel tempo (chi gioca regolarmente, chi ha dei vuoti), non l'attività del giorno.",
+    rhTitle: 'A cosa serve questa pagina?',
+    rhBody:
+      "L'Assistente RH ti aiuta a individuare due tipi di membri, in base alla loro attività in guerra: chi merita una promozione (molto attivo e affidabile) e chi tenere d'occhio (poco o per niente attivo nelle guerre recenti, potenziale candidato all'espulsione).\n\nNon è una decisione automatica: è un elenco di suggerimenti, la scelta spetta a te. Le soglie utilizzate sono regolabili e mostrate nella pagina.",
+    nouveauxMembresTitle: 'A cosa serve questa pagina?',
+    nouveauxMembresBody:
+      'La Zona di Quarantena isola i membri appena entrati che non hanno ancora nessuno storico di guerra da voi. Per ciascuno, una luce (rossa / arancione / verde) riassume quanto ci si può fidare, in base al suo profilo generale da giocatore (clan precedente, attività, ecc.).\n\nUna luce rossa o arancione non significa "espellere automaticamente": è un aiuto alla decisione prima che partecipi a una guerra, il tempo di farsi un\'idea.',
+    meteoTitle: 'A cosa serve questa pagina?',
+    meteoBody:
+      'La Meteo del Clan individua i cali di impegno prima che diventino un problema. Per ogni membro attuale, guarda la sua tendenza nelle ultime 5 guerre già concluse (non quella in corso) e gli assegna un profilo: La Roccia (molto attivo e stabile), Il Mollato (calo netto in corso), In Redenzione (forte miglioramento), Il Turista (attività cronicamente bassa) oppure Irregolare.\n\nDa sapere: un membro troppo recente (meno di 5 guerre di anzianità da voi) non compare ancora in questa tabella, in attesa che si costruisca il suo storico. E poiché questa pagina si basa solo su guerre concluse, non riflette ancora i combattimenti della guerra in corso (già visibile nella Dashboard).',
+  },
   dashboard: {
     membersTitle: 'Membri del clan',
     searchMemberLabel: 'Cerca un membro',
