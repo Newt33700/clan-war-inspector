@@ -2,6 +2,7 @@ import { fetchClanResource, type ServerResourceResult } from '@/lib/server-clan-
 import { resolveActiveClanTag } from '@/lib/resolve-clan-tag';
 import { getServerTranslator } from '@/i18n/get-translator';
 import { ClanSearchForm } from '../components/clan/clan-search-form';
+import { PageHelpButton } from '../components/page-help-button';
 import { SwordsIcon } from '../components/section-icons';
 import { DashboardView } from './dashboard-view';
 
@@ -26,6 +27,7 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
         <h1 className="text-royale-parchment font-display flex items-center gap-2 text-2xl tracking-wide">
           <SwordsIcon className="text-royale-red-700 h-6 w-6" />
           {t('pages.dashboardTitle')}
+          <PageHelpButton page="dashboard" />
         </h1>
         <ClanSearchForm hasActiveClan={false} />
         <p className="text-royale-parchment-dim">{t('pages.dashboardIdle')}</p>
@@ -44,8 +46,9 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
 
   return (
     <div className="space-y-6">
-      <h1 className="text-royale-parchment font-display text-2xl tracking-wide">
+      <h1 className="text-royale-parchment font-display flex items-center gap-2 text-2xl tracking-wide">
         {t('pages.dashboardTitle')}
+        <PageHelpButton page="dashboard" />
       </h1>
       <ClanSearchForm hasActiveClan={true} />
       <DashboardView tag={tag} clanSeed={clanResult} warSeed={warResult} />

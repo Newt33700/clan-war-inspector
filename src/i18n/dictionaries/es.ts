@@ -73,6 +73,25 @@ const es = {
     nouveauxMembresIdle:
       'Introduce el tag o el nombre de tu clan para mostrar la zona de cuarentena.',
   },
+  pageHelp: {
+    openLabel: 'Más información sobre «{title}»',
+    close: 'Cerrar',
+    dashboardTitle: '¿Para qué sirve esta página?',
+    dashboardBody:
+      'El Dashboard muestra la situación del clan en este momento: la lista completa de miembros y la guerra de clanes en curso (quién ya ha jugado sus combates esta semana, quién todavía no).\n\nArriba, «Participación de la semana» indica cuántos combates se han jugado sobre el total posible (16 combates por miembro actual). El «Hall of Fame» muestra los 3 mejores puntajes de fama de la guerra en curso, actualizados en vivo durante toda la semana.\n\nEsta página se actualiza cada vez que la recargas: siempre refleja la situación actual, no una foto de una semana pasada.',
+    historiqueTitle: '¿Para qué sirve esta página?',
+    historiqueBody:
+      'El Historial repasa las guerras de clanes ya terminadas, semana a semana (hasta 10 semanas atrás). Para cada miembro actual, ves cuántos combates jugó en cada guerra pasada.\n\nA diferencia del Dashboard, esta página nunca muestra la guerra en curso: sirve para detectar hábitos a largo plazo (quién juega con regularidad, quién tiene huecos), no la actividad del día.',
+    rhTitle: '¿Para qué sirve esta página?',
+    rhBody:
+      'El Asistente RH te ayuda a detectar dos tipos de miembros según su actividad en guerra: los que merecen un ascenso (muy activos y fiables) y los que hay que vigilar (poca o ninguna actividad en las guerras recientes, candidatos potenciales a expulsión).\n\nNo es una decisión automática: es una lista de sugerencias, la decisión final es tuya. Los umbrales usados son ajustables y se muestran en la página.',
+    nouveauxMembresTitle: '¿Para qué sirve esta página?',
+    nouveauxMembresBody:
+      'La Zona de Cuarentena aísla a los miembros que acaban de unirse y que todavía no tienen ningún historial de guerra contigo. Para cada uno, una luz (roja / naranja / verde) resume cuánto se puede confiar en él, según su perfil general de jugador (clan anterior, actividad, etc.).\n\nUna luz roja o naranja no significa «expulsar automáticamente»: es una ayuda para decidir antes de que participe en una guerra, mientras te haces una idea.',
+    meteoTitle: '¿Para qué sirve esta página?',
+    meteoBody:
+      'El Clima del Clan detecta caídas de compromiso antes de que se conviertan en un problema. Para cada miembro actual, analiza su tendencia en las últimas 5 guerras ya terminadas (no la que está en curso) y le asigna un perfil: La Roca (muy activo y estable), El Desertor (caída marcada en curso), En Redención (fuerte progresión), El Turista (actividad crónicamente baja) o Irregular.\n\nA tener en cuenta: un miembro demasiado reciente (menos de 5 guerras de antigüedad contigo) todavía no aparece en esta tabla, mientras se construye su historial. Y como esta página solo se basa en guerras terminadas, todavía no refleja los combates de la guerra en curso (ya visible en el Dashboard).',
+  },
   dashboard: {
     membersTitle: 'Miembros del clan',
     searchMemberLabel: 'Buscar un miembro',

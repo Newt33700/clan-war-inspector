@@ -78,6 +78,25 @@ const fr = {
     nouveauxMembresIdle:
       'Saisissez le tag ou le nom de votre clan pour afficher le sas de quarantaine.',
   },
+  pageHelp: {
+    openLabel: 'En savoir plus sur « {title} »',
+    close: 'Fermer',
+    dashboardTitle: 'À quoi sert cette page ?',
+    dashboardBody:
+      "Le Dashboard montre l'état du clan à l'instant présent : la liste de tous les membres, et la guerre de clan en cours (qui a déjà joué ses combats cette semaine, qui n'a pas encore joué).\n\nEn haut, la « Participation de la semaine » indique combien de combats ont été joués sur le total possible (16 combats par membre actuel). Le « Hall of Fame » montre les 3 meilleurs scores de fame de la guerre en cours, mis à jour en direct pendant toute la semaine.\n\nCette page se met à jour à chaque rechargement : elle reflète toujours la situation du moment, pas une photo d'une semaine passée.",
+    historiqueTitle: 'À quoi sert cette page ?',
+    historiqueBody:
+      "L'Historique retrace les guerres de clan déjà terminées, semaine par semaine (jusqu'à 10 semaines en arrière). Pour chaque membre actuel, vous voyez combien de combats il a joués à chaque guerre passée.\n\nContrairement au Dashboard, cette page ne montre jamais la guerre en cours : elle sert à repérer des habitudes sur la durée (qui joue régulièrement, qui a des trous), pas l'activité du jour.",
+    rhTitle: 'À quoi sert cette page ?',
+    rhBody:
+      "L'Assistant RH vous aide à repérer deux types de membres, à partir de leur activité en guerre : ceux qui méritent d'être promus (très actifs et fiables) et ceux à surveiller (peu ou pas actifs sur les guerres récentes, candidats potentiels à une exclusion).\n\nCe n'est pas une décision automatique : c'est une liste de suggestions, à vous de trancher. Les seuils utilisés sont réglables et affichés sur la page.",
+    nouveauxMembresTitle: 'À quoi sert cette page ?',
+    nouveauxMembresBody:
+      "Le Sas de Quarantaine isole les membres qui viennent de rejoindre le clan et qui n'ont encore aucun historique de guerre chez vous. Pour chacun, un feu (rouge / orange / vert) résume à quel point on peut lui faire confiance, en se basant sur son profil de joueur global (ancien clan, activité, etc.).\n\nUn feu rouge ou orange ne veut pas dire « à exclure automatiquement » : c'est une aide à la décision avant qu'il ne participe à une guerre, le temps de se faire un avis.",
+    meteoTitle: 'À quoi sert cette page ?',
+    meteoBody:
+      "La Météo du Clan repère les baisses d'engagement avant qu'elles ne deviennent un problème. Pour chaque membre actuel, elle regarde sa tendance sur les 5 dernières guerres déjà terminées (pas la guerre en cours) et lui attribue un profil : Le Roc (très actif et stable), Le Décrocheur (chute nette en cours), En Rédemption (forte progression), Le Touriste (faible activité chronique) ou Irrégulier.\n\nÀ savoir : un membre trop récent (moins de 5 guerres d'ancienneté chez vous) n'apparaît pas encore dans ce tableau, le temps de construire son historique. Et comme cette page se base uniquement sur des guerres terminées, elle ne reflète pas encore les combats de la guerre en cours (déjà visible sur le Dashboard).",
+  },
   dashboard: {
     membersTitle: 'Membres du clan',
     searchMemberLabel: 'Rechercher un membre',
